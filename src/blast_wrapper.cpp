@@ -35,8 +35,8 @@ RcppExport SEXP CreateNewBLASTInstance(SEXP seq_info, SEXP program, SEXP options
   // convert inputs to appropriate C++ types
   Rcpp::List seq_info_ = as<Rcpp::List>(seq_info);
   assert(seq_info_.size() == 3);
-  QuickBLAST::ESeqType seq_type = static_cast<QuickBLAST::ESeqType>( as<int>(seq_info_[0]) ); 
-  QuickBLAST::EStrand  strand = static_cast<QuickBLAST::EStrand>( as<int>(seq_info_[1]) );
+  QuickBLAST::ESeqType seq_type = static_cast<QuickBLAST::ESeqType>(as<int>(seq_info_[0]));
+  QuickBLAST::EStrand strand = static_cast<QuickBLAST::EStrand>(as<int>(seq_info_[1]));
   bool save_sequences = as<bool>(seq_info_[2]);
   std::string program_ = as<std::string>(program);
 
@@ -165,10 +165,10 @@ RcppExport SEXP BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension
 {
   int typ1 = TYPEOF(query);
   int typ2 = TYPEOF(subject);
-  
+
   assert(typ1 == LISTSXP || typ1 == VECSXP);
   assert(typ2 == LISTSXP || typ2 == VECSXP);
-  
+
   int seq_limit = -1;
   auto start = std::chrono::high_resolution_clock::now();
   Rcpp::XPtr<QuickBLAST> ptr_(ptr);
@@ -208,7 +208,7 @@ RcppExport SEXP BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension
   std::chrono::duration<double> elapsed_seconds = end - start;
   // Print the time in seconds
   Rcpp::Rcout << "Clock : " << elapsed_seconds.count() << " seconds" << std::endl;
-  return ret_lst; 
+  return ret_lst;
 }
 
 //' @name BLAST1Folder
@@ -229,10 +229,9 @@ RcppExport SEXP BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP o
 {
 
   int typ1 = TYPEOF(input_folder);
-  
+
   assert(typ1 == LISTSXP || typ1 == VECSXP);
-  
-  
+
   int seq_limit = -1;
   auto start = std::chrono::high_resolution_clock::now();
   Rcpp::XPtr<QuickBLAST> ptr_(ptr);
@@ -328,7 +327,6 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP outFile, SE
     return Rcpp::wrap(true);
   }
 }
-
 
 RCPP_MODULE(blast_module)
 {
