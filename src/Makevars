@@ -1,0 +1,3 @@
+CXXSTD = CXX17
+PKG_LIBS = -L/usr/local/lib/ -L/usr/lib/ -larrow -lparquet -lrt -lxncbi -lxobjsimple -lxobjmgr -lblastinput -lblast -lblastdb -lblastdb_format -lxblast -lpthread -lseq -lxser -lgeneral -lseqset -lxutil -lalign_format `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` `$(R_HOME)/bin/Rscript -e "Rcpp:::LdFlags()"` $(SHLIB_OPENMP_CXXFLAGS)
+PKG_CXXFLAGS = -O3 -fPIC -fpermissive -fopenmp -Wextra -shared -Ilibsrc `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` $(SHLIB_OPENMP_CXXFLAGS) -pthread -I/usr/local/src/ -I/usr/local/include/ncbi-tools++/ -I/usr/include/arrow/ -I/usr/include/parquet/ -I/usr/include/ 
