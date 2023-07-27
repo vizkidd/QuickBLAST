@@ -1,5 +1,8 @@
 # QuickBLAST
 
+Requires NCBI BLAST headers and libs to compile from source. [Binaries available here](https://github.com/vizkidd/QuickBLAST/releases/tag/binaries)
+
+
 ```R
 ??QuickBLAST
 ```
