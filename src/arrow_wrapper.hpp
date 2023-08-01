@@ -82,7 +82,11 @@ private:
 public:
   ~ArrowWrapper();
   ArrowWrapper();
-
+  void SetBatchSize(int batch_size)
+  {
+    assert(batch_size > 0);
+    this->rb_batch_size = batch_size;
+  }
   void FinishOutputStream();
   arrow::Status WriteBatch2File();
   std::shared_ptr<arrow::RecordBatch> ReadRecordBatchVector(const std::string &file);

@@ -8,7 +8,7 @@ BLAST2Files(
   ptr,
   query,
   subject,
-  outFile,
+  out_file,
   seq_limit,
   num_threads,
   show_progress,
@@ -22,7 +22,7 @@ BLAST2Files(
 
 \item{subject}{(string) Subject FASTA File}
 
-\item{outFile}{(string) Output Filename (Arrow Feather/IPC Format)}
+\item{out_file}{(string) Output Filename (Arrow Feather/IPC Format)}
 
 \item{seq_limit}{(int) Batch Size to BLAST at a time. { -1 = Whole File, 0 - One sequence at a time or > 0 }}
 

@@ -11,7 +11,7 @@ CreateNewBLASTInstance(seq_info, program, options)
 
 \item{program}{(string) Name of the BLAST program}
 
-\item{options}{(string (or) Named List) List of BLAST options - check COMPLETE::GetAvailableBLASTOptions()}
+\item{options}{(string (or) Named List) List of BLAST options - check QuickBLAST::GetAvailableBLASTOptions()}
 }
 \value{
 C++ Pointer of QuickBLAST Object (Cannot be used in R)

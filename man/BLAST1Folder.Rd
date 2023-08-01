@@ -4,7 +4,14 @@
 \alias{BLAST1Folder}
 \title{BLAST 1 Folder}
 \usage{
-BLAST1Folder(ptr, input_folder, extension, outFolder, num_threads)
+BLAST1Folder(
+  ptr,
+  input_folder,
+  extension,
+  out_folder,
+  num_threads,
+  reciprocal_hits
+)
 }
 \arguments{
 \item{ptr}{(QuickBLAST ptr) Pointer to QuickBLAST object created with CreateNewBLASTInstance().}
@@ -13,9 +20,11 @@ BLAST1Folder(ptr, input_folder, extension, outFolder, num_threads)
 
 \item{extension}{(std::string) Extension of FASTA files.}
 
-\item{outFolder}{(string) Output Folder}
+\item{out_folder}{(string) Output Folder}
 
 \item{num_threads}{(int) Number of Threads}
+
+\item{reciprocal_hits}{(bool) BLAST bi-directionally?}
 }
 \value{
 List of output filenames
@@ -24,5 +33,5 @@ List of output filenames
 BLAST the contents of a folder.
 }
 \note{
-Output file is named as $query-$subject.hits in the outFolder.
+Output file is named as $query-$subject.hits in the out_folder.
 }

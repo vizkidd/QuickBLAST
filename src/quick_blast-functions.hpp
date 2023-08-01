@@ -1,14 +1,20 @@
 #include "quick_blast.hpp"
 
 template <typename OptionsType>
-ncbi::blast::CBlastOptionsHandle *QuickBLAST::SetQuickBLASTOptions(const std::string &program_name, OptionsType &options)
+ncbi::blast::CBlastOptionsHandle *QuickBLAST::SetQuickBLASTOptions(const std::string &program_name, const OptionsType &options)
 {
+
+  this->program = program_name;
   if constexpr (std::is_same_v<OptionsType, std::string> || std::is_same_v<OptionsType, Rcpp::String>)
   {
+    // Rcpp::Rcout << "here1.1" << std::endl;
+    // Rcpp::Rcout << options << std::endl;
+    this->blast_options_str = options;
     return SetQuickBLASTOptions<std::string>(program_name, options);
   }
   else if constexpr (std::is_same_v<OptionsType, Rcpp::List>)
   {
+    this->blast_options_list = options;
     return SetQuickBLASTOptions<Rcpp::List>(program_name, options);
   }
   else
@@ -143,16 +149,17 @@ ncbi::blast::CBlastOptionsHandle *QuickBLAST::SetQuickBLASTOptions(const std::st
 }
 
 template <>
-ncbi::blast::CBlastOptionsHandle *QuickBLAST::SetQuickBLASTOptions(const std::string &program_name, Rcpp::List &options)
+ncbi::blast::CBlastOptionsHandle *QuickBLAST::SetQuickBLASTOptions(const std::string &program_name, const Rcpp::List &options)
 {
   assert(!program_name.empty());
-  for (int i = 0; i < options.size(); ++i)
+  Rcpp::List options_(options);
+  for (int i = 0; i < options_.size(); ++i)
   {
     // Check if the element is empty
-    if (Rf_isNull(options[i]))
+    if (Rf_isNull(options_[i]))
     {
       // Remove the empty element
-      options.erase(i);
+      options_.erase(i);
       --i; // Decrement the index since the list size has changed
     }
   }
@@ -163,13 +170,13 @@ ncbi::blast::CBlastOptionsHandle *QuickBLAST::SetQuickBLASTOptions(const std::st
   // Extract the relevant options from the R list and set them in the CBlastOptionsHandle object
   // Example: Extracting and setting the BLAST database
 
-  if (options.size() == 0 || options.isNULL())
+  if (options_.size() == 0 || options_.isNULL())
   {
     Rcpp::Rcout << "Using " << program_name << " Defaults..." << std::endl;
     return opts;
   }
 
-  Rcpp::CharacterVector keys = options.names();
+  Rcpp::CharacterVector keys = options_.names();
 
   std::unordered_map<std::string, std::size_t> hashMap;
 
@@ -196,77 +203,77 @@ ncbi::blast::CBlastOptionsHandle *QuickBLAST::SetQuickBLASTOptions(const std::st
 
     if (key == hashMap["evalue"])
     {
-      double val = Rcpp::as<double>(options["evalue"]);
+      double val = Rcpp::as<double>(options_["evalue"]);
       opts->SetEvalueThreshold(val);
     }
     else if (key == hashMap["pident"])
     {
-      double val = Rcpp::as<double>(options["pident"]);
+      double val = Rcpp::as<double>(options_["pident"]);
       opts->SetPercentIdentity(val);
     }
     else if (key == hashMap["gapped_mode"])
     {
-      bool val = Rcpp::as<bool>(options["gapped_mode"]);
+      bool val = Rcpp::as<bool>(options_["gapped_mode"]);
       opts->SetGappedMode(val);
     }
     else if (key == hashMap["filter_string"])
     {
-      std::string val = Rcpp::as<std::string>(options["filter_string"]);
+      std::string val = Rcpp::as<std::string>(options_["filter_string"]);
       opts->SetFilterString(val.c_str());
     }
     else if (key == hashMap["effective_search_space"])
     {
-      int val = Rcpp::as<int>(options["effective_search_space"]);
+      int val = Rcpp::as<int>(options_["effective_search_space"]);
       opts->SetEffectiveSearchSpace(val);
     }
     else if (key == hashMap["cutoff_score"])
     {
-      int val = Rcpp::as<int>(options["cutoff_score"]);
+      int val = Rcpp::as<int>(options_["cutoff_score"]);
       opts->SetCutoffScore(val);
     }
     else if (key == hashMap["gap_trigger"])
     {
-      double val = Rcpp::as<double>(options["gap_trigger"]);
+      double val = Rcpp::as<double>(options_["gap_trigger"]);
       opts->SetGapTrigger(val);
     }
     else if (key == hashMap["gap_x_dropoff"])
     {
-      double val = Rcpp::as<double>(options["gap_x_dropoff"]);
+      double val = Rcpp::as<double>(options_["gap_x_dropoff"]);
       opts->SetGapXDropoff(val);
     }
     else if (key == hashMap["gap_x_dropoff_final"])
     {
-      double val = Rcpp::as<double>(options["gap_x_dropoff_final"]);
+      double val = Rcpp::as<double>(options_["gap_x_dropoff_final"]);
       opts->SetGapXDropoffFinal(val);
     }
     else if (key == hashMap["hit_list_size"])
     {
-      int val = Rcpp::as<int>(options["hit_list_size"]);
+      int val = Rcpp::as<int>(options_["hit_list_size"]);
       opts->SetHitlistSize(val);
     }
     else if (key == hashMap["low_score_percentage"])
     {
-      double val = Rcpp::as<double>(options["low_score_percentage"]);
+      double val = Rcpp::as<double>(options_["low_score_percentage"]);
       opts->SetLowScorePerc(val);
     }
     else if (key == hashMap["max_hsp_per_subject"])
     {
-      int val = Rcpp::as<int>(options["max_hsp_per_subject"]);
+      int val = Rcpp::as<int>(options_["max_hsp_per_subject"]);
       opts->SetMaxHspsPerSubject(val);
     }
     else if (key == hashMap["max_hsp_per_sequence"])
     {
-      int val = Rcpp::as<int>(options["max_hsp_per_sequence"]);
+      int val = Rcpp::as<int>(options_["max_hsp_per_sequence"]);
       opts->SetMaxNumHspPerSequence(val);
     }
     else if (key == hashMap["qcovhsp_perc"])
     {
-      double val = Rcpp::as<double>(options["qcovhsp_perc"]);
+      double val = Rcpp::as<double>(options_["qcovhsp_perc"]);
       opts->SetQueryCovHspPerc(val);
     }
     else if (key == hashMap["window_size"])
     {
-      int val = Rcpp::as<int>(options["window_size"]);
+      int val = Rcpp::as<int>(options_["window_size"]);
       opts->SetWindowSize(val);
     }
   }
@@ -286,7 +293,8 @@ QuickBLAST::QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand
   arrow_wrapper = std::make_shared<ArrowWrapper>();
   this->save_sequences = save_sequences;
   this->program = program;
-  this->opts = SetQuickBLASTOptions<Rcpp::List>(program, options);
+  this->opts = CRef<ncbi::blast::CBlastOptionsHandle>(SetQuickBLASTOptions<Rcpp::List>(program, options));
+  // this->opts->DoNotDeleteThisObject();
   this->strand = strand;
   this->seq_type = seq_type;
   ok_promise.set_value(arrow::Status::OK());
@@ -297,6 +305,7 @@ QuickBLAST::QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand
 
 QuickBLAST::QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand, std::string program, std::string options, bool save_sequences)
 {
+
 #ifdef _OPENMP
   this->num_threads = omp_get_num_threads();
 #else
@@ -305,7 +314,8 @@ QuickBLAST::QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand
   arrow_wrapper = std::make_shared<ArrowWrapper>();
   this->save_sequences = save_sequences;
   this->program = program;
-  this->opts = SetQuickBLASTOptions<std::string>(program, options);
+  this->opts = CRef<ncbi::blast::CBlastOptionsHandle>(SetQuickBLASTOptions<std::string>(program, options));
+  // this->opts->DoNotDeleteThisObject();
   this->strand = strand;
   this->seq_type = seq_type;
   ok_promise.set_value(arrow::Status::OK());
@@ -324,6 +334,8 @@ QuickBLAST::~QuickBLAST()
   //  delete self;
   //  opts->ReleaseReference();
   // delete opts;
+
+  // delete arrow_wrapper;
 
   Rcpp::Rcout << "~QuickBLAST " << std::endl;
 }
@@ -383,10 +395,22 @@ SSeqLoc *QuickBLAST::CreateSSeqLocFromType(FastaSequenceData fasta_data, CRef<nc
     switch (strand)
     {
     case EStrand::ePlus:
-      cseq_loc_obj->SetStrand(eNa_strand_plus);
+      cseq_loc_obj->SetStrand(ENa_strand::eNa_strand_plus);
       break;
     case EStrand::eMinus:
-      cseq_loc_obj->SetStrand(eNa_strand_minus);
+      cseq_loc_obj->SetStrand(ENa_strand::eNa_strand_minus);
+      break;
+    case EStrand::eUnknown:
+      cseq_loc_obj->SetStrand(ENa_strand::eNa_strand_unknown);
+      break;
+    case EStrand::eBoth:
+      cseq_loc_obj->SetStrand(ENa_strand::eNa_strand_both);
+      break;
+    case EStrand::eBoth_rev:
+      cseq_loc_obj->SetStrand(ENa_strand::eNa_strand_both_rev);
+      break;
+    case EStrand::eOther:
+      cseq_loc_obj->SetStrand(ENa_strand::eNa_strand_other);
       break;
     }
   }
@@ -562,8 +586,8 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::ExtractHits(const TSeqAlignVecto
 
   int num_rows = 0;
 
-  arrow::Int8Builder length_builder, mismatch_builder, gapopen_builder, qstart_builder, qend_builder, sstart_builder, send_builder, gaps_builder, nident_builder, positive_builder, n_splices_builder, hsp_cnt_builder;
-  arrow::DoubleBuilder pident_builder, pident_gap_builder, evalue_builder, bitscore_builder, score_builder, qcovhsp_builder, blast_score_builder, aln_len01_builder;
+  arrow::Int8Builder length_builder, mismatch_builder, gapopen_builder, qstart_builder, qend_builder, sstart_builder, send_builder, gaps_builder, nident_builder, positive_builder, n_splices_builder, hsp_cnt_builder, negative_count_builder;
+  arrow::DoubleBuilder pident_builder, pident_gap_builder, evalue_builder, bitscore_builder, score_builder, qcovhsp_builder, blast_score_builder, aln_len01_builder, sum_evalue_builder, product_coverage_builder, overall_identity_builder, matches_builder, high_quality_percent_coverage_builder, exon_identity_builder, consensus_splices_builder, comp_adj_method_builder;
   arrow::StringBuilder frames_builder;
 
   for (const auto &seq_align_set : alignments)
@@ -586,14 +610,16 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::ExtractHits(const TSeqAlignVecto
 
         for (const auto &it : seq_aligns)
         {
+
           assert(!it.IsNull());
           if (!it.NotEmpty())
           {
             break;
           }
+
           assert(it->CanGetScore());
-          int score, n_splices, num_ident, aln_len, aln_len01, gaps, mismatches, positive, qstart, qend, sstart, send;
-          double bits, evalue, blast_score, pident, pident_gap, qcovhsp;
+          int score, n_splices, num_ident, aln_len, aln_len01, gaps, mismatches, positive, qstart, qend, sstart, send, negative_count;
+          double bits, evalue, blast_score, pident, pident_gap, qcovhsp, sum_evalue, product_coverage, overall_identity, high_quality_percent_coverage, exon_identity, consensus_splices, comp_adj_method, matches;
           std::string frames;
 
           it->GetNamedScore(CSeq_align::EScoreType::eScore_AlignLength, aln_len);
@@ -609,6 +635,17 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::ExtractHits(const TSeqAlignVecto
           it->GetNamedScore(CSeq_align::EScoreType::eScore_Score, score);
           it->GetNamedScore(CSeq_align::EScoreType::eScore_PositiveCount, positive);
           it->GetNamedScore(CSeq_align::EScoreType::eScore_Splices, n_splices);
+
+          it->GetNamedScore(CSeq_align::EScoreType::eScore_SumEValue, sum_evalue);
+          it->GetNamedScore(CSeq_align::EScoreType::eScore_ProductCoverage, product_coverage);
+          it->GetNamedScore(CSeq_align::EScoreType::eScore_OverallIdentity, overall_identity);
+          it->GetNamedScore(CSeq_align::EScoreType::eScore_NegativeCount, negative_count);
+          it->GetNamedScore(CSeq_align::EScoreType::eScore_Matches, matches);
+          it->GetNamedScore(CSeq_align::EScoreType::eScore_HighQualityPercentCoverage, high_quality_percent_coverage);
+          it->GetNamedScore(CSeq_align::EScoreType::eScore_ExonIdentity, exon_identity);
+          it->GetNamedScore(CSeq_align::EScoreType::eScore_ConsensusSplices, consensus_splices);
+          it->GetNamedScore(CSeq_align::EScoreType::eScore_CompAdjMethod, comp_adj_method);
+
           aln_len01 = it->AlignLengthRatio();
 
           qstart = it->GetSeqStart(0);
@@ -638,6 +675,15 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::ExtractHits(const TSeqAlignVecto
           positive_builder.Append(positive);
           n_splices_builder.Append(n_splices);
           hsp_cnt_builder.Append(num_rows + 1);
+          sum_evalue_builder.Append(sum_evalue);
+          product_coverage_builder.Append(product_coverage);
+          overall_identity_builder.Append(overall_identity);
+          negative_count_builder.Append(negative_count);
+          matches_builder.Append(matches);
+          high_quality_percent_coverage_builder.Append(high_quality_percent_coverage);
+          exon_identity_builder.Append(exon_identity);
+          consensus_splices_builder.Append(consensus_splices);
+          comp_adj_method_builder.Append(comp_adj_method);
 
           /// SEQ INFO
           qseqid_builder.Append(qseq_id);
@@ -646,7 +692,7 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::ExtractHits(const TSeqAlignVecto
           sseq_builder.Append(sseq);
           qlen_builder.Append(qseq.length());
           slen_builder.Append(sseq.length());
-          num_alignments_builder.Append(alignments.size());
+          num_alignments_builder.Append(seq_aligns.size());
 
           strand_builder.Append(strand);
           hsp_offset_builder.Append(1);
@@ -711,6 +757,24 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::ExtractHits(const TSeqAlignVecto
   n_splices_builder.Finish(&n_splices_array);
   std::shared_ptr<arrow::Array> hsp_cnt_array;
   hsp_cnt_builder.Finish(&hsp_cnt_array);
+  std::shared_ptr<arrow::Array> sum_evalue_array;
+  sum_evalue_builder.Finish(&sum_evalue_array);
+  std::shared_ptr<arrow::Array> product_coverage_array;
+  product_coverage_builder.Finish(&product_coverage_array);
+  std::shared_ptr<arrow::Array> overall_identity_array;
+  overall_identity_builder.Finish(&overall_identity_array);
+  std::shared_ptr<arrow::Array> negative_count_array;
+  negative_count_builder.Finish(&negative_count_array);
+  std::shared_ptr<arrow::Array> matches_array;
+  matches_builder.Finish(&matches_array);
+  std::shared_ptr<arrow::Array> high_quality_percent_coverage_array;
+  high_quality_percent_coverage_builder.Finish(&high_quality_percent_coverage_array);
+  std::shared_ptr<arrow::Array> exon_identity_array;
+  exon_identity_builder.Finish(&exon_identity_array);
+  std::shared_ptr<arrow::Array> consensus_splices_array;
+  consensus_splices_builder.Finish(&consensus_splices_array);
+  std::shared_ptr<arrow::Array> comp_adj_method_array;
+  comp_adj_method_builder.Finish(&comp_adj_method_array);
 
   arrow::Result<std::shared_ptr<arrow::StructArray>> aln_struct_array = arrow::StructArray::Make({pident_array,
                                                                                                   pident_gap_array,
@@ -731,8 +795,17 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::ExtractHits(const TSeqAlignVecto
                                                                                                   mismatch_array,
                                                                                                   positive_array,
                                                                                                   n_splices_array,
-                                                                                                  hsp_cnt_array},
-                                                                                                 {"pident", "pident_gap", "frames", "evalue", "length", "length01", "qstart", "qend", "sstart", "send", "bitscore", "score", "qcovhsp", "blast_score", "gaps", "nident", "mismatch", "positive", "n_splices", "hsp_num"});
+                                                                                                  hsp_cnt_array,
+                                                                                                  sum_evalue_array,
+                                                                                                  product_coverage_array,
+                                                                                                  overall_identity_array,
+                                                                                                  negative_count_array,
+                                                                                                  matches_array,
+                                                                                                  high_quality_percent_coverage_array,
+                                                                                                  exon_identity_array,
+                                                                                                  consensus_splices_array,
+                                                                                                  comp_adj_method_array},
+                                                                                                 {"pident", "pident_gap", "frames", "evalue", "length", "length01", "qstart", "qend", "sstart", "send", "bitscore", "score", "qcovhsp", "blast_score", "gaps", "nident", "mismatch", "positive", "n_splices", "hsp_num", "sum_evalue", "product_coverage", "overall_identity", "negative_count", "matches", "high_quality_percent_coverage", "exon_identity", "consensus_splices", "comp_adj_method"});
 
   assert(aln_struct_array.ok());
 
@@ -833,6 +906,27 @@ std::string QuickBLAST::GetSSeqLocSequence(const SSeqLoc &seq_loc)
 
 std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::string &queryFile, const std::string &subjectFile, const std::string &outFile, int blast_sequence_limit, int num_threads, const bool show_progress, const bool return_values)
 {
+
+  assert(num_threads > 0);
+/*   if (!arrow_wrapper || arrow_wrapper.get() == nullptr)
+  {
+    arrow_wrapper = std::make_shared<ArrowWrapper>();
+  }
+  if (this->opts == nullptr)
+  {
+    if (this->blast_options_list.size() > 0)
+    {
+      this->opts = SetQuickBLASTOptions(this->program, this->blast_options_list);
+    }
+    else if (!this->blast_options_str.empty())
+    {
+      this->opts = SetQuickBLASTOptions(this->program, this->blast_options_str);
+    }
+    else
+    {
+      this->opts = SetQuickBLASTOptions(this->program, "");
+    }
+  } */
 #ifdef _OPENMP
   int n_threads = num_threads > omp_get_num_threads() ? omp_get_num_threads() : num_threads;
 #else
@@ -852,6 +946,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::str
   SetThreadCount(n_threads);
 
   int q_seq_count = arrow_wrapper->CountCharacter(queryFile, '>', n_threads);
+
   int s_seq_count = arrow_wrapper->CountCharacter(subjectFile, '>', n_threads);
   const int totalIterations = q_seq_count * s_seq_count;
   if (blast_sequence_limit > 0)
@@ -863,6 +958,10 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::str
   {
     blast_sequence_limit = s_seq_count - 1;
   }
+  assert(totalIterations > 0);
+  int batch_size = 128 * num_threads; // int(ceil(totalIterations / pow(2, n_threads))); // int(ceil(sqrt(totalIterations) * (n_threads * 2)) / 2);
+  // batch_size = 32 * n_threads; // batch_size > 0 ? batch_size : 1024;
+  arrow_wrapper->SetBatchSize(batch_size);
 
   Progress progress_bar(totalIterations, show_progress);
 
@@ -884,107 +983,113 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::str
                                                                                           omp_init_lock(&subjects_loc_vecLock);
 #endif
 
-                                                                                        std::shared_ptr<arrow::RecordBatchVector> ret_results = StreamFile<FastaSequenceData>(subjectFile, ">", n_threads, [this, query_loc, &query_locLock, &scope, &subjects_loc_vec, &subjects_loc_vecLock, &progress_bar, blast_sequence_limit](std::shared_ptr<FastaSequenceData> data_s)
-                                                                                                                                                                              {
-                                                                                                                                                                                const std::unique_ptr<SSeqLoc> subject_loc(CreateSSeqLocFromType<FastaSequenceData>(*data_s, scope));
-                                                                                                                                                                                _ASSERT(subject_loc->seqloc.NotEmpty());
-
-                                                                                                                                                                                if (strcmp(subject_loc->seqloc->GetId()->GetSeqIdString(true).c_str(), query_loc->seqloc->GetId()->GetSeqIdString(true).c_str()) != 0)
-                                                                                                                                                                                {
-                                                                                                                                                                                  Rcpp::checkUserInterrupt();
-
-                                                                                                                                                                                  CBl2Seq *blaster;
-
-                                                                                                                                                                                  try
-                                                                                                                                                                                  {
-
-                                                                                                                                                                                    switch (blast_sequence_limit)
-                                                                                                                                                                                    {
-                                                                                                                                                                                    case 0:
-                                                                                                                                                                                    {
-                                                                                                                                                                                      blaster = new CBl2Seq(*query_loc, *subject_loc, this->GetQuickBLASTOptions());
-                                                                                                                                                                                      arrow::RecordBatchVector tmp_rbv = {ExtractHits<SSeqLoc>(blaster->Run(), *query_loc, *subject_loc, *scope)};
-                                                                                                                                                                                      return std::make_shared<arrow::RecordBatchVector>(tmp_rbv);
-                                                                                                                                                                                    }
-                                                                                                                                                                                    break;
-                                                                                                                                                                                    default:
-                                                                                                                                                                                    {
+                                                                                          std::shared_ptr<arrow::RecordBatchVector> ret_results = StreamFile<FastaSequenceData>(subjectFile, ">", n_threads, [this, query_loc,
 #ifdef _OPENMP
-                                                                                                                                                                                      omp_set_lock(&subjects_loc_vecLock);
-
-#endif subjects_loc_vec->emplace_back(*subject_loc);
-#ifdef _OPENMP
-                                                                                                                                                                                      omp_unset_lock(&subjects_loc_vecLock);
+                                                                                                                                                                                                              &query_locLock, &subjects_loc_vecLock,
 #endif
+                                                                                                                                                                                                              &scope, &subjects_loc_vec, &progress_bar, blast_sequence_limit](std::shared_ptr<FastaSequenceData> data_s)
+                                                                                                                                                                                {
+                                                                                                                                                                                  const std::unique_ptr<SSeqLoc> subject_loc(CreateSSeqLocFromType<FastaSequenceData>(*data_s, scope));
+                                                                                                                                                                                  _ASSERT(subject_loc->seqloc.NotEmpty());
 
-                                                                                                                                                                                      progress_bar.increment();
-                                                                                                                                                                                      if (subjects_loc_vec->size() >= blast_sequence_limit)
+                                                                                                                                                                                  if (strcmp(subject_loc->seqloc->GetId()->GetSeqIdString(true).c_str(), query_loc->seqloc->GetId()->GetSeqIdString(true).c_str()) != 0)
+                                                                                                                                                                                  {
+                                                                                                                                                                                    Rcpp::checkUserInterrupt();
+
+                                                                                                                                                                                    CBl2Seq *blaster;
+
+                                                                                                                                                                                    try
+                                                                                                                                                                                    {
+
+                                                                                                                                                                                      switch (blast_sequence_limit)
                                                                                                                                                                                       {
-                                                                                                                                                                                        TSeqLocVector subjects_buffer_vec;
+                                                                                                                                                                                      case 0:
+                                                                                                                                                                                      {
+                                                                                                                                                                                        blaster = new CBl2Seq(*query_loc, *subject_loc, this->GetQuickBLASTOptions());
+                                                                                                                                                                                        arrow::RecordBatchVector tmp_rbv = {ExtractHits<SSeqLoc>(blaster->Run(), *query_loc, *subject_loc, *scope)};
+                                                                                                                                                                                        return std::make_shared<arrow::RecordBatchVector>(tmp_rbv);
+                                                                                                                                                                                      }
+                                                                                                                                                                                      break;
+                                                                                                                                                                                      default:
+                                                                                                                                                                                      {
 #ifdef _OPENMP
                                                                                                                                                                                         omp_set_lock(&subjects_loc_vecLock);
-
 #endif
-                                                                                                                                                                                        subjects_buffer_vec.swap(*subjects_loc_vec);
-                                                                                                                                                                                        subjects_loc_vec->clear();
+                                                                                                                                                                                        subjects_loc_vec->emplace_back(*subject_loc);
 #ifdef _OPENMP
                                                                                                                                                                                         omp_unset_lock(&subjects_loc_vecLock);
 #endif
-                                                                                                                                                                                        blaster = new CBl2Seq(*query_loc, subjects_buffer_vec, this->GetQuickBLASTOptions(), true);
 
-                                                                                                                                                                                        AddHitCount(subjects_buffer_vec.size());
+                                                                                                                                                                                        progress_bar.increment();
+                                                                                                                                                                                        if (subjects_loc_vec->size() >= blast_sequence_limit)
+                                                                                                                                                                                        {
+                                                                                                                                                                                          TSeqLocVector subjects_buffer_vec;
+#ifdef _OPENMP
+                                                                                                                                                                                          omp_set_lock(&subjects_loc_vecLock);
 
-                                                                                                                                                                                        return ExtractHits(blaster->Run(), *query_loc, subjects_buffer_vec, *scope);
+#endif
+                                                                                                                                                                                          subjects_buffer_vec.swap(*subjects_loc_vec);
+                                                                                                                                                                                          subjects_loc_vec->clear();
+#ifdef _OPENMP
+                                                                                                                                                                                          omp_unset_lock(&subjects_loc_vecLock);
+#endif
+                                                                                                                                                                                          blaster = new CBl2Seq(*query_loc, subjects_buffer_vec, this->GetQuickBLASTOptions(), true);
+
+                                                                                                                                                                                          AddHitCount(subjects_buffer_vec.size());
+
+                                                                                                                                                                                          return ExtractHits(blaster->Run(), *query_loc, subjects_buffer_vec, *scope);
+                                                                                                                                                                                        }
+                                                                                                                                                                                      }
+                                                                                                                                                                                      break;
                                                                                                                                                                                       }
                                                                                                                                                                                     }
-                                                                                                                                                                                    break;
+                                                                                                                                                                                    catch (const CException &e)
+                                                                                                                                                                                    {
+                                                                                                                                                                                      // Handle exception ...
+                                                                                                                                                                                      Rcpp::Rcout << e.GetFunction() << std::endl;
+                                                                                                                                                                                      Rcpp::Rcout << e.GetErrCodeString() << std::endl;
+                                                                                                                                                                                      Rcpp::Rcout << e.GetErrCode() << std::endl;
+                                                                                                                                                                                      Rcpp::Rcout << e.GetModule() << std::endl;
+                                                                                                                                                                                      Rcpp::Rcout << e.GetPredecessor() << std::endl;
+                                                                                                                                                                                      Rcpp::Rcout << e.GetFile() << std::endl;
+                                                                                                                                                                                      Rcpp::Rcout << e.GetLine() << std::endl;
+                                                                                                                                                                                      Rcpp::Rcout << e.GetMsg() << std::endl;
+                                                                                                                                                                                      Rcpp::Rcout << e.GetStackTrace() << std::endl;
+                                                                                                                                                                                      Rcpp::Rcout << e.GetStackTraceLevel() << std::endl;
+                                                                                                                                                                                      Rcpp::Rcout << e.GetClass() << std::endl
+                                                                                                                                                                                                  << std::flush;
+                                                                                                                                                                                    }
+                                                                                                                                                                                    catch (const std::exception &e)
+                                                                                                                                                                                    {
+                                                                                                                                                                                      Rcpp::Rcout << e.what() << std::endl
+                                                                                                                                                                                                  << std::flush;
                                                                                                                                                                                     }
                                                                                                                                                                                   }
-                                                                                                                                                                                  catch (const CException &e)
-                                                                                                                                                                                  {
-                                                                                                                                                                                    // Handle exception ...
-                                                                                                                                                                                    Rcpp::Rcout << e.GetFunction() << std::endl;
-                                                                                                                                                                                    Rcpp::Rcout << e.GetErrCodeString() << std::endl;
-                                                                                                                                                                                    Rcpp::Rcout << e.GetErrCode() << std::endl;
-                                                                                                                                                                                    Rcpp::Rcout << e.GetModule() << std::endl;
-                                                                                                                                                                                    Rcpp::Rcout << e.GetPredecessor() << std::endl;
-                                                                                                                                                                                    Rcpp::Rcout << e.GetFile() << std::endl;
-                                                                                                                                                                                    Rcpp::Rcout << e.GetLine() << std::endl;
-                                                                                                                                                                                    Rcpp::Rcout << e.GetMsg() << std::endl;
-                                                                                                                                                                                    Rcpp::Rcout << e.GetStackTrace() << std::endl;
-                                                                                                                                                                                    Rcpp::Rcout << e.GetStackTraceLevel() << std::endl;
-                                                                                                                                                                                    Rcpp::Rcout << e.GetClass() << std::endl
-                                                                                                                                                                                                << std::flush;
-                                                                                                                                                                                  }
-                                                                                                                                                                                  catch (const std::exception &e)
-                                                                                                                                                                                  {
-                                                                                                                                                                                    Rcpp::Rcout << e.what() << std::endl
-                                                                                                                                                                                                << std::flush;
-                                                                                                                                                                                  }
-                                                                                                                                                                                }
 
-                                                                                                                                                                                return std::make_shared<arrow::RecordBatchVector>(); // EMPTY ERROR Return
-                                                                                                                                                                              });
+                                                                                                                                                                                  return std::make_shared<arrow::RecordBatchVector>(); // EMPTY ERROR Return
+                                                                                                                                                                                });
 
-                                                                                        if (subjects_loc_vec->size() > 0)
-                                                                                        {
-                                                                                          CBl2Seq blaster(*query_loc, *subjects_loc_vec, this->GetQuickBLASTOptions(), true);
-                                                                                          AddHitCount(subjects_loc_vec->size());
+                                                                                          if (subjects_loc_vec->size() > 0)
+                                                                                          {
+                                                                                            CBl2Seq blaster(*query_loc, *subjects_loc_vec, this->GetQuickBLASTOptions(), true);
+                                                                                            AddHitCount(subjects_loc_vec->size());
+                                                                                            std::shared_ptr<arrow::RecordBatchVector> ret_vec = ExtractHits(blaster.Run(), *query_loc, *subjects_loc_vec, *scope);
+
+                                                                                            ret_results->insert(ret_results->end(), ret_vec->begin(), ret_vec->end());
+                                                                                        }
 
 #ifdef _OPENMP
                                                                                             omp_destroy_lock(&query_locLock);
                                                                                             omp_destroy_lock(&subjects_loc_vecLock);
 #endif
-                                                                                          
-                                                                                          std::shared_ptr<arrow::RecordBatchVector> ret_vec = ExtractHits(blaster.Run(), *query_loc, *subjects_loc_vec, *scope);
-
-                                                                                          ret_results->insert(ret_results->end(), ret_vec->begin(), ret_vec->end());
-                                                                                        }
 
                                                                                         return ret_results; });
 
+#ifdef _OPENMP
 #pragma omp barrier
+#endif
 
+  arrow_wrapper->FinishOutputStream();
   if (return_values)
   {
     return final_ret;
@@ -1007,6 +1112,7 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::BLAST_seqs(const std::string &qu
   std::unique_ptr<SSeqLoc> subject_seqloc(CreateSSeqLocFromType<std::string>(subject, scope));
 
   CBl2Seq blaster(*query_seqloc, *subject_seqloc, GetQuickBLASTOptions());
+
   return ExtractHits<SSeqLoc>(blaster.Run(), *query_seqloc, *subject_seqloc, *scope);
 }
 
@@ -1054,94 +1160,117 @@ Rcpp::List QuickBLAST::BLAST(const std::string &query, const std::string &subjec
 
 SEXP QuickBLAST::Hits2RList_internal(std::shared_ptr<arrow::Array> array, std::shared_ptr<arrow::DataType> type, const std::string &field_name)
 {
+
   // Dispatch based on the data type of the array
   if (type->id() == arrow::Type::STRUCT)
   {
+
     auto struct_array = std::static_pointer_cast<arrow::StructArray>(array);
     int num_fields = struct_array->num_fields();
 
     // Create an Rcpp list to hold the data frames representing each field of the struct
     Rcpp::List struct_list(num_fields);
+    Rcpp::CharacterVector names(num_fields);
 
     for (int i = 0; i < num_fields; i++)
     {
+
       auto field_array = struct_array->field(i);
       auto field_type = type->field(i)->type();
       auto field_name = type->field(i)->name();
-      struct_list[field_name] = Hits2RList_internal(field_array, field_type, field_name);
+      names[i] = field_name;
+      struct_list[i] = Hits2RList_internal(field_array, field_type, field_name);
     }
+
+    struct_list.names() = names;
 
     return struct_list;
   }
   else if (type->id() == arrow::Type::LIST)
   {
+
     auto list_array = std::static_pointer_cast<arrow::ListArray>(array);
     auto value_type = type->field(0)->type();
 
     // Convert the list array to an Rcpp list
     Rcpp::List list_values(list_array->length());
+    Rcpp::CharacterVector names(list_array->length());
+
     for (int i = 0; i < list_array->length(); i++)
     {
+
       auto sublist_array = list_array->values()->Slice(list_array->value_offset(i), list_array->value_length(i));
+
+      names[i] = field_name + "[" + std::to_string(i) + "]";
       auto sublist_name = field_name + "[" + std::to_string(i) + "]";
-      list_values[sublist_name] = Hits2RList_internal(sublist_array, value_type, sublist_name);
+      list_values[i] = Hits2RList_internal(sublist_array, value_type, sublist_name);
     }
+
+    list_values.names() = names;
 
     return list_values;
   }
   else if (type->id() == arrow::Type::STRING || type->id() == arrow::Type::LARGE_STRING)
   {
+
     auto string_array = std::static_pointer_cast<arrow::StringArray>(array);
+
     Rcpp::StringVector strings(string_array->length());
 
     for (int i = 0; i < string_array->length(); ++i)
     {
+
       if (string_array->IsValid(i))
       {
         strings[i] = Rcpp::String(string_array->GetString(i));
       }
-      else
-      {
-        strings[i] = NA_STRING;
-      }
+      // else
+      // {
+      //   strings[i] = NA_STRING;
+      // }
     }
 
     return strings;
   }
   else if (type->id() == arrow::Type::INT8)
   {
+
     auto int_array = std::static_pointer_cast<arrow::Int8Array>(array);
+
     Rcpp::IntegerVector ints(int_array->length());
 
     for (int i = 0; i < int_array->length(); ++i)
     {
+
       if (int_array->IsValid(i))
       {
         ints[i] = int_array->Value(i);
       }
-      else
-      {
-        ints[i] = NA_INTEGER;
-      }
+      // else
+      // {
+      //   ints[i] = NA_INTEGER;
+      // }
     }
 
     return ints;
   }
   else if (type->id() == arrow::Type::DOUBLE)
   { // Use arrow::Type::DOUBLE instead of FLOAT64
+
     auto double_array = std::static_pointer_cast<arrow::DoubleArray>(array);
     Rcpp::NumericVector doubles(double_array->length());
 
     for (int i = 0; i < double_array->length(); ++i)
     {
+
       if (double_array->IsValid(i))
       {
-        doubles[i] = double_array->Value(i);
+        doubles[field_name] = double_array->Value(i);
       }
-      else
-      {
-        doubles[i] = NA_REAL;
-      }
+      // else
+      // {
+      //   doubles[i] = NA_REAL;
+      // }
     }
 
     return doubles;
@@ -1156,12 +1285,15 @@ SEXP QuickBLAST::Hits2RList_internal(std::shared_ptr<arrow::Array> array, std::s
 SEXP QuickBLAST::Hits2RList(const std::shared_ptr<arrow::RecordBatch> &rb)
 {
   // Assuming the schema of the RecordBatch is accessible here
+
   auto rb_schema = rb->schema();
 
   // Convert each column of the RecordBatch to R objects and store in a list
   Rcpp::List result_list(rb_schema->num_fields());
+
   for (int i = 0; i < rb_schema->num_fields(); ++i)
   {
+
     auto array = rb->column(i);
     auto field_type = rb_schema->field(i)->type();
     auto field_name = rb_schema->field(i)->name();

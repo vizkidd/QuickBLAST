@@ -70,7 +70,16 @@ ArrowWrapper::ArrowWrapper()
                              arrow::field("mismatch", arrow::int8()),
                              arrow::field("positive", arrow::int8()),
                              arrow::field("n_splices", arrow::int8()),
-                             arrow::field("hsp_num", arrow::int8())});
+                             arrow::field("hsp_num", arrow::int8()),
+                             arrow::field("sum_evalue", arrow::float64()),
+                             arrow::field("product_coverage", arrow::float64()),
+                             arrow::field("overall_identity", arrow::float64()),
+                             arrow::field("negative_count", arrow::int8()),
+                             arrow::field("matches", arrow::float64()),
+                             arrow::field("high_quality_percent_coverage", arrow::float64()),
+                             arrow::field("exon_identity", arrow::float64()),
+                             arrow::field("consensus_splices", arrow::float64()),
+                             arrow::field("comp_adj_method", arrow::float64())});
   alignment_scores_type = arrow::list({hsp_type});
 
   blast_schema = arrow::schema({arrow::field("seq_info", seq_info_type),
@@ -161,7 +170,6 @@ arrow::Status ArrowWrapper::WriteBatch2File()
         arrow::Status rb_sts = rb->ValidateFull();
         if (rb_sts.ok())
         {
-
           arrow::Status sts = rec_writer->WriteRecordBatch(*rb);
           if (!sts.ok())
           {

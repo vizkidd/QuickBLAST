@@ -1,0 +1,7 @@
+*.o
+*.cds
+*.log
+*.tmp
+*.hits
+*.json
+*.so
