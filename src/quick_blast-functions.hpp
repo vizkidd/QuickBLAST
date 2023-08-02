@@ -651,47 +651,47 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::ExtractHits(const TSeqAlignVecto
 
           frames = std::to_string(GetFrame(qstart, aln_len, query_strand)) + "/" + std::to_string(GetFrame(sstart, aln_len, subject_strand));
 
-          frames_builder.Append(frames);
-          qstart_builder.Append(qstart);
-          qend_builder.Append(qend);
-          sstart_builder.Append(sstart);
-          send_builder.Append(send);
-          pident_builder.Append(pident);
-          evalue_builder.Append(evalue);
-          length_builder.Append(aln_len);
-          aln_len01_builder.Append(aln_len01);
-          bitscore_builder.Append(bits);
-          score_builder.Append(score);
-          qcovhsp_builder.Append(qcovhsp);
-          blast_score_builder.Append(blast_score);
-          pident_gap_builder.Append(pident_gap);
-          gaps_builder.Append(gaps);
-          nident_builder.Append(num_ident);
-          mismatch_builder.Append(mismatches);
-          positive_builder.Append(positive);
-          n_splices_builder.Append(n_splices);
-          hsp_cnt_builder.Append(num_rows + 1);
-          sum_evalue_builder.Append(sum_evalue);
-          product_coverage_builder.Append(product_coverage);
-          overall_identity_builder.Append(overall_identity);
-          negative_count_builder.Append(negative_count);
-          matches_builder.Append(matches);
-          high_quality_percent_coverage_builder.Append(high_quality_percent_coverage);
-          exon_identity_builder.Append(exon_identity);
-          consensus_splices_builder.Append(consensus_splices);
-          comp_adj_method_builder.Append(comp_adj_method);
+          static_cast<void>(frames_builder.Append(frames));
+          static_cast<void>(qstart_builder.Append(qstart));
+          static_cast<void>(qend_builder.Append(qend));
+          static_cast<void>(sstart_builder.Append(sstart));
+          static_cast<void>(send_builder.Append(send));
+          static_cast<void>(pident_builder.Append(pident));
+          static_cast<void>(evalue_builder.Append(evalue));
+          static_cast<void>(length_builder.Append(aln_len));
+          static_cast<void>(aln_len01_builder.Append(aln_len01));
+          static_cast<void>(bitscore_builder.Append(bits));
+          static_cast<void>(score_builder.Append(score));
+          static_cast<void>(qcovhsp_builder.Append(qcovhsp));
+          static_cast<void>(blast_score_builder.Append(blast_score));
+          static_cast<void>(pident_gap_builder.Append(pident_gap));
+          static_cast<void>(gaps_builder.Append(gaps));
+          static_cast<void>(nident_builder.Append(num_ident));
+          static_cast<void>(mismatch_builder.Append(mismatches));
+          static_cast<void>(positive_builder.Append(positive));
+          static_cast<void>(n_splices_builder.Append(n_splices));
+          static_cast<void>(hsp_cnt_builder.Append(num_rows + 1));
+          static_cast<void>(sum_evalue_builder.Append(sum_evalue));
+          static_cast<void>(product_coverage_builder.Append(product_coverage));
+          static_cast<void>(overall_identity_builder.Append(overall_identity));
+          static_cast<void>(negative_count_builder.Append(negative_count));
+          static_cast<void>(matches_builder.Append(matches));
+          static_cast<void>(high_quality_percent_coverage_builder.Append(high_quality_percent_coverage));
+          static_cast<void>(exon_identity_builder.Append(exon_identity));
+          static_cast<void>(consensus_splices_builder.Append(consensus_splices));
+          static_cast<void>(comp_adj_method_builder.Append(comp_adj_method));
 
           /// SEQ INFO
-          qseqid_builder.Append(qseq_id);
-          sseqid_builder.Append(sseq_id);
-          qseq_builder.Append(qseq);
-          sseq_builder.Append(sseq);
-          qlen_builder.Append(qseq.length());
-          slen_builder.Append(sseq.length());
-          num_alignments_builder.Append(seq_aligns.size());
+          static_cast<void>(qseqid_builder.Append(qseq_id));
+          static_cast<void>(sseqid_builder.Append(sseq_id));
+          static_cast<void>(qseq_builder.Append(qseq));
+          static_cast<void>(sseq_builder.Append(sseq));
+          static_cast<void>(qlen_builder.Append(qseq.length()));
+          static_cast<void>(slen_builder.Append(sseq.length()));
+          static_cast<void>(num_alignments_builder.Append(seq_aligns.size()));
 
-          strand_builder.Append(strand);
-          hsp_offset_builder.Append(1);
+          static_cast<void>(strand_builder.Append(strand));
+          static_cast<void>(hsp_offset_builder.Append(1));
 
           num_rows++;
         }
@@ -714,63 +714,63 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::ExtractHits(const TSeqAlignVecto
   }
 
   std::shared_ptr<arrow::Array> frames_array;
-  frames_builder.Finish(&frames_array);
+  static_cast<void>(frames_builder.Finish(&frames_array));
   std::shared_ptr<arrow::Array> pident_array;
-  pident_builder.Finish(&pident_array);
+  static_cast<void>(pident_builder.Finish(&pident_array));
   std::shared_ptr<arrow::Array> pident_gap_array;
-  pident_gap_builder.Finish(&pident_gap_array);
+  static_cast<void>(pident_gap_builder.Finish(&pident_gap_array));
   std::shared_ptr<arrow::Array> evalue_array;
-  evalue_builder.Finish(&evalue_array);
+  static_cast<void>(evalue_builder.Finish(&evalue_array));
   std::shared_ptr<arrow::Array> length_array;
-  length_builder.Finish(&length_array);
+  static_cast<void>(length_builder.Finish(&length_array));
   std::shared_ptr<arrow::Array> qstart_array;
-  qstart_builder.Finish(&qstart_array);
+  static_cast<void>(qstart_builder.Finish(&qstart_array));
   std::shared_ptr<arrow::Array> qend_array;
-  qend_builder.Finish(&qend_array);
+  static_cast<void>(qend_builder.Finish(&qend_array));
   std::shared_ptr<arrow::Array> sstart_array;
-  sstart_builder.Finish(&sstart_array);
+  static_cast<void>(sstart_builder.Finish(&sstart_array));
   std::shared_ptr<arrow::Array> send_array;
-  send_builder.Finish(&send_array);
+  static_cast<void>(send_builder.Finish(&send_array));
   std::shared_ptr<arrow::Array> aln_len01_array;
-  aln_len01_builder.Finish(&aln_len01_array);
+  static_cast<void>(aln_len01_builder.Finish(&aln_len01_array));
   std::shared_ptr<arrow::Array> bitscore_array;
-  bitscore_builder.Finish(&bitscore_array);
+  static_cast<void>(bitscore_builder.Finish(&bitscore_array));
   std::shared_ptr<arrow::Array> score_array;
-  score_builder.Finish(&score_array);
+  static_cast<void>(score_builder.Finish(&score_array));
   std::shared_ptr<arrow::Array> qcovhsp_array;
-  qcovhsp_builder.Finish(&qcovhsp_array);
+  static_cast<void>(qcovhsp_builder.Finish(&qcovhsp_array));
   std::shared_ptr<arrow::Array> blast_score_array;
-  blast_score_builder.Finish(&blast_score_array);
+  static_cast<void>(blast_score_builder.Finish(&blast_score_array));
   std::shared_ptr<arrow::Array> gaps_array;
-  gaps_builder.Finish(&gaps_array);
+  static_cast<void>(gaps_builder.Finish(&gaps_array));
   std::shared_ptr<arrow::Array> nident_array;
-  nident_builder.Finish(&nident_array);
+  static_cast<void>(nident_builder.Finish(&nident_array));
   std::shared_ptr<arrow::Array> mismatch_array;
-  mismatch_builder.Finish(&mismatch_array);
+  static_cast<void>(mismatch_builder.Finish(&mismatch_array));
   std::shared_ptr<arrow::Array> positive_array;
-  positive_builder.Finish(&positive_array);
+  static_cast<void>(positive_builder.Finish(&positive_array));
   std::shared_ptr<arrow::Array> n_splices_array;
-  n_splices_builder.Finish(&n_splices_array);
+  static_cast<void>(n_splices_builder.Finish(&n_splices_array));
   std::shared_ptr<arrow::Array> hsp_cnt_array;
-  hsp_cnt_builder.Finish(&hsp_cnt_array);
+  static_cast<void>(hsp_cnt_builder.Finish(&hsp_cnt_array));
   std::shared_ptr<arrow::Array> sum_evalue_array;
-  sum_evalue_builder.Finish(&sum_evalue_array);
+  static_cast<void>(sum_evalue_builder.Finish(&sum_evalue_array));
   std::shared_ptr<arrow::Array> product_coverage_array;
-  product_coverage_builder.Finish(&product_coverage_array);
+  static_cast<void>(product_coverage_builder.Finish(&product_coverage_array));
   std::shared_ptr<arrow::Array> overall_identity_array;
-  overall_identity_builder.Finish(&overall_identity_array);
+  static_cast<void>(overall_identity_builder.Finish(&overall_identity_array));
   std::shared_ptr<arrow::Array> negative_count_array;
-  negative_count_builder.Finish(&negative_count_array);
+  static_cast<void>(negative_count_builder.Finish(&negative_count_array));
   std::shared_ptr<arrow::Array> matches_array;
-  matches_builder.Finish(&matches_array);
+  static_cast<void>(matches_builder.Finish(&matches_array));
   std::shared_ptr<arrow::Array> high_quality_percent_coverage_array;
-  high_quality_percent_coverage_builder.Finish(&high_quality_percent_coverage_array);
+  static_cast<void>(high_quality_percent_coverage_builder.Finish(&high_quality_percent_coverage_array));
   std::shared_ptr<arrow::Array> exon_identity_array;
-  exon_identity_builder.Finish(&exon_identity_array);
+  static_cast<void>(exon_identity_builder.Finish(&exon_identity_array));
   std::shared_ptr<arrow::Array> consensus_splices_array;
-  consensus_splices_builder.Finish(&consensus_splices_array);
+  static_cast<void>(consensus_splices_builder.Finish(&consensus_splices_array));
   std::shared_ptr<arrow::Array> comp_adj_method_array;
-  comp_adj_method_builder.Finish(&comp_adj_method_array);
+  static_cast<void>(comp_adj_method_builder.Finish(&comp_adj_method_array));
 
   arrow::Result<std::shared_ptr<arrow::StructArray>> aln_struct_array = arrow::StructArray::Make({pident_array,
                                                                                                   pident_gap_array,
@@ -808,28 +808,28 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::ExtractHits(const TSeqAlignVecto
   std::shared_ptr<arrow::StructArray> aln_struct_array_ = aln_struct_array.ValueOrDie();
 
   std::shared_ptr<arrow::Array> qseqid_array;
-  qseqid_builder.Finish(&qseqid_array);
+  static_cast<void>(qseqid_builder.Finish(&qseqid_array));
 
   std::shared_ptr<arrow::Array> sseqid_array;
-  sseqid_builder.Finish(&sseqid_array);
+  static_cast<void>(sseqid_builder.Finish(&sseqid_array));
 
   std::shared_ptr<arrow::Array> qseq_array;
-  qseq_builder.Finish(&qseq_array);
+  static_cast<void>(qseq_builder.Finish(&qseq_array));
 
   std::shared_ptr<arrow::Array> sseq_array;
-  sseq_builder.Finish(&sseq_array);
+  static_cast<void>(sseq_builder.Finish(&sseq_array));
 
   std::shared_ptr<arrow::Array> qlen_array;
-  qlen_builder.Finish(&qlen_array);
+  static_cast<void>(qlen_builder.Finish(&qlen_array));
 
   std::shared_ptr<arrow::Array> slen_array;
-  slen_builder.Finish(&slen_array);
+  static_cast<void>(slen_builder.Finish(&slen_array));
 
   std::shared_ptr<arrow::Array> strand_array;
-  strand_builder.Finish(&strand_array);
+  static_cast<void>(strand_builder.Finish(&strand_array));
 
   std::shared_ptr<arrow::Array> num_alignment_array;
-  num_alignments_builder.Finish(&num_alignment_array);
+  static_cast<void>(num_alignments_builder.Finish(&num_alignment_array));
 
   // Create the seq_info struct array and populate with the arrays
   std::shared_ptr<arrow::StructArray> seqids_struct_array = *arrow::StructArray::Make({qseqid_array, sseqid_array}, {arrow::field("qseqid", arrow::utf8()), arrow::field("sseqid", arrow::utf8())});
@@ -867,12 +867,12 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::ExtractFASTA(const FastaSequence
   rec_no_builder = std::make_shared<arrow::Int32Builder>();
   fasta_seq_builder = std::make_shared<arrow::StringBuilder>();
   fasta_h_builder = std::make_shared<arrow::StringBuilder>();
-  rec_no_builder->Append(fasta_data.rec_no);
-  fasta_h_builder->Append(fasta_data.header);
-  fasta_seq_builder->Append(fasta_data.seq);
-  fasta_seq_builder->Finish(&seqArr);
-  fasta_h_builder->Finish(&hArr);
-  rec_no_builder->Finish(&recnoArr);
+  static_cast<void>(rec_no_builder->Append(fasta_data.rec_no));
+  static_cast<void>(fasta_h_builder->Append(fasta_data.header));
+  static_cast<void>(fasta_seq_builder->Append(fasta_data.seq));
+  static_cast<void>(fasta_seq_builder->Finish(&seqArr));
+  static_cast<void>(fasta_h_builder->Finish(&hArr));
+  static_cast<void>(rec_no_builder->Finish(&recnoArr));
   return arrow::RecordBatch::Make(arrow_wrapper->GetFASTASchema(), 1, {recnoArr, hArr, seqArr});
 }
 
@@ -891,7 +891,7 @@ std::string QuickBLAST::GetSSeqLocSequence(const SSeqLoc &seq_loc)
 
   // Get the sequence using CSeqVector.
   // Use Iupac encoding: CSeq_data::e_Iupacna or CSeq_data::e_Iupacaa.
-  const auto &length = bioseq_handle.GetBioseqLength();
+  // const auto &length = bioseq_handle.GetBioseqLength();
   const auto &seq_vect_begin = bioseq_handle.GetSeqVector(CBioseq_Handle::eCoding_Iupac, ncbi::objects::eNa_strand_plus).begin();
   const auto &seq_vect_end = bioseq_handle.GetSeqVector(CBioseq_Handle::eCoding_Iupac, ncbi::objects::eNa_strand_plus).end();
 
@@ -1140,7 +1140,7 @@ Rcpp::List QuickBLAST::BLAST(const std::string &query, const std::string &subjec
 #else
     int n_threads = 1;
 #endif
-    auto ret_val = BLAST_files(query, subject, outputFile, blast_sequence_limit, n_threads, true);
+    auto ret_val = BLAST_files(query, subject, outputFile, blast_sequence_limit, n_threads, show_progress);
     return Hits2RList(*ret_val);
   }
   break;
@@ -1153,6 +1153,7 @@ Rcpp::List QuickBLAST::BLAST(const std::string &query, const std::string &subjec
   default:
   {
     Rcpp::Rcerr << "input_type must be QuickBLAST::EInputType::eFile (0) OR QuickBLAST::EInputType::eSequenceString (1) !";
+    return Rcpp::wrap(false);
   }
   break;
   }

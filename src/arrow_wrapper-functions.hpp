@@ -149,7 +149,7 @@ void ArrowWrapper::FinishOutputStream()
 {
   if (rbv_batch->size() > 0)
   {
-    WriteBatch2File();
+    static_cast<void>(WriteBatch2File());
   }
 
   std::thread fin_thread([this]()
@@ -163,7 +163,7 @@ void ArrowWrapper::FinishOutputStream()
                                static_cast<void>(wrt_thread.join());
                              }
                            }
-                           this->rec_writer->Close();
+                           static_cast<void>(this->rec_writer->Close());
                            this->writer_threads.clear();
                            this->rbv_batch->clear();
                            // Rcpp::Rcout << "Done writing to file." << std::endl;
@@ -476,9 +476,4 @@ int ArrowWrapper::GetColumnCount(const std::string_view &filename, char delim)
     Rcpp::Rcerr << "File is empty: " << filename << std::endl;
     return -1;
   }
-}
-
-std::shared_ptr<arrow::RecordBatch> ArrowWrapper::ReadRecordBatchVector(const std::string &file)
-{
-  std::shared_ptr<arrow::io::ReadableFile> infile = arrow::io::ReadableFile::Open(file).ValueOrDie();
 }

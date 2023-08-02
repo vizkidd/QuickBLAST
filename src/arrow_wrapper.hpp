@@ -91,7 +91,6 @@ public:
   }
   void FinishOutputStream();
   arrow::Status WriteBatch2File();
-  std::shared_ptr<arrow::RecordBatch> ReadRecordBatchVector(const std::string &file);
   int GetColumnCount(const std::string_view &filename, char delim = '\t');
   int CountCharacter(std::string filename, char character, int num_threads);
   template <typename T1>
@@ -149,7 +148,7 @@ public:
         //   writer_threads[writer_threads.size() - 1].join();
         // }
         std::thread write_thread([this]()
-                                 { this->WriteBatch2File(); });
+                                 { static_cast<void>(this->WriteBatch2File()); });
         // write_thread.detach();
         writer_threads.emplace_back(std::move(write_thread));
       }
@@ -177,7 +176,7 @@ public:
         //   writer_threads[writer_threads.size() - 1].join();
         // }
         std::thread write_thread([this]()
-                                 { this->WriteBatch2File(); });
+                                 { static_cast<void>(this->WriteBatch2File()); });
         // write_thread.detach();
         writer_threads.emplace_back(std::move(write_thread));
       }

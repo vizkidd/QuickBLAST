@@ -132,7 +132,7 @@ one2one <- function(first_set, second_set, seq_info, file_ext = "fa", input_pref
   list_combos <- unique(tidyr::crossing(first_list[order(first_list)], second_list[order(second_list)]))
 
   # return_data <- furrr::future_map2(.x=first_list[order(first_list)], .y=second_list[order(second_list)], .f=function(x,y){
-  parallel::mclapply(seq_along(1:nrow(list_combos)), function(idx) {
+  parallel::mclapply(seq_along(seq_len(list_combos)), function(idx) {
     x <- toString(list_combos[idx, 1])
     y <- toString(list_combos[idx, 2])
     if (input_type == GetQuickBLASTEnums()$EInputType$eFile) {
@@ -199,11 +199,10 @@ all2all <- function(first_list, second_list, input_type, seq_info, blast_program
 
   list_combinations <- unique(tidyr::crossing(first_list, second_list))
   # furrr::future_map2(.x=list_combinations$first_list, .y=list_combinations$second_list, .f=function(first_set,second_set){
-  parallel::mclapply(seq_along(1:nrow(list_combinations)), function(idx) {
+  parallel::mclapply(seq_along(seq_len(list_combinations)), function(idx) {
     first_set <- list_combinations[idx, 1]
     second_set <- list_combinations[idx, 2]
-    fw_dir <- NULL
-    bk_dir <- NULL
+
     tryCatch(one2one(first_set, second_set, seq_info = seq_info, file_ext = file_ext, input_prefix_path = input_prefix_path, blast.sequence.limit = blast.sequence.limit, input_type = input_type, n_threads = n_threads, blast_program = blast_program, output_dir = output_dir, blast_options = blast_options, verbose = verbose),
       error = function(cond) {
         if (verbose) {
