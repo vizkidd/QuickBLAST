@@ -40,6 +40,11 @@ QuickBLAST::BLAST2Folders(ptr=blastn_ptr, query="query", subject="subject", exte
 
 [Currently supported scores](https://www.ncbi.nlm.nih.gov/IEB/ToolBox/CPP_DOC/lxr/source/include/objects/seqalign/Seq_align.hpp#0128)
 
+#### Future : (Looking for suggestions)
++ Implement more scores and filtering options 
++ Include function for reading the arrow output files
++ Convert from arrow to GRanges (maybe with the use of arrow::Visit() functions)
+
 Disclaimers for disclaimers, legal stuff for legal stuff and respect for respect, wherever it should go.
 
 [LinkedIN](https://www.linkedin.com/in/vishveshkarthik/)
