@@ -31,3 +31,5 @@ QuickBLAST::BLAST2Folders(ptr=blastn_ptr, query="query", subject="subject", exte
 
 [Currently supported scores](https://www.ncbi.nlm.nih.gov/IEB/ToolBox/CPP_DOC/lxr/source/include/objects/seqalign/Seq_align.hpp#0128)
 
+
+Disclaimers for disclaimers, legal stuff for legal stuff and respect for respect, wherever it should go.
