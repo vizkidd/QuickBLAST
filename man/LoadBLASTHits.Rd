@@ -24,10 +24,3 @@ Give the path to a BLAST Hits file to load it into a data.frame(BLAST HITs Table
 \details{
 Note : If use.feather is enabled, then the functions returns an arrow::RecordBatchStreamReader object. Call wrap it in an iterators::iter() (like batch_iter <- iter(function(){ batch_reader$read_next_batch() })) and call iterators::nextElem(batch_iter) to get each batch of the BLAST Hits.
 }
-\note{
-Column indices will be used when processing the data. Column names are only for user reference. First column must be the query sequence ID and the second column must be the subject sequence ID
-}
-\examples{
-LoadBLASTHits(infile, transcript_ID_metadata = NULL, col.names = NULL)
-
-}

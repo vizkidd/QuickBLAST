@@ -12,7 +12,8 @@ BLAST2Files(
   seq_limit,
   num_threads,
   show_progress,
-  return_values
+  return_values,
+  min_batch_size = 1024L
 )
 }
 \arguments{
@@ -31,9 +32,11 @@ BLAST2Files(
 \item{show_progress}{(bool) TRUE - Show progress, Set FALSE for multiple instances}
 
 \item{return_values}{(bool) TRUE - Returns values as list, Default - FALSE - Does not return values (Return true on completion)}
+
+\item{min_batch_size}{(int) Minimum Batch Size to start writing to output file. (Default - 1024)}
 }
 \value{
-RecordBatchVector of Asynchronous BLAST Hits
+RecordBatchVector of Asynchronous BLAST Hits (OR) TRUE on successful completion
 }
 \description{
 BLAST 2 Files and return the RecordBatchVector of BLAST Hits Asynchronously

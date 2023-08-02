@@ -3,18 +3,16 @@
 template <typename OptionsType>
 ncbi::blast::CBlastOptionsHandle *QuickBLAST::SetQuickBLASTOptions(const std::string &program_name, const OptionsType &options)
 {
-
+  this->blast_options = options;
   this->program = program_name;
   if constexpr (std::is_same_v<OptionsType, std::string> || std::is_same_v<OptionsType, Rcpp::String>)
   {
-    // Rcpp::Rcout << "here1.1" << std::endl;
-    // Rcpp::Rcout << options << std::endl;
-    this->blast_options_str = options;
+    // this->blast_options_str = options;
     return SetQuickBLASTOptions<std::string>(program_name, options);
   }
   else if constexpr (std::is_same_v<OptionsType, Rcpp::List>)
   {
-    this->blast_options_list = options;
+    // this->blast_options_list = options;
     return SetQuickBLASTOptions<Rcpp::List>(program_name, options);
   }
   else
@@ -294,7 +292,6 @@ QuickBLAST::QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand
   this->save_sequences = save_sequences;
   this->program = program;
   this->opts = CRef<ncbi::blast::CBlastOptionsHandle>(SetQuickBLASTOptions<Rcpp::List>(program, options));
-  // this->opts->DoNotDeleteThisObject();
   this->strand = strand;
   this->seq_type = seq_type;
   ok_promise.set_value(arrow::Status::OK());
@@ -315,7 +312,6 @@ QuickBLAST::QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand
   this->save_sequences = save_sequences;
   this->program = program;
   this->opts = CRef<ncbi::blast::CBlastOptionsHandle>(SetQuickBLASTOptions<std::string>(program, options));
-  // this->opts->DoNotDeleteThisObject();
   this->strand = strand;
   this->seq_type = seq_type;
   ok_promise.set_value(arrow::Status::OK());
@@ -904,29 +900,30 @@ std::string QuickBLAST::GetSSeqLocSequence(const SSeqLoc &seq_loc)
   return NStr::PrintableString(str);
 }
 
-std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::string &queryFile, const std::string &subjectFile, const std::string &outFile, int blast_sequence_limit, int num_threads, const bool show_progress, const bool return_values)
+std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::string &queryFile, const std::string &subjectFile, const std::string &outFile, int blast_sequence_limit, int num_threads, const bool show_progress, const bool return_values, int batch_size)
 {
-
-  assert(num_threads > 0);
-/*   if (!arrow_wrapper || arrow_wrapper.get() == nullptr)
+  // assert(num_threads > 0);
+  /*   if (!arrow_wrapper || arrow_wrapper.get() == nullptr)
+    {
+      arrow_wrapper = std::make_shared<ArrowWrapper>();
+    } */
+  /* if (this->opts.Empty() || this->opts.IsNull())
   {
-    arrow_wrapper = std::make_shared<ArrowWrapper>();
-  }
-  if (this->opts == nullptr)
-  {
-    if (this->blast_options_list.size() > 0)
-    {
-      this->opts = SetQuickBLASTOptions(this->program, this->blast_options_list);
-    }
-    else if (!this->blast_options_str.empty())
-    {
-      this->opts = SetQuickBLASTOptions(this->program, this->blast_options_str);
-    }
-    else
-    {
-      this->opts = SetQuickBLASTOptions(this->program, "");
-    }
+    // if (this->blast_options_list.size() > 0)
+    // {
+    //   this->opts = SetQuickBLASTOptions(this->program, this->blast_options_list);
+    // }
+    // else if (!this->blast_options_str.empty())
+    // {
+    //   this->opts = SetQuickBLASTOptions(this->program, this->blast_options_str);
+    // }
+    // else
+    // {
+    //   this->opts = SetQuickBLASTOptions(this->program, "");
+    // }
+    this->opts = CRef<ncbi::blast::CBlastOptionsHandle>(SetQuickBLASTOptions(program, this->blast_options));
   } */
+
 #ifdef _OPENMP
   int n_threads = num_threads > omp_get_num_threads() ? omp_get_num_threads() : num_threads;
 #else
@@ -934,7 +931,6 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::str
 #endif
 
   n_threads = int(ceil(n_threads / 2) - 2) <= 0 ? 1 : int(ceil(n_threads / 2) - 2);
-
   arrow::Status outfile_sts = arrow_wrapper->CreateOutputStream(outFile);
   if (!outfile_sts.ok())
   {
@@ -948,6 +944,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::str
   int q_seq_count = arrow_wrapper->CountCharacter(queryFile, '>', n_threads);
 
   int s_seq_count = arrow_wrapper->CountCharacter(subjectFile, '>', n_threads);
+
   const int totalIterations = q_seq_count * s_seq_count;
   if (blast_sequence_limit > 0)
   {
@@ -959,8 +956,8 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::str
     blast_sequence_limit = s_seq_count - 1;
   }
   assert(totalIterations > 0);
-  int batch_size = 128 * num_threads; // int(ceil(totalIterations / pow(2, n_threads))); // int(ceil(sqrt(totalIterations) * (n_threads * 2)) / 2);
-  // batch_size = 32 * n_threads; // batch_size > 0 ? batch_size : 1024;
+  // int batch_size = 96 * num_threads; // int(ceil(totalIterations / pow(2, n_threads))); // int(ceil(sqrt(totalIterations) * (n_threads * 2)) / 2);
+  //  batch_size = 32 * n_threads; // batch_size > 0 ? batch_size : 1024;
   arrow_wrapper->SetBatchSize(batch_size);
 
   Progress progress_bar(totalIterations, show_progress);
@@ -1130,6 +1127,9 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::BLAST_seqs(const std::string &qu
 //' @return Nested List of BLAST Hits
 Rcpp::List QuickBLAST::BLAST(const std::string &query, const std::string &subject, const std::string &outputFile, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress)
 {
+
+  assert(std::filesystem::exists(query));
+  assert(std::filesystem::exists(subject));
 
   switch (input_type)
   {

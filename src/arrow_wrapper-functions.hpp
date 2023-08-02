@@ -87,6 +87,7 @@ ArrowWrapper::ArrowWrapper()
 #ifdef _OPENMP
   omp_init_lock(&rec_countLock);
   omp_init_lock(&rbv_batchLock);
+  omp_init_lock(&rec_writerLock);
 #endif
 }
 
@@ -94,6 +95,8 @@ ArrowWrapper::~ArrowWrapper()
 {
 #ifdef _OPENMP
   omp_destroy_lock(&rec_countLock);
+  omp_destroy_lock(&rbv_batchLock);
+  omp_destroy_lock(&rec_writerLock);
 #endif
   Rcpp::Rcout << "~ArrowWrapper " << std::endl;
 }
@@ -148,7 +151,25 @@ void ArrowWrapper::FinishOutputStream()
   {
     WriteBatch2File();
   }
-  rec_writer->Close();
+
+  std::thread fin_thread([this]()
+                         {
+                           if (this->writer_threads.size() > 0)
+                           {
+                             // this->writer_threads[this->writer_threads.size() - 1].join();
+                             for (auto &wrt_thread : this->writer_threads)
+                             {
+
+                               static_cast<void>(wrt_thread.join());
+                             }
+                           }
+                           this->rec_writer->Close();
+                           this->writer_threads.clear();
+                           this->rbv_batch->clear();
+                           // Rcpp::Rcout << "Done writing to file." << std::endl;
+                         });
+
+  fin_thread.detach();
 }
 
 arrow::Status ArrowWrapper::WriteBatch2File()
@@ -161,6 +182,7 @@ arrow::Status ArrowWrapper::WriteBatch2File()
 #ifdef _OPENMP
   omp_unset_lock(&rbv_batchLock);
 #endif
+
   for (const auto &rb : rbv_buffer)
   {
     if (rb)
@@ -170,9 +192,18 @@ arrow::Status ArrowWrapper::WriteBatch2File()
         arrow::Status rb_sts = rb->ValidateFull();
         if (rb_sts.ok())
         {
+#ifdef _OPENMP
+          omp_set_lock(&rec_writerLock);
+#endif
           arrow::Status sts = rec_writer->WriteRecordBatch(*rb);
+#ifdef _OPENMP
+          omp_unset_lock(&rec_writerLock);
+#endif
           if (!sts.ok())
           {
+            Rcpp::Rcout << "ERROR : Could not write RB" << sts.detail() << std::endl
+                        << sts.message() << std::endl
+                        << rb->schema()->ToString() << std::endl;
             return sts;
           }
         }

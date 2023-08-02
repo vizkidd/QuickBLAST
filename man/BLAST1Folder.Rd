@@ -10,7 +10,8 @@ BLAST1Folder(
   extension,
   out_folder,
   num_threads,
-  reciprocal_hits
+  reciprocal_hits,
+  min_batch_size = 1024L
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ BLAST1Folder(
 \item{num_threads}{(int) Number of Threads}
 
 \item{reciprocal_hits}{(bool) BLAST bi-directionally?}
+
+\item{min_batch_size}{(int) Minimum Batch Size to start writing to output file. (Default - 1024)}
 }
 \value{
 List of output filenames

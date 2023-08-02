@@ -51,7 +51,7 @@ RcppExport SEXP CreateNewBLASTInstance(SEXP seq_info, SEXP program, SEXP options
     Rcpp::List options_list = Rcpp::as<Rcpp::List>(options);
     QuickBLAST *ret_ptr = new QuickBLAST(seq_type, strand, program_, options_list, save_sequences);
     Rcpp::XPtr<QuickBLAST>
-        ptr(ret_ptr, false);
+        ptr(ret_ptr, true);
     // return the external pointer to the R side
     return ptr;
     break;
@@ -62,7 +62,7 @@ RcppExport SEXP CreateNewBLASTInstance(SEXP seq_info, SEXP program, SEXP options
     std::string options_str = Rcpp::as<std::string>(options);
     QuickBLAST *ret_ptr = new QuickBLAST(seq_type, strand, program_, options_str, save_sequences);
     Rcpp::XPtr<QuickBLAST>
-        ptr(ret_ptr, false);
+        ptr(ret_ptr, true);
     // return the external pointer to the R side
     return ptr;
     break;
@@ -190,9 +190,10 @@ std::string getFilenameWithoutExtension(const std::string &filename)
 //' @param out_folder (string) Output Folder
 //' @param num_threads (int) Number of Threads
 //' @param reciprocal_hits (bool) BLAST bi-directionally?
+//' @param min_batch_size (int) Minimum Batch Size to start writing to output file. (Default - 1024)
 //' @return List of output filenames
 // [[Rcpp::export]]
-RcppExport SEXP BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension, SEXP out_folder, SEXP num_threads, SEXP reciprocal_hits)
+RcppExport SEXP BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension, SEXP out_folder, SEXP num_threads, SEXP reciprocal_hits, int min_batch_size = 1024)
 {
   // int typ1 = TYPEOF(query);
   // int typ2 = TYPEOF(subject);
@@ -211,6 +212,7 @@ RcppExport SEXP BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension
   std::string extension_ = as<std::string>(extension);
   std::string outFolder_ = as<std::string>(out_folder);
   int num_threads_ = as<int>(num_threads);
+  int min_batch_size_ = min_batch_size;
   bool reciprocal_hits_ = as<bool>(reciprocal_hits);
   std::filesystem::path outPath(outFolder_);
   std::filesystem::create_directory(outPath);
@@ -219,6 +221,7 @@ RcppExport SEXP BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension
     Rcpp::Rcerr << "out_folder : Folder must be empty.";
     return Rcpp::wrap(false);
   }
+  assert(min_batch_size_ > 0);
   assert(!query_.empty());
   assert(!subject_.empty());
 
@@ -272,7 +275,7 @@ RcppExport SEXP BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension
       }
       int one_dim_index = i + queryFiles.size() * j;
       Rcpp::Rcout << "BLASTing : " << base_name << std::endl;
-      static_cast<void>(ptr_->BLAST_files(query_input.string(), subject_input.string(), outFile_.string(), seq_limit, num_threads_, true, false));
+      static_cast<void>(ptr_->BLAST_files(query_input.string(), subject_input.string(), outFile_.string(), seq_limit, num_threads_, true, false, min_batch_size_));
       ret_lst[one_dim_index] = outFile_.string();
       names[one_dim_index] = base_name;
     }
@@ -298,9 +301,10 @@ RcppExport SEXP BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension
 //' @param out_folder (string) Output Folder
 //' @param num_threads (int) Number of Threads
 //' @param reciprocal_hits (bool) BLAST bi-directionally?
+//' @param min_batch_size (int) Minimum Batch Size to start writing to output file. (Default - 1024)
 //' @return List of output filenames
 // [[Rcpp::export]]
-RcppExport SEXP BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP out_folder, SEXP num_threads, SEXP reciprocal_hits)
+RcppExport SEXP BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP out_folder, SEXP num_threads, SEXP reciprocal_hits, int min_batch_size = 1024)
 {
 
   // int typ1 = TYPEOF(input_folder);
@@ -318,6 +322,7 @@ RcppExport SEXP BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP o
   std::string extension_ = as<std::string>(extension);
   std::string outFolder_ = as<std::string>(out_folder);
   int num_threads_ = as<int>(num_threads);
+  int min_batch_size_ = min_batch_size;
   bool reciprocal_hits_ = as<bool>(reciprocal_hits);
   std::filesystem::path outPath(outFolder_);
   std::filesystem::create_directory(outPath);
@@ -326,6 +331,7 @@ RcppExport SEXP BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP o
     Rcpp::Rcerr << "out_folder : Folder must be empty.";
     return Rcpp::wrap(false);
   }
+  assert(min_batch_size_ > 0);
   assert(!input_folder_.empty());
 
   std::vector<std::string> inputFiles = getFilesInDir(input_folder_, extension_);
@@ -370,7 +376,8 @@ RcppExport SEXP BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP o
       std::filesystem::path subj_filename = inputFiles[j];
       std::filesystem::path subj_filePath = folder / subj_filename;
       Rcpp::Rcout << "BLASTing : " << base_name << std::endl;
-      static_cast<void>(ptr_->BLAST_files(qry_filePath.string(), subj_filePath.string(), outFile_.string(), seq_limit, num_threads_, true, false));
+
+      static_cast<void>(ptr_->BLAST_files(qry_filePath.string(), subj_filePath.string(), outFile_.string(), seq_limit, num_threads_, true, false, min_batch_size_));
       ret_lst[one_dim_index] = outFile_.string();
       names[one_dim_index] = base_name;
     }
@@ -399,9 +406,10 @@ RcppExport SEXP BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP o
 //' @param num_threads (int) Number of Threads
 //' @param show_progress (bool) TRUE - Show progress, Set FALSE for multiple instances
 //' @param return_values (bool) TRUE - Returns values as list, Default - FALSE - Does not return values (Return true on completion)
-//' @return RecordBatchVector of Asynchronous BLAST Hits
+//' @param min_batch_size (int) Minimum Batch Size to start writing to output file. (Default - 1024)
+//' @return RecordBatchVector of Asynchronous BLAST Hits (OR) TRUE on successful completion
 // [[Rcpp::export]]
-RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, SEXP seq_limit, SEXP num_threads, SEXP show_progress, SEXP return_values)
+RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, SEXP seq_limit, SEXP num_threads, SEXP show_progress, SEXP return_values, int min_batch_size = 1024)
 {
   auto start = std::chrono::high_resolution_clock::now();
   Rcpp::XPtr<QuickBLAST> ptr_(ptr);
@@ -413,14 +421,16 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, S
   bool return_values_ = as<bool>(return_values);
   std::string outFile_ = as<std::string>(out_file);
   int num_threads_ = as<int>(num_threads);
+  int min_batch_size_ = min_batch_size;
 
+  assert(min_batch_size_ > 0);
   assert(!query_.empty());
   assert(!subject_.empty());
   assert(!outFile_.empty());
 
   if (return_values_)
   {
-    std::shared_ptr<arrow::RecordBatchVector> ret_vals = ptr_->BLAST_files(query_, subject_, outFile_, seq_limit_, num_threads_, show_progress_, return_values_);
+    std::shared_ptr<arrow::RecordBatchVector> ret_vals = ptr_->BLAST_files(query_, subject_, outFile_, seq_limit_, num_threads_, show_progress_, return_values_, min_batch_size_);
     Rcpp::List ret_vals_ = as<List>(ptr_->Hits2RList(*ret_vals));
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -432,7 +442,7 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, S
   }
   else
   {
-    static_cast<void>(ptr_->BLAST_files(query_, subject_, outFile_, seq_limit_, num_threads_, show_progress_, return_values_));
+    static_cast<void>(ptr_->BLAST_files(query_, subject_, outFile_, seq_limit_, num_threads_, show_progress_, return_values_, min_batch_size_));
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed_seconds = end - start;
     // Print the time in seconds

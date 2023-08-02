@@ -23,9 +23,11 @@ Get an Instance of QuickBLAST class and its exposed methods
 Check BLAST C++ Call in Help for the list of parameters for the exposed BLAST function. Exposed C++ function only takes BLAST options as string.
 }
 \examples{
-bw_obj <- QuickBLAST::GetQuickBLASTInstance(list(0, 0, F), "blastn", "-evalue 1e-05")
-bw_obj$BLAST("ungrouped.cds", "ungrouped.cds", "out.tmp", 0, 1000, T)
-bw_obj$BLAST("AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG", "", 0, 1000, F)
+\dontrun{
+bw_obj <- QuickBLAST::GetQuickBLASTInstance(list(0, 0, FALSE), "blastn", "-evalue 1e-05")
+bw_obj$BLAST("ungrouped.cds", "ungrouped.cds", "out.tmp", 0, 1000, TRUE)
+bw_obj$BLAST("AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG", "", 1, 1000, FALSE)
+}
 
 }
 \seealso{

@@ -9,7 +9,6 @@ one2one(
   second_set,
   seq_info,
   file_ext = "fa",
-  blast_out,
   input_prefix_path = NULL,
   blast.sequence.limit = 1000,
   input_type,
@@ -28,8 +27,6 @@ one2one(
 \item{seq_info}{Ordered List of 1) (int) Sequence Type, 2) (int) Strand (bool), 3) Save Sequences in BLAST Hits? : TRUE - BLAST Hits have sequences, FALSE - FASTA sequences are not stored in BLAST Hits. Check QuickBLAST::GetQuickBLASTEnums() for available enums}
 
 \item{file_ext}{File extension of input files. eg- "cds" or "fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString}
-
-\item{blast_out}{Name of the BLAST run and name of the output file}
 
 \item{input_prefix_path}{If input lists/vectors are filenames, then provide input folder to prefix path}
 
@@ -51,7 +48,9 @@ one2one(
 Executes One-to-One QuickBLAST between two lists of organisms/genes/clusters. The BLAST Hits are stored in Arrow::Feather/Parquet format.
 }
 \examples{
-one2one_QuickBLAST("ungrouped.cds","ungrouped.cds", file_ext="fa",blast_out="out.tmp",blast.sequence.limit=200, input_type=GetQuickBLASTEnums()$EInputType$eFile, n_threads=8, blast_program="tblastx", output_dir="./", blast_options= QuickBLAST::GetAvailableBLASTOptions(), seq_type=GetQuickBLASTEnums()$ESeqType$eNucleotide, GetQuickBLASTEnums()$EStrand$ePlus, save_sequences, verbose=T)
+\dontrun{
+one2one("ungrouped.cds", "ungrouped.cds", seq_info = list(GetQuickBLASTEnums()$ESeqType$eNucleotide, GetQuickBLASTEnums()$EStrand$ePlus, F), file_ext = "fa", blast.sequence.limit = 200, input_type = GetQuickBLASTEnums()$EInputType$eFile, n_threads = 8, blast_program = "tblastx", output_dir = "./", blast_options = QuickBLAST::GetAvailableBLASTOptions(), verbose = T)
+}
 
 }
 \seealso{

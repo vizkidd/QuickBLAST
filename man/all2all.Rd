@@ -48,7 +48,9 @@ all2all(
 Executes All-to-All QuickBLAST between two lists of organisms/genes/clusters. Output BLAST files are bi-directional and are stored in the filename filename1.filename2.all2all under output_dir. (All-to-All is simply Many-to-Many association)
 }
 \examples{
- all2all_QuickBLAST(first_list = list.files(path="fasta",pattern = "\*.fa",all.files = T,full.names = T,include.dirs = F,recursive = F), second_list = list.files(path="fasta",pattern = "\*.fa",all.files = T,full.names = T,include.dirs = F,recursive = F),,blast_program = "tblastx", blast_options=GetAvailableBLASTOptions(),output_dir = "files/all2all",file_ext="cds",seq_type=GetQuickBLASTEnums()$ESeqType$eFile,strand=GetQuickBLASTEnums()$EStrand$ePlus,save_sequences=F)
+\dontrun{
+all2all("ungrouped.cds", "ungrouped.cds", seq_info = list(GetQuickBLASTEnums()$ESeqType$eNucleotide, GetQuickBLASTEnums()$EStrand$ePlus, F), file_ext = "fa", blast.sequence.limit = 200, input_type = GetQuickBLASTEnums()$EInputType$eFile, n_threads = 8, blast_program = "tblastx", output_dir = "./", blast_options = QuickBLAST::GetAvailableBLASTOptions(), verbose = T)
+}
 
 }
 \seealso{

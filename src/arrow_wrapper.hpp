@@ -62,11 +62,13 @@ private:
   std::shared_ptr<arrow::io::OutputStream> outFileStream;
   std::shared_ptr<arrow::ipc::RecordBatchWriter> rec_writer;
   std::shared_ptr<arrow::RecordBatchVector> rbv_batch;
+  std::vector<std::thread> writer_threads;
 
   int rb_batch_size = 1024, rec_count = 0;
 
 #ifdef _OPENMP
   omp_lock_t rec_countLock;
+  omp_lock_t rec_writerLock;
   omp_lock_t rbv_batchLock;
 #endif
 
@@ -143,9 +145,13 @@ public:
 #endif
       if (ret_size >= rb_batch_size)
       {
+        // if (writer_threads.size() > 0){
+        //   writer_threads[writer_threads.size() - 1].join();
+        // }
         std::thread write_thread([this]()
                                  { this->WriteBatch2File(); });
-        write_thread.detach();
+        // write_thread.detach();
+        writer_threads.emplace_back(std::move(write_thread));
       }
       return arrow::Result<std::shared_ptr<arrow::RecordBatch>>(rb_);
     }
@@ -167,9 +173,13 @@ public:
 #endif
       if (ret_size >= rb_batch_size)
       {
+        // if (writer_threads.size() > 0){
+        //   writer_threads[writer_threads.size() - 1].join();
+        // }
         std::thread write_thread([this]()
                                  { this->WriteBatch2File(); });
-        write_thread.detach();
+        // write_thread.detach();
+        writer_threads.emplace_back(std::move(write_thread));
       }
       return arrow::Result<std::shared_ptr<arrow::RecordBatchVector>>(std::make_shared<arrow::RecordBatchVector>(rbv_));
     }

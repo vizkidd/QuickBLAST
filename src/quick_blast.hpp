@@ -18,6 +18,7 @@
 #include <cassert>
 #include <future>
 #include <thread>
+#include <filesystem>
 #ifdef _OPENMP
 #include "omp.h"
 #endif
@@ -56,8 +57,9 @@ public:
 private:
     std::string program;
     CRef<ncbi::blast::CBlastOptionsHandle> opts;
-    Rcpp::List blast_options_list;
-    std::string blast_options_str;
+    // Rcpp::List blast_options_list;
+    // std::string blast_options_str;
+    SEXP blast_options;
     ESeqType seq_type;
     EStrand strand;
     std::shared_ptr<ArrowWrapper> arrow_wrapper;
@@ -108,7 +110,7 @@ public:
     ncbi::blast::CBlastOptionsHandle *SetQuickBLASTOptions(const std::string &program_name, const OptionsType &options);
 
     Rcpp::List BLAST(const std::string &query, const std::string &subject, const std::string &outputFile, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress = true);
-    std::shared_ptr<arrow::RecordBatchVector> BLAST_files(const std::string &queryFile, const std::string &subjectFile, const std::string &outFile, int blast_sequence_limit, int num_threads, const bool show_progress = true, const bool return_values = false);
+    std::shared_ptr<arrow::RecordBatchVector> BLAST_files(const std::string &queryFile, const std::string &subjectFile, const std::string &outFile, int blast_sequence_limit, int num_threads, const bool show_progress = true, const bool return_values = false, int batch_size = 1024);
     std::shared_ptr<arrow::RecordBatch> BLAST_seqs(const std::string &query, const std::string &subject);
     SEXP Hits2RList(const std::shared_ptr<arrow::RecordBatch> &rb);
     SEXP Hits2RList(const arrow::RecordBatchVector &rb_vector);

@@ -42,9 +42,10 @@ BLAST2Seqs <- function(ptr, query, subject) {
 #' @param out_folder (string) Output Folder
 #' @param num_threads (int) Number of Threads
 #' @param reciprocal_hits (bool) BLAST bi-directionally?
+#' @param min_batch_size (int) Minimum Batch Size to start writing to output file. (Default - 1024)
 #' @return List of output filenames
-BLAST2Folders <- function(ptr, query, subject, extension, out_folder, num_threads, reciprocal_hits) {
-    .Call(`_QuickBLAST_BLAST2Folders`, ptr, query, subject, extension, out_folder, num_threads, reciprocal_hits)
+BLAST2Folders <- function(ptr, query, subject, extension, out_folder, num_threads, reciprocal_hits, min_batch_size = 1024L) {
+    .Call(`_QuickBLAST_BLAST2Folders`, ptr, query, subject, extension, out_folder, num_threads, reciprocal_hits, min_batch_size)
 }
 
 #' @name BLAST1Folder
@@ -60,9 +61,10 @@ BLAST2Folders <- function(ptr, query, subject, extension, out_folder, num_thread
 #' @param out_folder (string) Output Folder
 #' @param num_threads (int) Number of Threads
 #' @param reciprocal_hits (bool) BLAST bi-directionally?
+#' @param min_batch_size (int) Minimum Batch Size to start writing to output file. (Default - 1024)
 #' @return List of output filenames
-BLAST1Folder <- function(ptr, input_folder, extension, out_folder, num_threads, reciprocal_hits) {
-    .Call(`_QuickBLAST_BLAST1Folder`, ptr, input_folder, extension, out_folder, num_threads, reciprocal_hits)
+BLAST1Folder <- function(ptr, input_folder, extension, out_folder, num_threads, reciprocal_hits, min_batch_size = 1024L) {
+    .Call(`_QuickBLAST_BLAST1Folder`, ptr, input_folder, extension, out_folder, num_threads, reciprocal_hits, min_batch_size)
 }
 
 #' @name BLAST2Files
@@ -80,8 +82,9 @@ BLAST1Folder <- function(ptr, input_folder, extension, out_folder, num_threads, 
 #' @param num_threads (int) Number of Threads
 #' @param show_progress (bool) TRUE - Show progress, Set FALSE for multiple instances
 #' @param return_values (bool) TRUE - Returns values as list, Default - FALSE - Does not return values (Return true on completion)
-#' @return RecordBatchVector of Asynchronous BLAST Hits
-BLAST2Files <- function(ptr, query, subject, out_file, seq_limit, num_threads, show_progress, return_values) {
-    .Call(`_QuickBLAST_BLAST2Files`, ptr, query, subject, out_file, seq_limit, num_threads, show_progress, return_values)
+#' @param min_batch_size (int) Minimum Batch Size to start writing to output file. (Default - 1024)
+#' @return RecordBatchVector of Asynchronous BLAST Hits (OR) TRUE on successful completion
+BLAST2Files <- function(ptr, query, subject, out_file, seq_limit, num_threads, show_progress, return_values, min_batch_size = 1024L) {
+    .Call(`_QuickBLAST_BLAST2Files`, ptr, query, subject, out_file, seq_limit, num_threads, show_progress, return_values, min_batch_size)
 }
 
