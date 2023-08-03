@@ -8,9 +8,6 @@ ArrowWrapper::ArrowWrapper()
 
   arrow_LFS = arrow::fs::LocalFileSystem();
 
-  parquet::WriterProperties::Builder props_bldr;
-  parquet::ArrowWriterProperties::Builder arrow_props_bldr;
-
   std::string username = getlogin();
   username += "(QuickBLAST)";
 

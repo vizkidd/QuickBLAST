@@ -75,6 +75,8 @@ private:
   arrow::ipc::IpcWriteOptions ipc_options;
   std::shared_ptr<parquet::WriterProperties> parquet_writer_props;
   std::shared_ptr<parquet::ArrowWriterProperties> arrow_writer_props;
+  parquet::WriterProperties::Builder props_bldr;
+  parquet::ArrowWriterProperties::Builder arrow_props_bldr;
   std::shared_ptr<std::ostringstream> outputStream;
 
   std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> MMapFile(const std::string_view &filename, const char *delim);
@@ -145,14 +147,15 @@ public:
 #endif
       if (ret_size >= rb_batch_size)
       {
-        if (writer_threads.size() > 0)
+        if (writer_threads.size() >= n_threads)
         {
           static_cast<void>(writer_threads[writer_threads.size() - 1].join());
+          writer_threads.erase(writer_threads.begin() + writer_threads.size() - 1);
         }
         std::thread write_thread([this]()
                                  { static_cast<void>(this->WriteBatch2File()); });
         // write_thread.detach();
-        writer_threads.emplace_back(std::move(write_thread));
+        static_cast<void>(writer_threads.emplace_back(std::move(write_thread)));
       }
       return arrow::Result<std::shared_ptr<arrow::RecordBatch>>(rb_);
     }
@@ -174,14 +177,15 @@ public:
 #endif
       if (ret_size >= rb_batch_size)
       {
-        if (writer_threads.size() > 0)
+        if (writer_threads.size() >= n_threads)
         {
           static_cast<void>(writer_threads[writer_threads.size() - 1].join());
+          writer_threads.erase(writer_threads.begin() + writer_threads.size() - 1);
         }
         std::thread write_thread([this]()
                                  { static_cast<void>(this->WriteBatch2File()); });
         // write_thread.detach();
-        writer_threads.emplace_back(std::move(write_thread));
+        static_cast<void>(writer_threads.emplace_back(std::move(write_thread)));
       }
       return arrow::Result<std::shared_ptr<arrow::RecordBatchVector>>(std::make_shared<arrow::RecordBatchVector>(rbv_));
     }
@@ -191,7 +195,10 @@ public:
   arrow::Status CreateOutputStream(const std::string &outFile)
   {
     outFileStream = arrow_LFS.OpenAppendStream(outFile, GetBLASTMetadata()).ValueOrDie();
-    auto writer_ = arrow::ipc::MakeFileWriter(outFileStream.get(), GetBLASTSchema(), GetArrowIPCOptions(), GetBLASTMetadata());
+    auto codec = arrow::util::Codec::Create(arrow::Compression::GZIP).ValueOrDie();
+
+    std::shared_ptr<arrow::io::CompressedOutputStream> compressed_outstream = arrow::io::CompressedOutputStream::Make(codec.get(), outFileStream).ValueOrDie();
+    auto writer_ = arrow::ipc::MakeFileWriter(compressed_outstream.get(), GetBLASTSchema(), GetArrowIPCOptions(), GetBLASTMetadata());
     if (!writer_.ok())
     {
       return writer_.status();
