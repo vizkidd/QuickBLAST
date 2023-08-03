@@ -5,10 +5,10 @@
 \title{Execute one2one QuickBLAST}
 \usage{
 one2one(
-  first_set,
-  second_set,
+  first_list,
+  second_list,
   seq_info,
-  file_ext = "fa",
+  file_ext = ".fa",
   input_prefix_path = NULL,
   blast.sequence.limit = 1000,
   input_type,
@@ -20,13 +20,13 @@ one2one(
 )
 }
 \arguments{
-\item{first_set}{Vector of FASTA Filenames or Strings}
+\item{first_list}{Vector of FASTA Filenames or Strings}
 
-\item{second_set}{Vector of FASTA Filenames or Strings}
+\item{second_list}{Vector of FASTA Filenames or Strings}
 
 \item{seq_info}{Ordered List of 1) (int) Sequence Type, 2) (int) Strand (bool), 3) Save Sequences in BLAST Hits? : TRUE - BLAST Hits have sequences, FALSE - FASTA sequences are not stored in BLAST Hits. Check QuickBLAST::GetQuickBLASTEnums() for available enums}
 
-\item{file_ext}{File extension of input files. eg- "cds" or "fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString}
+\item{file_ext}{File extension of input files. eg- ".cds" or ".fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString}
 
 \item{input_prefix_path}{If input lists/vectors are filenames, then provide input folder to prefix path}
 

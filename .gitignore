@@ -5,3 +5,5 @@
 *.hits
 *.json
 *.so
+..Rcheck/
+.Rproj.user

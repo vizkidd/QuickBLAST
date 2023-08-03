@@ -428,6 +428,9 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, S
   assert(!subject_.empty());
   assert(!outFile_.empty());
 
+  assert(std::filesystem::exists(query_));
+  assert(std::filesystem::exists(subject_));
+
   if (return_values_)
   {
     std::shared_ptr<arrow::RecordBatchVector> ret_vals = ptr_->BLAST_files(query_, subject_, outFile_, seq_limit_, num_threads_, show_progress_, return_values_, min_batch_size_);

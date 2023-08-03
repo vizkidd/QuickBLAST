@@ -107,10 +107,10 @@ LoadBLASTHits <- function(infile, sep = "\t", header = F, use.feather = F) {
 #' }
 #'
 #' @seealso [QuickBLAST::GetAvailableBLASTOptions()], [QuickBLAST::GetQuickBLASTEnums()]
-#' @param first_set Vector of FASTA Filenames or Strings
-#' @param second_set Vector of FASTA Filenames or Strings
+#' @param first_list Vector of FASTA Filenames or Strings
+#' @param second_list Vector of FASTA Filenames or Strings
 #' @param seq_info Ordered List of 1) (int) Sequence Type, 2) (int) Strand (bool), 3) Save Sequences in BLAST Hits? : TRUE - BLAST Hits have sequences, FALSE - FASTA sequences are not stored in BLAST Hits. Check QuickBLAST::GetQuickBLASTEnums() for available enums
-#' @param file_ext File extension of input files. eg- "cds" or "fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString
+#' @param file_ext File extension of input files. eg- ".cds" or ".fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString
 #' @param blast_program Give the name of the BLAST program to use (if in $PATH) or give the absolute path to the BLAST program. Default is tempdir(). Can also be NULL
 #' @param output_dir Path to BLAST output
 #' @param blast.sequence.limit Maximum number of sequences to be BLASTed at a time, not used for Seqs
@@ -123,19 +123,22 @@ LoadBLASTHits <- function(infile, sep = "\t", header = F, use.feather = F) {
 #' @param verbose Print DEBUG Messages?
 #' @md
 #' @export
-one2one <- function(first_set, second_set, seq_info, file_ext = "fa", input_prefix_path = NULL, blast.sequence.limit = 1000, input_type, n_threads, blast_program, output_dir = "./", blast_options, verbose = T) {
+one2one <- function(first_list, second_list, seq_info, file_ext = ".fa", input_prefix_path = NULL, blast.sequence.limit = 1000, input_type, n_threads, blast_program, output_dir = "./", blast_options, verbose = T) {
   if (!is.null(input_prefix_path)) {
-    first_list <- paste(input_prefix_path, "/", first_list, ".", file_ext, sep = "")
-    second_list <- paste(input_prefix_path, "/", second_list, ".", file_ext, sep = "")
+    first_list <- paste(input_prefix_path, "/", first_list, file_ext, sep = "")
+    second_list <- paste(input_prefix_path, "/", second_list, file_ext, sep = "")
+  }else{
+    first_list <- paste(first_list, file_ext, sep = "")
+    second_list <- paste(second_list, file_ext, sep = "")
   }
 
   list_combos <- unique(tidyr::crossing(first_list[order(first_list)], second_list[order(second_list)]))
 
   # return_data <- furrr::future_map2(.x=first_list[order(first_list)], .y=second_list[order(second_list)], .f=function(x,y){
-  parallel::mclapply(seq_along(seq_len(list_combos)), function(idx) {
+  parallel::mclapply(seq_along(1:nrow(list_combos)), function(idx) {
     x <- toString(list_combos[idx, 1])
     y <- toString(list_combos[idx, 2])
-    if (input_type == GetQuickBLASTEnums()$EInputType$eFile) {
+    if (input_type == QuickBLAST::GetQuickBLASTEnums()$EInputType$eFile) {
       if (!all(file.exists(x), file.exists(y), file.info(x)$size > 0, file.info(y)$size > 0)) {
         warning(paste(x, "or", y, "missing/empty and input_type is EInputType$eFile, assuming input to be sequences!", sep = " "))
         input_type <- 1
@@ -150,10 +153,10 @@ one2one <- function(first_set, second_set, seq_info, file_ext = "fa", input_pref
 
     switch(input_type,
       { # eFile
-        return(BLAST2Files(ptr = blast_ptr, query = x, subject = y, out_file = paste(output_dir, "/", x, ".", y, ".feather", sep = ""), seq_limit = blast.sequence.limit, show_progress = T))
+        return(QuickBLAST::BLAST2Files(ptr = blast_ptr, query = x, subject = y, out_file = paste(output_dir, "/", basename(tools::file_path_sans_ext(x)), ".", basename(tools::file_path_sans_ext(y)), ".hits", sep = ""), seq_limit = blast.sequence.limit, show_progress = T, return_values = F, min_batch_size = 256, num_threads = n_threads))
       },
       { # eSequenceString
-        return(BLAST2Seqs(ptr = blast_ptr, query = x, subject = y))
+        return(QuickBLAST::BLAST2Seqs(ptr = blast_ptr, query = x, subject = y))
       },
       { # eFolder
       }
@@ -177,7 +180,7 @@ one2one <- function(first_set, second_set, seq_info, file_ext = "fa", input_pref
 #' @param first_list Vector of FASTA Filenames or Strings
 #' @param second_list Vector of FASTA Filenames or Strings
 #' @param seq_info Ordered List of 1) (int) Sequence Type, 2) (int) Strand (bool), 3) Save Sequences in BLAST Hits? : TRUE - BLAST Hits have sequences, FALSE - FASTA sequences are not stored in BLAST Hits. Check QuickBLAST::GetQuickBLASTEnums() for available enums
-#' @param file_ext (Optional) File extension of input files. eg- "cds" or "fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString
+#' @param file_ext (Optional) File extension of input files. eg- ".cds" or ".fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString
 #' @param blast_program Give the name of the BLAST program to use (if in $PATH) or give the absolute path to the BLAST program. Default is tempdir(). Can also be NULL
 #' @param output_dir Path to BLAST output
 #' @param blast_options Extra Options to be passed to the BLAST program
@@ -188,7 +191,7 @@ one2one <- function(first_set, second_set, seq_info, file_ext = "fa", input_pref
 #' @param verbose Print Debug Messages?
 #' @md
 #' @export
-all2all <- function(first_list, second_list, input_type, seq_info, blast_program, file_ext = "fa", blast_options = "", output_dir = "./", input_prefix_path = NULL, blast.sequence.limit = 1000, n_threads = 8, verbose = T) {
+all2all <- function(first_list, second_list, input_type, seq_info, blast_program, file_ext = ".fa", blast_options = "", output_dir = "./", input_prefix_path = NULL, blast.sequence.limit = 1000, n_threads = 8, verbose = T) {
   if (verbose) {
     cat(paste("All2All QuickBLAST Started...", "\n", sep = ""))
     print(paste(first_list, collapse = ","))
@@ -199,18 +202,18 @@ all2all <- function(first_list, second_list, input_type, seq_info, blast_program
 
   list_combinations <- unique(tidyr::crossing(first_list, second_list))
   # furrr::future_map2(.x=list_combinations$first_list, .y=list_combinations$second_list, .f=function(first_set,second_set){
-  parallel::mclapply(seq_along(seq_len(list_combinations)), function(idx) {
+  parallel::mclapply(seq_along(1:nrow(list_combinations)), function(idx) {
     first_set <- list_combinations[idx, 1]
     second_set <- list_combinations[idx, 2]
 
-    tryCatch(one2one(first_set, second_set, seq_info = seq_info, file_ext = file_ext, input_prefix_path = input_prefix_path, blast.sequence.limit = blast.sequence.limit, input_type = input_type, n_threads = n_threads, blast_program = blast_program, output_dir = output_dir, blast_options = blast_options, verbose = verbose),
+    tryCatch(QuickBLAST::one2one(first_list = first_set, second_list = second_set, seq_info = seq_info, file_ext = file_ext, input_prefix_path = input_prefix_path, blast.sequence.limit = blast.sequence.limit, input_type = input_type, n_threads = n_threads, blast_program = blast_program, output_dir = output_dir, blast_options = blast_options, verbose = verbose),
       error = function(cond) {
         if (verbose) {
           message(cond)
         }
       }
     )
-    tryCatch(one2one(first_set, second_set, seq_info = seq_info, file_ext = file_ext, input_prefix_path = input_prefix_path, blast.sequence.limit = blast.sequence.limit, input_type = input_type, n_threads = n_threads, blast_program = blast_program, output_dir = output_dir, blast_options = blast_options, verbose = verbose),
+    tryCatch(QuickBLAST::one2one(first_set, second_set, seq_info = seq_info, file_ext = file_ext, input_prefix_path = input_prefix_path, blast.sequence.limit = blast.sequence.limit, input_type = input_type, n_threads = n_threads, blast_program = blast_program, output_dir = output_dir, blast_options = blast_options, verbose = verbose),
       error = function(cond) {
         if (verbose) {
           message(cond)
@@ -219,3 +222,4 @@ all2all <- function(first_list, second_list, input_type, seq_info, blast_program
     )
   }, mc.cores = n_threads, mc.preschedule = T)
 }
+

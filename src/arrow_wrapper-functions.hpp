@@ -156,12 +156,12 @@ void ArrowWrapper::FinishOutputStream()
                          {
                            if (this->writer_threads.size() > 0)
                            {
-                             // this->writer_threads[this->writer_threads.size() - 1].join();
-                             for (auto &wrt_thread : this->writer_threads)
-                             {
+                             static_cast<void>(this->writer_threads[this->writer_threads.size() - 1].join());
+                             //  for (auto &wrt_thread : this->writer_threads)
+                             //  {
 
-                               static_cast<void>(wrt_thread.join());
-                             }
+                             //    static_cast<void>(wrt_thread.join());
+                             //  }
                            }
                            static_cast<void>(this->rec_writer->Close());
                            this->writer_threads.clear();
@@ -288,7 +288,7 @@ int ArrowWrapper::CountCharacter(std::string filename, char character, int num_t
 }
 
 template <typename T1>
-std::shared_ptr<arrow::RecordBatchVector> ArrowWrapper::SplitFilesIntoEntries(const std::string_view &filename, const char *delim, const int &num_threads, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<T1>)> &Entry_callback)
+std::shared_ptr<arrow::RecordBatchVector> ArrowWrapper::SplitFilesIntoEntries(const std::string_view &filename, const char *delim, const int &num_threads, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<T1>)> &Entry_callback, bool return_values)
 {
 
   if constexpr (!std::is_same_v<T1, std::string> || !std::is_same_v<T1, FastaSequenceData>)
@@ -374,13 +374,21 @@ std::shared_ptr<arrow::RecordBatchVector> ArrowWrapper::SplitFilesIntoEntries(co
             if (Entry_callback != nullptr)
             {
               std::shared_ptr<arrow::RecordBatchVector> tmp_result = Entry_callback(std::make_shared<T1>(conv_entry));
+
+              if (return_values)
+              {
 #ifdef _OPENMP
-              omp_set_lock(&ret_resultsLock);
+                omp_set_lock(&ret_resultsLock);
 #endif
-              ret_results.insert(ret_results.end(), tmp_result->begin(), tmp_result->end());
+                ret_results.insert(ret_results.end(), tmp_result->begin(), tmp_result->end());
 #ifdef _OPENMP
-              omp_unset_lock(&ret_resultsLock);
+                omp_unset_lock(&ret_resultsLock);
 #endif
+              }
+              else
+              {
+                tmp_result->clear();
+              }
             }
           }
           p = entryEnd - 1; // Move to the next position after the delimiter

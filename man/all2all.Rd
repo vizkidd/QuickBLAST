@@ -10,7 +10,7 @@ all2all(
   input_type,
   seq_info,
   blast_program,
-  file_ext = "fa",
+  file_ext = ".fa",
   blast_options = "",
   output_dir = "./",
   input_prefix_path = NULL,
@@ -30,7 +30,7 @@ all2all(
 
 \item{blast_program}{Give the name of the BLAST program to use (if in $PATH) or give the absolute path to the BLAST program. Default is tempdir(). Can also be NULL}
 
-\item{file_ext}{(Optional) File extension of input files. eg- "cds" or "fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString}
+\item{file_ext}{(Optional) File extension of input files. eg- ".cds" or ".fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString}
 
 \item{blast_options}{Extra Options to be passed to the BLAST program}
 

@@ -64,7 +64,7 @@ private:
   std::shared_ptr<arrow::RecordBatchVector> rbv_batch;
   std::vector<std::thread> writer_threads;
 
-  int rb_batch_size = 1024, rec_count = 0;
+  int rb_batch_size = 1024, rec_count = 0, n_threads = 1;
 
 #ifdef _OPENMP
   omp_lock_t rec_countLock;
@@ -94,7 +94,7 @@ public:
   int GetColumnCount(const std::string_view &filename, char delim = '\t');
   int CountCharacter(std::string filename, char character, int num_threads);
   template <typename T1>
-  std::shared_ptr<arrow::RecordBatchVector> SplitFilesIntoEntries(const std::string_view &filename, const char *delim, const int &num_threads, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<T1>)> &Entry_callback);
+  std::shared_ptr<arrow::RecordBatchVector> SplitFilesIntoEntries(const std::string_view &filename, const char *delim, const int &num_threads, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<T1>)> &Entry_callback, bool return_values = false);
   template <typename T>
   T CastToType(const std::string &full_entry);
   int GetRecordCount() { return rec_count; }
@@ -128,6 +128,7 @@ public:
       omp_set_num_threads(1);
 #endif
     }
+    n_threads = num_threads;
   }
   arrow::Result<std::shared_ptr<arrow::RecordBatch>> AddRB2Batch(std::shared_ptr<arrow::RecordBatch> rb_)
   {
@@ -144,9 +145,10 @@ public:
 #endif
       if (ret_size >= rb_batch_size)
       {
-        // if (writer_threads.size() > 0){
-        //   writer_threads[writer_threads.size() - 1].join();
-        // }
+        if (writer_threads.size() > 0)
+        {
+          static_cast<void>(writer_threads[writer_threads.size() - 1].join());
+        }
         std::thread write_thread([this]()
                                  { static_cast<void>(this->WriteBatch2File()); });
         // write_thread.detach();
@@ -172,9 +174,10 @@ public:
 #endif
       if (ret_size >= rb_batch_size)
       {
-        // if (writer_threads.size() > 0){
-        //   writer_threads[writer_threads.size() - 1].join();
-        // }
+        if (writer_threads.size() > 0)
+        {
+          static_cast<void>(writer_threads[writer_threads.size() - 1].join());
+        }
         std::thread write_thread([this]()
                                  { static_cast<void>(this->WriteBatch2File()); });
         // write_thread.detach();
