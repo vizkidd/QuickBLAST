@@ -18,6 +18,55 @@ Cons :
  
 Let me know if you want more information and please address bugs to me on github.
 
+## Installation (under construction)
+
+[Install Apache Arrow](https://arrow.apache.org/install/) - (For Windows, install Arrow UCRT). Check `Sys.getenv("R_RTOOLS43_PATH")` for Windows (you might need to append rtools*/mingw64/include to `R_RTOOLS43_PATH`)
+
+### Compile NCBI-C++ Toolkit
+
+```bash
+git clone https://github.com/ncbi/ncbi-cxx-toolkit-public
+cd ncbi-cxx-toolkit-public
+```
+
+#### Linux
+```bash
+./configure --with-dll --with-static --with-openmp --with-64 --without-exe --without-vdb --without-debug --without-app --without-gui --with-lfs
+make
+sudo make install-toolkit
+```
+
+#### Windows
+```batch
+#Add CMAKE_CMD (Path to cmake.exe) to the system environment variables
+cmake-configure --with-generator="Visual Studio 17 2022" --with-dll
+#Open ncbi_cpp.sln inside the CMake*/build folder, change the configuration from Debug to Release and build ALL_BUILD project
+```
+
+```git
+git clone https://github.com/klauspost/mman-win32
+#Open mman.vcproj in Visual Studio, change the configuration from Debug to Release(change arch to x64 if relevant) and build the project
+# mman.lib 
+```
+
+```R
+#Set _MSC_VER to one of https://dev.to/yumetodo/list-of-mscver-and-mscfullver-8nd
+Sys.setenv("_MSC_VER"=)
+#Run configure from the R Mingw terminal to satisfy an unmet dependancy to ncbiconf_unix.h
+./configure --with-dll --with-static --with-openmp --with-64 --without-exe --without-vdb --without-debug --without-app --without-gui --with-lfs
+```
+Copy `<PATH TO GCC BUILD DIR>/inc/ncbiconf_unix.h` to `ncbi-cxx-toolkit-public/include/`
+
+#### Final Install Steps
+
+```R
+setwd("ncbi-cxx-toolkit-public")
+Sys.setenv("NCBI_BLAST_INC"=file.path(getwd(),"include"))
+#Check the line below
+Sys.setenv("NCBI_BLAST_LIB"=file.path(getwd(),"<PATH TO BUILD DIRECTORY>","bin","<PATH TO *.dll or *.so files>"))
+```
+
+## Usage
 ```R
 remotes::install_local("QuickBLAST_1.0_R_x86_64-pc-linux-gnu.tar.gz", build=F)
 tblastx_ptr <- QuickBLAST::CreateNewBLASTInstance(seq_info = list(0,0,F), program = "tblastx", options = list("evalue"=1e-05, "pident"=0.75, "qcovhsp_perc"=0.75))
