@@ -10,100 +10,46 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// CreateNewBLASTInstance
-RcppExport SEXP CreateNewBLASTInstance(SEXP seq_info, SEXP program, SEXP options);
-RcppExport SEXP _QuickBLAST_CreateNewBLASTInstance(SEXP seq_infoSEXP, SEXP programSEXP, SEXP optionsSEXP) {
+// test_QBR
+RcppExport SEXP test_QBR();
+RcppExport SEXP _QuickBLAST_test_QBR() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(test_QBR());
+    return rcpp_result_gen;
+END_RCPP
+}
+// test_QBR_cpp
+RcppExport SEXP test_QBR_cpp();
+RcppExport SEXP _QuickBLAST_test_QBR_cpp() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(test_QBR_cpp());
+    return rcpp_result_gen;
+END_RCPP
+}
+// test_Rnil
+RcppExport SEXP test_Rnil();
+RcppExport SEXP _QuickBLAST_test_Rnil() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(test_Rnil());
+    return rcpp_result_gen;
+END_RCPP
+}
+// QB_CreateNewBLASTInstance
+RcppExport SEXP QB_CreateNewBLASTInstance(SEXP seq_info, SEXP program, SEXP options);
+RcppExport SEXP _QuickBLAST_QB_CreateNewBLASTInstance(SEXP seq_infoSEXP, SEXP programSEXP, SEXP optionsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type seq_info(seq_infoSEXP);
     Rcpp::traits::input_parameter< SEXP >::type program(programSEXP);
     Rcpp::traits::input_parameter< SEXP >::type options(optionsSEXP);
-    rcpp_result_gen = Rcpp::wrap(CreateNewBLASTInstance(seq_info, program, options));
+    rcpp_result_gen = Rcpp::wrap(QB_CreateNewBLASTInstance(seq_info, program, options));
     return rcpp_result_gen;
 END_RCPP
-}
-// BLAST2Seqs
-RcppExport SEXP BLAST2Seqs(SEXP ptr, SEXP query, SEXP subject);
-RcppExport SEXP _QuickBLAST_BLAST2Seqs(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type ptr(ptrSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type query(querySEXP);
-    Rcpp::traits::input_parameter< SEXP >::type subject(subjectSEXP);
-    rcpp_result_gen = Rcpp::wrap(BLAST2Seqs(ptr, query, subject));
-    return rcpp_result_gen;
-END_RCPP
-}
-// BLAST2Folders
-RcppExport SEXP BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension, SEXP out_folder, SEXP num_threads, SEXP reciprocal_hits, int min_batch_size);
-RcppExport SEXP _QuickBLAST_BLAST2Folders(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP, SEXP extensionSEXP, SEXP out_folderSEXP, SEXP num_threadsSEXP, SEXP reciprocal_hitsSEXP, SEXP min_batch_sizeSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type ptr(ptrSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type query(querySEXP);
-    Rcpp::traits::input_parameter< SEXP >::type subject(subjectSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type extension(extensionSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type out_folder(out_folderSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type num_threads(num_threadsSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type reciprocal_hits(reciprocal_hitsSEXP);
-    Rcpp::traits::input_parameter< int >::type min_batch_size(min_batch_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(BLAST2Folders(ptr, query, subject, extension, out_folder, num_threads, reciprocal_hits, min_batch_size));
-    return rcpp_result_gen;
-END_RCPP
-}
-// BLAST1Folder
-RcppExport SEXP BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP out_folder, SEXP num_threads, SEXP reciprocal_hits, int min_batch_size);
-RcppExport SEXP _QuickBLAST_BLAST1Folder(SEXP ptrSEXP, SEXP input_folderSEXP, SEXP extensionSEXP, SEXP out_folderSEXP, SEXP num_threadsSEXP, SEXP reciprocal_hitsSEXP, SEXP min_batch_sizeSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type ptr(ptrSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type input_folder(input_folderSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type extension(extensionSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type out_folder(out_folderSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type num_threads(num_threadsSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type reciprocal_hits(reciprocal_hitsSEXP);
-    Rcpp::traits::input_parameter< int >::type min_batch_size(min_batch_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(BLAST1Folder(ptr, input_folder, extension, out_folder, num_threads, reciprocal_hits, min_batch_size));
-    return rcpp_result_gen;
-END_RCPP
-}
-// BLAST2Files
-RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, SEXP seq_limit, SEXP num_threads, SEXP show_progress, SEXP return_values, int min_batch_size);
-RcppExport SEXP _QuickBLAST_BLAST2Files(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP, SEXP out_fileSEXP, SEXP seq_limitSEXP, SEXP num_threadsSEXP, SEXP show_progressSEXP, SEXP return_valuesSEXP, SEXP min_batch_sizeSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type ptr(ptrSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type query(querySEXP);
-    Rcpp::traits::input_parameter< SEXP >::type subject(subjectSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type out_file(out_fileSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type seq_limit(seq_limitSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type num_threads(num_threadsSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type show_progress(show_progressSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type return_values(return_valuesSEXP);
-    Rcpp::traits::input_parameter< int >::type min_batch_size(min_batch_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(BLAST2Files(ptr, query, subject, out_file, seq_limit, num_threads, show_progress, return_values, min_batch_size));
-    return rcpp_result_gen;
-END_RCPP
-}
-
-RcppExport SEXP _rcpp_module_boot_blast_module();
-
-static const R_CallMethodDef CallEntries[] = {
-    {"_QuickBLAST_CreateNewBLASTInstance", (DL_FUNC) &_QuickBLAST_CreateNewBLASTInstance, 3},
-    {"_QuickBLAST_BLAST2Seqs", (DL_FUNC) &_QuickBLAST_BLAST2Seqs, 3},
-    {"_QuickBLAST_BLAST2Folders", (DL_FUNC) &_QuickBLAST_BLAST2Folders, 8},
-    {"_QuickBLAST_BLAST1Folder", (DL_FUNC) &_QuickBLAST_BLAST1Folder, 7},
-    {"_QuickBLAST_BLAST2Files", (DL_FUNC) &_QuickBLAST_BLAST2Files, 9},
-    {"_rcpp_module_boot_blast_module", (DL_FUNC) &_rcpp_module_boot_blast_module, 0},
-    {NULL, NULL, 0}
-};
-
-RcppExport void R_init_QuickBLAST(DllInfo *dll) {
-    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
-    R_useDynamicSymbols(dll, FALSE);
 }

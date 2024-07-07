@@ -1,0 +1,402 @@
+# $Id$
+# cmake_minimum_required(VERSION 3.28)
+# cmake_policy(VERSION 3.28)
+# option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
+# option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+
+if(NOT WIN32 AND NOT MINGW32)
+	execute_process(
+	COMMAND Rscript -e "install.packages(setdiff(c('Rcpp','RcppProgress'), rownames(installed.packages())), repos = \"http://cran.us.r-project.org\", quiet=T)" ;
+	)
+	# execute_process(
+    # COMMAND pkg-config --cflags arrow;
+    # OUTPUT_VARIABLE ARROW_FLAGS
+    # OUTPUT_STRIP_TRAILING_WHITESPACE
+	# )
+	# message("Arrow flags:"${ARROW_FLAGS})
+	execute_process(
+    COMMAND pkg-config --cflags libR;
+    OUTPUT_VARIABLE R_FLAGS
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+	message("R flags:" ${R_FLAGS})
+	execute_process(
+    #COMMAND bash -c "pkg-config --cflags-only-I arrow | sed s/-I//g -";
+	COMMAND bash -c "realpath ../../../arrow/cpp/BUILD/release" ;
+    OUTPUT_VARIABLE ARROW_DIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+	#set(ARROW_DIR "../../../arrow/cpp/")
+	message("Arrow DIR:" ${ARROW_DIR})
+
+	find_library(ARROW_LIB
+    NAMES libarrow.a arrow libarrow
+    PATHS  ${ARROW_DIR}/BUILD/release /x86_64-w64-mingw32.static.posix/lib/ /mingw64/lib /ucrt64/lib /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu/
+	REQUIRED
+	NO_DEFAULT_PATH
+    )
+
+    # If found, ARROW_LIB will contain the full path to the library
+    if (ARROW_LIB)
+        message(STATUS "Arrow library found: ${ARROW_LIB}")
+    else()
+        message(FATAL_ERROR "Arrow library not found")
+    endif()
+
+	find_library(SQLITE3_LIBRARY
+    NAMES libsqlite3.a
+    PATHS /ucrt64/lib /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu/
+    REQUIRED
+    )
+
+    # If found, SQLite3_LIBRARY will contain the full path to the library
+    if (SQLITE3_LIBRARY)
+        message(STATUS "SQLite3 library found: ${SQLITE3_LIBRARY}")
+    else()
+        message(FATAL_ERROR "SQLite3 library not found")
+    endif()
+
+	execute_process(
+    COMMAND bash -c "pkg-config --cflags-only-I libR | sed s/-I//g -" ;
+    OUTPUT_VARIABLE R_INC
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+
+	message("R INC:" ${R_INC})
+	execute_process(
+    COMMAND Rscript -e "cat(system.file(package = 'Rcpp'))" ;
+    OUTPUT_VARIABLE RCPP_FOLDER
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+	message("Rcpp :" ${RCPP_FOLDER})
+	execute_process(
+    COMMAND Rscript -e "cat(system.file(package = 'RcppProgress'))" ;
+    OUTPUT_VARIABLE RCPPPROG_FOLDER
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+	message("RcppProgress :" ${RCPPPROG_FOLDER})
+
+	NCBI_begin_lib(QuickBLASTcpp SHARED)
+	NCBI_enable_pch()
+	NCBI_sources(QuickBLAST)
+	NCBI_headers(
+		*.h
+		*.hpp
+	)
+#   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
+#   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
+	NCBI_add_include_directories(
+		"${RCPP_FOLDER}/include"
+		"${RCPPPROG_FOLDER}/include"
+		"${ARROW_DIR}/src"
+		"${R_INC}"
+	)
+	NCBI_uses_toolkit_libraries(
+		# corelib
+		xcgi
+		xflatfile 	
+		blastinput
+		seqdb
+		blastdb
+		blast
+		blastdb_format
+		xblast
+		xncbi
+		xser
+		general
+		xobjsimple
+		xobjmgr
+		xutil
+		align_format
+		seq
+		seqset
+	)
+	NCBI_add_definitions(
+		QBLIBRARY_EXPORTS 
+	)
+	NCBI_uses_external_libraries(
+		${ARROW_LIB}
+		R
+		sqlite3
+		) 
+	NCBI_end_lib()
+
+elseif(MINGW32)
+	cmake_minimum_required(VERSION 3.28)
+	cmake_policy(VERSION 3.28)
+	
+	set(FOLDER_MODE "-u") #FOR cygpath
+	function(cygpath_cmd ret_var _folder_path)
+		block(SCOPE_FOR VARIABLES)
+			# message(STATUS ${_folder_path})
+			execute_process(
+				COMMAND bash -c "cygpath ${FOLDER_MODE} ${_folder_path}" ;
+				OUTPUT_VARIABLE _return_path
+				OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
+			# message(STATUS ${ret_var} ${_return_path})
+			set(${ret_var} ${_return_path})
+			return(PROPAGATE ${ret_var} ${_return_path})
+		endblock()
+	endfunction(cygpath_cmd)
+
+	# include(${NCBITK_INC_ROOT}/../ncbi_components.cmake) - need to set NCBI componenets before analyzing project deps, setting in toolchain is the easiest hack
+	include(${NCBITK_ROOT_DIR}/ncbi_components.cmake) #Setting include paths before setting up the project, just in case
+	execute_process(
+	COMMAND ${R_HOME}/bin/Rscript -e "install.packages(setdiff(c('Rcpp','RcppProgress'), rownames(installed.packages())), repos = \"http://cran.us.r-project.org\", quiet=T)" ;
+	)
+	
+	set(CMAKE_STATIC_LIBRARY_SUFFIX_C ".a")
+	set(CMAKE_STATIC_LIBRARY_PREFIX_C "lib")
+	set(CMAKE_STATIC_LIBRARY_SUFFIX_CXX ".a")
+	set(CMAKE_STATIC_LIBRARY_PREFIX_CXX "lib")
+
+	# set(CMAKE_SHARED_LIBRARY_SUFFIX_C ".dll.a")
+	set(CMAKE_SHARED_LIBRARY_SUFFIX_C ".dll")
+	set(CMAKE_SHARED_LIBRARY_PREFIX_C "lib")
+	# set(CMAKE_SHARED_LIBRARY_SUFFIX_CXX ".dll.a")
+	set(CMAKE_SHARED_LIBRARY_SUFFIX_CXX ".dll")
+	set(CMAKE_SHARED_LIBRARY_PREFIX_CXX "lib")
+
+	# set(CMAKE_SYSROOT_LINK "/x86_64-w64-mingw32.static.posix/lib")
+
+	# ###DBG
+	# execute_process(
+	# 	COMMAND bash -c "cygpath ${FOLDER_MODE} $(realpath $(pwd)/../../../)" ;
+	# )
+	# ###
+
+	execute_process(
+    	#COMMAND bash -c "pkg-config --cflags-only-I arrow | sed s/-I//g -";
+		COMMAND bash -c "cygpath ${FOLDER_MODE} $(realpath $(pwd)/../../../arrow/cpp/)" ;
+    	OUTPUT_VARIABLE ARROW_DIR
+    	OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+	#set(ARROW_DIR "../../../arrow/cpp/")
+	message("Arrow DIR:" ${ARROW_DIR})
+
+	find_library(ARROW_LIB
+   		NAMES arrow_msys2 #arrow_msys_full #arrow_full # arrow.a libarrow.a libarrow
+   		PATHS ${ARROW_DIR}/BUILD_MSYS2/release #${ARROW_DIR}/BUILD_CLANG/release #/x86_64-w64-mingw32.static.posix/lib/ /mingw64/lib /ucrt64/lib /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu/
+		REQUIRED
+		NO_DEFAULT_PATH
+    )
+	cygpath_cmd(ARROW_LIB "${ARROW_LIB}")
+	# If found, ARROW_LIB will contain the full path to the library
+	if (ARROW_LIB)
+		message(STATUS "Arrow library found: ${ARROW_LIB}")
+	else()
+		message(FATAL_ERROR "Arrow library not found")
+	endif()
+
+	# find_library(PARQUET_LIB
+   	# 	NAMES parquet_clang #arrow_msys_full #arrow_full # arrow.a libarrow.a libarrow
+   	# 	PATHS ${ARROW_DIR}/BUILD_CLANG/release #${ARROW_DIR}/BUILD_MINGW/release #/x86_64-w64-mingw32.static.posix/lib/ /mingw64/lib /ucrt64/lib /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu/
+	# 	REQUIRED
+	# 	NO_DEFAULT_PATH
+    # )
+	# cygpath_cmd(PARQUET_LIB "${PARQUET_LIB}")
+	# # If found, PARQUET_LIB will contain the full path to the library
+	# if (PARQUET_LIB)
+	# 	message(STATUS "Parquet library found: ${PARQUET_LIB}")
+	# else()
+	# 	message(FATAL_ERROR "Parquet library not found")
+	# endif()
+
+	# execute_process(
+	# COMMAND bash -c "cygpath -m ../../../backward-cpp" ;
+    # OUTPUT_VARIABLE Backward_DIR
+    # OUTPUT_STRIP_TRAILING_WHITESPACE
+	# )
+    # # list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_BINARY_DIR}/backward-cpp)
+    # find_package(Backward)
+
+	find_library(SQLITE3_LIBRARY
+    	NAMES libsqlite3.a
+    	PATHS /x86_64-w64-mingw32.static.posix/lib /ucrt64/lib /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu/
+    	REQUIRED
+    )
+
+    # If found, SQLite3_LIBRARY will contain the full path to the library
+    if (SQLITE3_LIBRARY)
+        message(STATUS "SQLite3 library found: ${SQLITE3_LIBRARY}")
+    else()
+        message(FATAL_ERROR "SQLite3 library not found")
+    endif()
+	
+	# set(R_INC "${R_HOME}/include")
+	#message("R inc:" ${R_INC})
+	cygpath_cmd(R_INC "${R_HOME}/include")
+	cygpath_cmd(R_HOME "${R_HOME}")
+
+	message("R HOME : " ${R_HOME})
+	message("R ARCH : " ${R_ARCH})
+	message("R INC : " ${R_INC})
+
+	# if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/R_src/")
+	# message(STATUS "Downloading R-src...")	
+	# execute_process(
+	# 		COMMAND bash -c "mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/R_src/" ;
+	# 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	# 	)
+	# 	execute_process(
+	# 		COMMAND bash -c "curl https://cran.r-project.org/src/base/R-latest.tar.gz -o R-latest.tar.gz" ;
+	# 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/R_src/
+	# 		COMMAND_ERROR_IS_FATAL ANY
+	# 	)
+	# 	execute_process(
+	# 		COMMAND bash -c "tar xzf R-latest.tar.gz 2> /dev/null" ;
+	# 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/R_src/
+	# 	)
+	# endif()
+
+	if (NOT EXISTS "${ROOT_SRC_DIR}/R_src/")
+	message(STATUS "Downloading R-src...")	
+	execute_process(
+			COMMAND bash -c "mkdir -p ${ROOT_SRC_DIR}/R_src/" ;
+			WORKING_DIRECTORY ${ROOT_SRC_DIR}
+		)
+		execute_process(
+			COMMAND bash -c "curl https://cran.r-project.org/src/base/R-latest.tar.gz -o R-latest.tar.gz" ;
+			WORKING_DIRECTORY ${ROOT_SRC_DIR}/R_src/
+			COMMAND_ERROR_IS_FATAL ANY
+		)
+		execute_process(
+			COMMAND bash -c "tar xzf R-latest.tar.gz 2> /dev/null" ;
+			WORKING_DIRECTORY ${ROOT_SRC_DIR}/R_src/
+		)
+	endif()
+
+	execute_process(
+		# COMMAND bash -c "cygpath ${FOLDER_MODE} $(echo $(realpath $(find . -maxdepth 1 -iname 'R-*' -type d ))/src/include/)" ;
+		COMMAND bash -c "cygpath ${FOLDER_MODE} $(echo $(realpath $(find . -maxdepth 1 -iname 'R-*' -type d ))/src/include/)" ;
+		OUTPUT_VARIABLE R_INC_UNIX
+    	OUTPUT_STRIP_TRAILING_WHITESPACE
+		WORKING_DIRECTORY ${ROOT_SRC_DIR}/R_src/
+		COMMAND_ERROR_IS_FATAL ANY
+	)
+	message("R INC (SRC) : " ${R_INC_UNIX})
+
+	execute_process(
+    	COMMAND ${R_HOME}/bin/Rscript -e "cat(system.file(package = 'Rcpp'))" ;
+    	OUTPUT_VARIABLE RCPP_FOLDER
+    	OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+	cygpath_cmd(RCPP_FOLDER ${RCPP_FOLDER})
+	message("Rcpp : " ${RCPP_FOLDER})
+
+	execute_process(
+    	COMMAND ${R_HOME}/bin/Rscript -e "cat(system.file(package = 'RcppProgress'))" ;
+    	OUTPUT_VARIABLE RCPPPROG_FOLDER
+    	OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+	cygpath_cmd(RCPPPROG_FOLDER ${RCPPPROG_FOLDER})
+	message("RcppProgress : " ${RCPPPROG_FOLDER})
+
+	execute_process(
+    	COMMAND ${R_HOME}/bin/Rscript -e "cat(system.file(package = 'arrow'))" ;
+    	OUTPUT_VARIABLE ARROW_R_FOLDER
+    	OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+	cygpath_cmd(ARROW_R_FOLDER ${ARROW_R_FOLDER})
+	message("ARROW R : " ${ARROW_R_FOLDER})
+
+	message("LMDB INC : " ${NCBI_COMPONENT_LMDB_INCLUDE})
+	
+	# if(NOT NCBI_COMPONENT_LMDB_FOUND OR NOT HAVE_LIBLMDB)
+	# if(NCBI_COMPONENT_LMDB_FOUND STREQUAL "LOCAL" OR NOT HAVE_LIBLMDB)
+	# 	message("NCBI INC ROOT : " ${NCBITK_INC_ROOT})
+	# 	set(NCBI_COMPONENT_LocalLMDB_FOUND LOCAL)
+	# 	set(NCBI_COMPONENT_LocalLMDB_INCLUDE ${NCBITK_INC_ROOT}/util/lmdb)
+	# 	set(NCBI_COMPONENT_LocalLMDB_NCBILIB lmdb)
+	# 	set(NCBI_COMPONENT_LMDB_FOUND ${NCBI_COMPONENT_LocalLMDB_FOUND})
+	# 	set(NCBI_COMPONENT_LMDB_INCLUDE ${NCBI_COMPONENT_LocalLMDB_INCLUDE})
+	# 	set(NCBI_COMPONENT_LMDB_NCBILIB ${NCBI_COMPONENT_LocalLMDB_NCBILIB})
+	# 	set(HAVE_LIBLMDB ${NCBI_COMPONENT_LMDB_FOUND})
+	# endif()
+
+	# NCBI_begin_lib(QuickBLASTcpp STATIC)
+	NCBI_begin_lib(QuickBLASTcpp SHARED)
+	NCBI_enable_pch()
+	NCBI_sources(
+		QuickBLAST
+		ArrowWrapper
+		API
+	)
+		# NCBI_optional_components(
+	# 	LMDB
+	# )
+	NCBI_requires(
+		LMDB
+	)
+	NCBI_headers(
+		*.h
+		*.hpp
+	)
+#   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
+#   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
+	NCBI_add_include_directories(
+		"${R_INC_UNIX}"
+		"${R_INC}"
+		"${RCPP_FOLDER}/include"
+		"${RCPPPROG_FOLDER}/include"
+		"${ARROW_DIR}/BUILD_MSYS2/src"
+		# "${ARROW_DIR}/BUILD_CLANG/src"
+		"${ARROW_DIR}/src"
+		"/usr/include"
+		"{NCBI_COMPONENT_LMDB_INCLUDE}"
+		#"/x86_64-w64-mingw32.static.posix/include"
+	)
+	NCBI_uses_toolkit_libraries(
+		xncbi
+		xcgi
+		xflatfile 	
+		blastinput
+		blast
+		lmdb
+		blastdb
+		blastdb_format
+		xblast
+		xser
+		general
+		xobjsimple
+		xobjmgr
+		xutil
+		align_format
+		seq
+		seqset
+	)
+	NCBI_add_definitions(
+		QBLIBRARY_EXPORTS
+		# # "_DEBUG_ARG(arg) arg"
+		# NCBI_CORE_EXPORTS
+		MINGW32
+		NDEBUG
+		)
+	# # # # NCBI_add_definitions("_DEBUG_ARG(arg) arg")
+	# # # NCBI_add_definitions("_DEBUG_ARG(arg)"=arg)
+	# # NCBI_add_definitions("_DEBUG_ARG(arg)=arg")
+	# add_compile_definitions(xncbi "_DEBUG_ARG(arg) arg")
+	NCBI_uses_external_libraries(
+		# ${ARROW_R_FOLDER}/libs/${R_ARCH}/arrow.dll
+		# "/clang64/lib/libc++.a"
+		# ${ARROW_DIR}/BUILD_MINGW/release/libarrow_mingw.a
+		# ${ARROW_DIR}/BUILD_MINGW/release/libarrow_mingw.dll
+		# ${ARROW_DIR}/BUILD_CLANG/release/libarrow_clang.dll
+		# ${ARROW_DIR}/BUILD_MSYS2/release/libarrow_msys2.dll
+		# ${ARROW_DIR}/BUILD/release/libarrow.dll.a
+		# "/mingw64/bin/libarrow.dll"
+		# "/mingw64/lib/libarrow.dll.a"
+		# ${ARROW_DIR}/BUILD/release/libarrow.dll
+		# ${ARROW_DIR}/BUILD/release/libarrow.a
+		# "/usr/lib/libssp.a"
+		${ARROW_LIB}
+		# ${PARQUET_LIB}
+		${R_HOME}/bin/${R_ARCH}/R.dll
+		sqlite3
+		) 
+	NCBI_end_lib()
+
+endif()
+
+

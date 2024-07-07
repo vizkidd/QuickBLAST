@@ -1,0 +1,20 @@
+CXXSTD = CXX17
+PKG_LIBS = -LBUILD/arrow/cpp/BUILD/release/ -LBUILD/ncbi-cxx-toolkit-public/BUILD/lib/ -L/usr/local/lib/ -L/usr/lib/ -larrow -lparquet -lrt -lxncbi -lxobjsimple -lxobjmgr -lblastinput -lblast -lblastdb -lblastdb_format -lxblast -lpthread -lseq -lxser -lgeneral -lseqset -lxutil -lalign_format `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` `$(R_HOME)/bin/Rscript -e "Rcpp:::LdFlags()"` $(SHLIB_OPENMP_CXXFLAGS)
+PKG_CXXFLAGS = -O3 -fPIC -fopenmp -Wextra -shared -Ilibsrc `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` $(SHLIB_OPENMP_CXXFLAGS) -pthread -I/usr/local/src/ -I/usr/include/ -IBUILD/arrow/cpp/src/ -IBUILD/ncbi-cxx-toolkit-public/src/ -IBUILD/ncbi-cxx-toolkit-public/BUILD/inc/
+
+#-I/usr/local/include/ncbi-tools++/ -I/usr/include/arrow/ -I/usr/include/parquet/ 
+
+$(SHLIB): builddeps
+
+builddeps:
+	(mkdir ../BUILD; \
+	cd ../BUILD; \
+	CC="$(CC)" CFLAGS="$(CFLAGS)" \
+	CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)" RTOOLS_DIR="" \
+	cmake .. \
+	-DCMAKE_BUILD_TYPE=Release \
+	-DBUILD_SHARED_LIBS:bool=OFF \
+	-DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON \
+	-DR_SHELL=1 \
+	-DRTOOLS_DIR=""; \
+	$(MAKE))

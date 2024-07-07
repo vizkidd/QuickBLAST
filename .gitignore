@@ -7,3 +7,7 @@
 *.so
 ..Rcheck/
 .Rproj.user
+dependencies/new/
+old/
+*.old
+*.dll

@@ -1,0 +1,18 @@
+Package: QuickBLASTdeps
+Type: Package
+Title: QuickBLAST dependencies package
+Version: 1.2
+Date: 2024-07-02
+Author: Vishvesh Karthik
+Maintainer: Vishvesh Karthik <vishveshkarthik@gmail.com>
+Description: R pacakge which holds the DLL/SO dependencies of QuickBLAST
+License: GPL (>= 2)
+Depends:
+   Rcpp (>= 1.0.10),
+   RcppProgress (>= 0.4.2)
+Imports:
+   Rcpp (>= 1.0.10),
+   RcppProgress (>= 0.4.2)
+LinkingTo: Rcpp, RcppProgress
+Encoding: UTF-8
+RoxygenNote: 7.2.3

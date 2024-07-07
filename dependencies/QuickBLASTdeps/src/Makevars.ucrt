@@ -1,0 +1,377 @@
+CSTD = C11
+CXXSTD = CXX17
+##CFLAGS="-O2 -Wall -gdwarf-4 -mfpmath=sse -msse4.2 -mstackrealign -UNDEBUG -Wall -pedantic -fdiagnostics-color=always"
+#CC="/usr/bin/gcc" 
+#CXX="/usr/bin/g++"
+#CC="/clang64/bin/clang" 
+#CXX="/clang64/bin/clang++"
+#CC="/mingw64/bin/clang-cl" 
+#CXX="/mingw64/bin/clang-cl"
+NPROC=`nproc`
+#GCC_VER=`gcc -dumpversion | tr -d '[:space:]'`
+GCC_VER=`/usr/bin/gcc -dumpversion | tr -d '[:space:]'`
+CLANG_VER=`/mingw64/bin/clang -dumpversion | tr -d '[:space:]'`
+CLANG_VER_NOPUNCT=`/mingw64/bin/clang -dumpversion | tr -d '[:space:]' | tr -d '[:punct:]'`
+#CLANG_VER=`/mingw64/bin/clang-cl --version | sed -n 's/clang version \([0-9.]\+\).*/\1/p'`
+#CLANG_VER_NOPUNCT=`/mingw64/bin/clang-cl --version | sed -n 's/clang version \([0-9.]\+\).*/\1/p' | tr -d '[:punct:]'`
+#GCC_VER=`/mingw64/bin/gcc -dumpversion | tr -d '[:space:]'` - wont compile
+WSL:=`which wsl.exe`
+RTOOLS_DIR := $(shell cygpath -m `$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"`)
+#MSYS_CMD := "$(RTOOLS_DIR)/msys2_shell.cmd"
+#PWD=`pwd`
+#ABS_PWD=`realpath $(PWD)`
+
+#LD_LIBRARY_PATH := "$(RTOOLS_DIR)/clang64/lib:$(RTOOLS_DIR)/usr/lib:$(RTOOLS_DIR)/x86_64-w64-mingw32.static.posix/lib:$(LD_LIBRARY_PATH)"
+#CPATH := "$(RTOOLS_DIR)/clang64/include:$(RTOOLS_DIR)/usr/include:$(RTOOLS_DIR)/x86_64-w64-mingw32.static.posix/include:$(CPATH)"
+#C_INCLUDE_PATH := "$(RTOOLS_DIR)/clang64/include:$(RTOOLS_DIR)/usr/include:$(RTOOLS_DIR)/x86_64-w64-mingw32.static.posix/include:$(C_INCLUDE_PATH)"
+#CPLUS_INCLUDE_PATH :=" $(RTOOLS_DIR)/clang64/include:$(RTOOLS_DIR)/usr/include:$(RTOOLS_DIR)/x86_64-w64-mingw32.static.posix/include:$(CPLUS_INCLUDE_PATH)"
+
+LD_LIBRARY_PATH := "/x86_64-w64-mingw32.static.posix/lib:/usr/lib:$(LD_LIBRARY_PATH)"
+CPATH := "/x86_64-w64-mingw32.static.posix/include:/usr/include"
+C_INCLUDE_PATH := "/x86_64-w64-mingw32.static.posix/include:/usr/include"
+CPLUS_INCLUDE_PATH := "/x86_64-w64-mingw32.static.posix/include:/usr/include"
+
+#-lstdc++ -lssp -larrow -lparquet -lrt -lxncbi -lxobjsimple -lxobjmgr -lblastinput -lblast -lblastdb -lblastdb_format -lxblast -lpthread -lseq -lxser -lgeneral -lseqset -lxutil -lalign_format -lQuickBLASTcpp
+#-L/ucrt64/lib/ -static-libgcc -static-libstdc++ -lc++.dll
+# -lssp -lmsys-2.0 -lQuickBLASTcpp.dll
+#-I../BUILD/ncbi-cxx-toolkit-public/src/ -I../BUILD/ncbi-cxx-toolkit-public/include/ -I../BUILD/ncbi-cxx-toolkit-public/BUILD/inc/  
+#-fstack-protector -fopenmp
+#-L`$(R_HOME)/bin/Rscript -e "cat(system.file(package = 'arrow'))"`/libs/$(R_ARCH)/
+#-L/x86_64-w64-mingw32.static.posix/lib/
+#-L/usr/lib/gcc/x86_64-pc-msys/`/usr/bin/gcc -dumpversion`/
+#-L../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/
+
+#-L../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/
+#-L../BUILD/arrow/cpp/BUILD/release/ -L../BUILD/arrow/cpp/BUILD_MSYS2/release/
+#-L../libs/$(R_ARCH)/
+
+PKG_CFLAGS = $(C_VISIBILITY)
+PKG_CPPFLAGS = -I../BUILD/arrow/cpp/src/ -I../BUILD/arrow/cpp/BUILD/src/
+PKG_LIBS = -v -L$(R_HOME)/bin/$(R_ARCH)/ -L../inst/libs/$(R_ARCH) -L/usr/bin/ -L$(R_HOME)/bin/$(R_ARCH)/ -lct_ftds100 -lefetch -llmdb -lncbi_algo -lncbi_align_format -lncbi_core -lncbi_dbapi_driver -lncbi_eutils -lncbi_general -lncbi_misc -lncbi_pub -lncbi_seq -lncbi_seqext -lncbi_trackmgr -lncbi_web -lncbi_xdbapi_ftds -lncbi_xloader_blastdb -lncbi_xloader_blastdb_rmt -lncbi_xloader_genbank -lncbi_xobjsimple -lncbi_xreader -lncbi_xreader_cache -lncbi_xreader_id1 -lncbi_xreader_id2 -lpsg_client -lsqlitewrapp -lutrtprof -lxflatfile -lxxconnect2 -lncbi_blastinput -lQuickBLASTcpp -lR -lmsys-2.0 -lmsys-gcc_s-seh-1 -lmsys-stdc++-6 -lmsys-gomp-1 -larrow -l`cd ../BUILD/arrow/cpp/BUILD_MSYS2/release/ && ls -1 *.dll | sed 's/.dll//g'` `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` `$(R_HOME)/bin/Rscript -e "Rcpp:::LdFlags()"` $(SHLIB_OPENMP_CXXFLAGS) -Wl,--demangle -Wl,-fstack-protector-strong -Wl,--no-undefined -Wl,-v
+PKG_CXXFLAGS = $(CXX_VISIBILITY) -DQBLIBRARY_IMPORTS -gdwarf-2 -mfpmath=sse -msse2 -mstackrealign -Wall -Wno-format-y2k -O2 -fPIC -Wextra -shared -Ilibsrc `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` $(SHLIB_OPENMP_CXXFLAGS) -DMINGW32=1 -DR_DLL=1 -pthread -fstack-protector-strong -mthreads -mtune=generic -maccumulate-outgoing-args 
+
+#-I/usr/include -I/x86_64-w64-mingw32.static.posix/include -I/clang64/include -I/mingw64/include 
+#-I/usr/local/include/ncbi-tools++/ -I/usr/include/arrow/ -I/usr/include/parquet/ 
+#-I/usr/local/src/ -I/usr/include/
+#install_deps build_libsolv buildncbi_gcc build_cygwin 
+
+#SOURCES = $(wildcard src/*.cpp)
+
+#OBJECTS = $(SOURCES:.cpp=.o)
+
+.PHONY: all builddeps QuickBLASTcpp.a
+
+#../BUILD/arrow/cpp/BUILD/release/libarrow_full.a ../BUILD/arrow/cpp/BUILD/release/libarrow_msys_full.dll.a ../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/libQuickBLASTcpp_full.a
+#../BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.dll.a
+#arrow_msys2_setup 
+# ../BUILD/arrow/cpp/BUILD_CLANG/release/libarrow_clang.dll.a
+#../BUILD/arrow/cpp/BUILD_MINGW/release/libarrow_mingw.dll.a ncbi_setup ../BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.dll.a ../BUILD/arrow/cpp/BUILD_MINGW/release/libarrow_msys_full.a ../BUILD/arrow/cpp/BUILD/release/libarrow.dll.a ncbi_setup ../BUILD/arrow/cpp/BUILD_MINGW/release/libarrow_mingw.dll.a ../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/datatool.exe 
+#QuickBLAST
+all: builddeps ../BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.dll.a ../BUILD/arrow/cpp/BUILD/release/libarrow.dll.a ../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/libQuickBLASTcpp.dll.a install_libs $(SHLIB) 
+
+install_deps:
+	(pacman -Syuu  -q --needed --noconfirm; \
+	pacman -Sy -q --needed --noconfirm development mingw-w64-cross-toolchain libraries compression mingw-w64-cross sys-utils mingw-w64-clang-x86_64-toolchain mingw-w64-ucrt-x86_64-toolchain mingw-w64-x86_64-toolchain ; \
+	pacman -Sy -q --needed --noconfirm cmake mingw-w64-clang-x86_64-cmake mingw-w64-ucrt-x86_64-cmake git mingw-w64-ucrt-x86_64-libutf8proc mingw-w64-ucrt-x86_64-utf8cpp mingw-w64-clang-x86_64-utf8cpp mingw-w64-clang-x86_64-libutf8proc mingw-w64-x86_64-libutf8proc mingw-w64-x86_64-utf8cpp mingw-w64-ucrt-x86_64-xsimd mingw-w64-x86_64-xsimd mingw-w64-clang-x86_64-xsimd mingw-w64-ucrt-x86_64-re2 mingw-w64-clang-x86_64-re2 mingw-w64-x86_64-re2 mingw-w64-ucrt-x86_64-boost mingw-w64-clang-x86_64-boost mingw-w64-x86_64-boost mingw-w64-ucrt-x86_64-thrift mingw-w64-clang-x86_64-thrift inetutils mingw-w64-ucrt-x86_64-python-win_inet_pton mingw-w64-clang-x86_64-python-win_inet_pton mingw-w64-x86_64-python-win_inet_pton mingw-w64-clang-x86_64-clang mingw-w64-ucrt-x86_64-clang clang llvm mingw-w64-clang-x86_64-llvm mingw-w64-ucrt-x86_64-llvm mingw-w64-x86_64-llvm mingw-w64-ucrt-x86_64-llvm-libs mingw-w64-clang-x86_64-llvm-libs mingw-w64-x86_64-llvm-libs lzop mingw-w64-clang-x86_64-lzo2 mingw-w64-ucrt-x86_64-lzo2 mingw-w64-x86_64-lzo2 liblzo2 liblzo2-devel mingw-w64-x86_64-openmp mingw-w64-ucrt-x86_64-openmp mingw-w64-clang-x86_64-openmp brotli mingw-w64-clang-x86_64-brotli mingw-w64-ucrt-x86_64-brotli mingw-w64-x86_64-brotli brotli-devel mingw-w64-ucrt-x86_64-samtools mingw-w64-clang-x86_64-samtools mingw-w64-x86_64-samtools mingw-w64-ucrt-x86_64-arrow mingw-w64-x86_64-arrow liblz4 lz4 mingw-w64-clang-x86_64-lz4 mingw-w64-ucrt-x86_64-lz4 mingw-w64-x86_64-lz4 zlib zlib-devel mingw-w64-cross-zlib mingw-w64-x86_64-zlib mingw-w64-ucrt-x86_64-zlib mingw-w64-clang-x86_64-zlib mingw-w64-clang-x86_64-python-conan mingw-w64-ucrt-x86_64-python-conan mingw-w64-x86_64-libc++ mingw-w64-ucrt-x86_64-libc++ mingw-w64-clang-x86_64-libc++ mingw-w64-clang-x86_64-headers-git mingw-w64-ucrt-x86_64-headers-git mingw-w64-x86_64-headers-git mingw-w64-ucrt-x86_64-libunwind mingw-w64-x86_64-libunwind mingw-w64-clang-x86_64-libunwind mingw-w64-x86_64-libbacktrace mingw-w64-ucrt-x86_64-libbacktrace mingw-w64-clang-x86_64-libbacktrace mingw-w64-x86_64-python-conan mingw-w64-clang-x86_64-python-conan mingw-w64-ucrt-x86_64-python-conan make mingw-w64-x86_64-clang mingw-w64-x86_64-libxml2 mingw-w64-clang-x86_64-libxml2 mingw-w64-ucrt-x86_64-libxml2 libxml2 mingw-w64-clang-x86_64-lld mingw-w64-ucrt-x86_64-lld mingw-w64-x86_64-lld lld autotools mingw-w64-clang-x86_64-autotools mingw-w64-ucrt-x86_64-autotools mingw-w64-x86_64-autotools libgcrypt-devel libgcrypt mingw-w64-x86_64-libgcrypt mingw-w64-ucrt-x86_64-libgcrypt mingw-w64-clang-x86_64-libgcrypt bison bisonc++ flex reflex flexc++ mingw-w64-ucrt-x86_64-flexdll mingw-w64-x86_64-flexdll msys2-runtime-devel msys2-runtime  msys2-w32api-runtime mingw-w64-cross-binutils mingw-w64-ucrt-x86_64-binutils mingw-w64-x86_64-binutils binutils mingw-w64-clang-x86_64-lmdb mingw-w64-ucrt-x86_64-lmdb mingw-w64-x86_64-lmdb mingw-w64-clang-x86_64-lmdbxx mingw-w64-ucrt-x86_64-lmdbxx mingw-w64-x86_64-lmdbxx)
+
+install_libs:
+	(mkdir -p ../inst/libs/$(R_ARCH) ; \
+	cd ../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/ ; \
+	cp -uf libct_ftds100.dll.a libefetch.dll.a liblmdb.dll.a libncbi_algo.dll.a libncbi_align_format.dll.a libncbi_core.dll.a libncbi_dbapi_driver.dll.a libncbi_eutils.dll.a libncbi_general.dll.a libncbi_misc.dll.a libncbi_pub.dll.a libncbi_seq.dll.a libncbi_seqext.dll.a libncbi_trackmgr.dll.a libncbi_web.dll.a libncbi_xdbapi_ftds.dll.a libncbi_xloader_blastdb.dll.a libncbi_xloader_blastdb_rmt.dll.a libncbi_xloader_genbank.dll.a libncbi_xobjsimple.dll.a libncbi_xreader.dll.a libncbi_xreader_cache.dll.a libncbi_xreader_id1.dll.a libncbi_xreader_id2.dll.a libpsg_client.dll.a libsqlitewrapp.dll.a libutrtprof.dll.a libxflatfile.dll.a libxxconnect2.dll.a libncbi_blastinput.dll.a libQuickBLASTcpp.dll.a ../../../../inst/libs/$(R_ARCH)/ ; \
+	cd ../../../arrow/cpp/BUILD_MSYS2/release/ ; \
+	cp -uf *.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	cd ../../BUILD/release/ ; \
+	cp -uf *.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	cp -uf usr/bin/msys-gomp-1.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	cp -uf usr/bin/msys-stdc++-6.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	cp -uf usr/bin/msys-gcc_s-seh-1.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	cp -uf usr/bin/msys-2.0.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	cd ../../../../../ ; \
+	#$(R_HOME)/bin/Rscript -e "devtools::install(build = T,force = T, quick=F, args = c('--no-staged-install'))" ; \
+	)
+
+QuickBLAST:
+	(cd ../QuickBLAST ; \
+	$(R_HOME)/bin/Rscript -e "devtools::install(build = T,force = T, quick=F, args = c('--no-staged-install'))" ; \
+	)
+
+#build_libsolv:
+#	(mkdir ../BUILD; \
+#	cd ../BUILD; \
+#	git clone https://github.com/openSUSE/libsolv; \
+#	cd libsolv; \
+#	mkdir build; \
+#	cd build ; \
+#	cmake .. ; \
+#	$(MAKE); \
+#	$(MAKE) install)
+
+#build_cygwin:
+#	(mkdir ../BUILD; \
+#	cd ../BUILD; \
+#	git clone git://cygwin.com/git/cygwin-apps/setup.git; \
+#	cd setup; \
+#	./bootstrap.sh --host=x86_64-w64-mingw32.static.posix; \
+#	./bootstrap.sh; \
+#	$(MAKE); \
+#	$(MAKE) strip)
+
+builddeps:
+	(mkdir ../BUILD; \
+	cd ../BUILD; \
+	#BUILD_DIR=$(pwd); \
+	CC="$(CC)" CFLAGS="$(CFLAGS)" \
+	CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)" \
+	RTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"` \
+	cmake .. \
+	-DROOT_SRC_DIR=`pwd` \
+	-DCMAKE_BUILD_TYPE=Release \
+	-DBUILD_SHARED_LIBS:bool=OFF \
+	-DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON \
+	-DR_SHELL=1 \
+	-DRTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"` || exit )
+
+#builddeps 
+../BUILD/arrow/cpp/BUILD_CLANG/release/libarrow_clang.dll.a:
+	(mkdir -p ../BUILD/arrow/cpp/BUILD_CLANG ; \
+	cd ../BUILD/arrow/cpp/BUILD_CLANG ; \
+	export PATH=/clang64/bin/:/usr/bin/ ; \
+	#CC="/usr/bin/gcc" CXX="/usr/bin/g++" /usr/bin/cmake .. -G "Unix Makefiles" -DARROW_CSV=ON -DARROW_FILESYSTEM=ON -DARROW_HDFS=ON -DARROW_PARQUET=OFF -DARROW_DEPENDENCY_USE_SHARED=OFF -DARROW_WITH_BZ2=ON  -DARROW_WITH_LZ4=ON -DARROW_DEPENDENCY_SOURCE=AUTO -DARROW_BUILD_STATIC=ON -DARROW_BUILD_SHARED=ON -DPARQUET_MINIMAL_DEPENDENCY=OFF -DARROW_WITH_BROTLI=ON -DARROW_WITH_RE2=OFF -DARROW_WITH_ZLIB=OFF -DARROW_WITH_ZSTD=ON -DCMAKE_BUILD_TYPE=Release -DARROW_IPC=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DARROW_COMPUTE=OFF -DARROW_ENABLE_THREADING=ON -DARROW_VERBOSE_THIRDPARTY_BUILD=ON -DARROW_POSITION_INDEPENDENT_CODE=ON -DARROW_JEMALLOC=OFF -DARROW_JSON=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_CXX_FLAGS_RELEASE=" -shared -std=gnu++17 -O2 -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -UNDEBUG -Wall -fdiagnostics-color=always -fPIC -O2 $(SHLIB_OPENMP_CXXFLAGS) -pthread -pedantic -fpermissive -Wl,--support-old-code -Wl,--compat-implib -Wl,-flto=auto -Wl,--no-undefined -Wl,--as-needed -Wl,-ffat-lto-objects -Wl,-Bsymbolic-functions -Wl,-fstack-protector-strong -Wl,-shared -Wl,--dll " -DCMAKE_C_FLAGS_RELEASE=" -shared -std=gnu11 -O2 -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -UNDEBUG -Wall -fdiagnostics-color=always -fPIC -O2 -Wl,--support-old-code -Wl,--compat-implib -Wl,-flto=auto -Wl,--no-undefined -Wl,--as-needed -Wl,-ffat-lto-objects -Wl,-Bsymbolic-functions -Wl,-fstack-protector-strong -Wl,-shared -Wl,--dll" ; \
+	#/usr/bin/make -j $(NPROC) ; \
+	/clang64/bin/cmake .. -GNinja --preset ninja-release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_C_FLAGS="-std=gnu11 -O2 -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wall -fdiagnostics-color=always -fPIC " -DCMAKE_CXX_FLAGS="-std=gnu++17 -O2 -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wall -fdiagnostics-color=always -fPIC -O2 -fopenmp -fpermissive " -DARROW_BUILD_INTEGRATION=OFF -DARROW_BUILD_TESTS=OFF -DARROW_DEPENDENCY_USE_SHARED=OFF -DARROW_WITH_BZ2=ON  -DARROW_WITH_LZ4=ON -DARROW_BUILD_SHARED=ON -DPARQUET_MINIMAL_DEPENDENCY=OFF -DARROW_WITH_BROTLI=ON -DARROW_WITH_RE2=ON -DARROW_WITH_ZLIB=OFF -DARROW_WITH_ZSTD=ON -DARROW_IPC=ON -DARROW_FILESYSTEM=ON -DARROW_COMPUTE=ON -DARROW_ENABLE_THREADING=ON -DARROW_MIMALLOC=ON -DARROW_JEMALLOC=OFF -DARROW_ACERO=OFF -DARROW_PARQUET=ON -DARROW_CSV=ON -DARROW_HDFS=ON -DARROW_VERBOSE_THIRDPARTY_BUILD=ON -DARROW_POSITION_INDEPENDENT_CODE=ON ; \
+	/clang64/bin/ninja ; \
+	cd release ; \
+	#cp -uf libarrow.a libarrow_clang.a ; \
+	cp -uf libarrow.dll libarrow_clang.dll ; \
+	cp -uf libparquet.dll libparquet_clang.dll ; \
+	cp -uf libparquet.dll.a libparquet_clang.dll.a ; \
+	cp -uf libarrow.dll.a libarrow_clang.dll.a ; \
+	)
+
+../BUILD/arrow/cpp/BUILD_MINGW/release/libarrow_mingw.dll.a:
+	(mkdir -p ../BUILD/arrow/cpp/BUILD_MINGW ; \
+	cd ../BUILD/arrow/cpp/BUILD_MINGW ; \
+	export PATH=/mingw64/bin/:/usr/bin/ ; \
+	#-DCMAKE_C_FLAGS="-std=gnu11 -O2 -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wall -fdiagnostics-color=always -fPIC " -DCMAKE_CXX_FLAGS="-std=gnu++17 -O2 -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wall -fdiagnostics-color=always -fPIC -fopenmp -fpermissive " ; \
+	CC="/mingw64/bin/gcc" CXX="/mingw64/bin/g++" /mingw64/bin/cmake .. -GNinja --preset ninja-release -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DARROW_BUILD_INTEGRATION=OFF -DARROW_BUILD_TESTS=OFF -DARROW_DEPENDENCY_USE_SHARED=OFF -DARROW_WITH_BZ2=ON  -DARROW_WITH_LZ4=ON -DARROW_BUILD_SHARED=ON -DARROW_BUILD_STATIC=OFF -DPARQUET_MINIMAL_DEPENDENCY=OFF -DARROW_WITH_BROTLI=ON -DARROW_WITH_RE2=ON -DARROW_WITH_ZLIB=OFF -DARROW_WITH_ZSTD=ON -DARROW_IPC=ON -DARROW_FILESYSTEM=ON -DARROW_COMPUTE=ON -DARROW_ENABLE_THREADING=ON -DARROW_MIMALLOC=ON -DARROW_JEMALLOC=OFF -DARROW_DATASET=OFF -DARROW_ACERO=OFF -DARROW_PARQUET=ON -DARROW_CSV=ON -DARROW_HDFS=ON -DARROW_VERBOSE_THIRDPARTY_BUILD=ON -DARROW_POSITION_INDEPENDENT_CODE=ON -DCMAKE_C_FLAGS=" -std=gnu11 -O2 -fstack-protector-strong -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -Wall -fdiagnostics-color=always -pthread -mthreads -fvisibility=default -mtune=generic -maccumulate-outgoing-args " -DCMAKE_CXX_FLAGS=" -std=gnu++17 -O2 -fstack-protector-strong -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -Wall -fstack-protector-strong -fdiagnostics-color=always $(SHLIB_OPENMP_CXXFLAGS) -pthread -mthreads -fpermissive -fvisibility=default -mtune=generic -maccumulate-outgoing-args " -DCMAKE_SHARED_LINKER_FLAGS_INIT=" -Wl,--demangle -Wl,--pic-executable -Wl,-shared -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,--dll -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed " ; \
+	/mingw64/bin/ninja ; \
+	cd release ; \
+	#cp -uf libarrow.a libarrow_mingw.a ; \
+	cp -uf libarrow.dll libarrow_mingw.dll ; \
+	cp -uf libparquet.dll libparquet_mingw.dll ; \
+	cp -uf libparquet.dll.a libparquet_mingw.dll.a ; \
+	cp -uf libarrow.dll.a libarrow_mingw.dll.a ; \
+	)
+
+#builddeps 
+../BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.dll.a:
+	(mkdir -p ../BUILD/arrow/cpp/BUILD_MSYS2 ; \
+	cd ../BUILD/arrow/cpp/BUILD_MSYS2 ; \
+	export PATH=/usr/bin/ ; \
+	CC="/usr/bin/gcc" CXX="/usr/bin/g++" /usr/bin/cmake .. -GNinja -DCMAKE_POSITION_INDEPENDENT_CODE="ON" -DARROW_BUILD_INTEGRATION="OFF" -DARROW_BUILD_TESTS="OFF" -DARROW_DEPENDENCY_USE_SHARED="OFF" -DARROW_WITH_BZ2="ON"  -DARROW_WITH_LZ4="ON" -DARROW_BUILD_SHARED="ON" -DARROW_BUILD_STATIC="OFF" -DPARQUET_MINIMAL_DEPENDENCY="OFF" -DARROW_WITH_BROTLI="ON" -DARROW_WITH_RE2="OFF" -DARROW_WITH_ZLIB="ON" -DARROW_WITH_ZSTD="ON" -DARROW_IPC="ON" -DARROW_FILESYSTEM="ON" -DARROW_COMPUTE="OFF" -DARROW_ENABLE_THREADING="ON" -DARROW_MIMALLOC="OFF" -DARROW_JEMALLOC="OFF" -DARROW_THRIFT_USE_SHARED="ON" -DARROW_DATASET="OFF" -DARROW_ACERO="OFF" -DARROW_PARQUET="OFF" -DARROW_CSV="ON" -DARROW_HDFS="ON" -DARROW_VERBOSE_THIRDPARTY_BUILD="ON" -DARROW_POSITION_INDEPENDENT_CODE="ON" -DARROW_JSON="ON" -DARROW_SUBSTRAIT="ON" -DARROW_WITH_SNAPPY="ON" -DARROW_WITH_UTF8PROC="ON" -DCMAKE_BUILD_TYPE="Release" -DCMAKE_EXPORT_COMPILE_COMMANDS="ON" -DCMAKE_C_FLAGS=" -std=gnu11 -O2 -fstack-protector-strong -Wformat -Werror=format-security -UHAVE_AF_UNIX_H -D__CYGWIN__ -D__MINGW32__ -DARROW_EXPORTING -D_XOPEN_SOURCE=700 -D_FORTIFY_SOURCE=2 -Wall -fdiagnostics-color=always -pthread -mthreads -fvisibility=default -mtune=generic -maccumulate-outgoing-args -mnop-fun-dllimport " -DCMAKE_CXX_FLAGS=" -std=gnu++17 -O2 -fstack-protector-strong -Wformat -Werror=format-security -UHAVE_AF_UNIX_H -D__CYGWIN__ -D__MINGW32__ -DARROW_EXPORTING -D_XOPEN_SOURCE=700 -D_FORTIFY_SOURCE=2 -Wall -fstack-protector-strong -fdiagnostics-color=always $(SHLIB_OPENMP_CXXFLAGS) -pthread -mthreads -fpermissive -fvisibility=default -mtune=generic -maccumulate-outgoing-args -mnop-fun-dllimport " -DCMAKE_SHARED_LINKER_FLAGS_INIT=" -Wl,--demangle -Wl,--pic-executable -Wl,-shared -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,--dll -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed " ; \
+	/usr/bin/ninja arrow ; \
+	cd release ; \
+	#cp -uf *.dll libarrow_msys2.dll ; \
+	cp -uf libarrow.dll.a libarrow_msys2.dll.a ; \
+	)
+
+#builddeps 
+../BUILD/arrow/cpp/BUILD/release/libarrow.dll.a:
+	(mkdir -p ../BUILD/arrow/cpp/BUILD ; \
+	cd ../BUILD/arrow/cpp/BUILD ; \
+	cmake .. -G "MSYS Makefiles" -DARROW_CSV=ON -DARROW_FILESYSTEM=ON -DARROW_HDFS=ON -DARROW_PARQUET=OFF -DARROW_DEPENDENCY_USE_SHARED=OFF -DARROW_WITH_BZ2=ON  -DARROW_WITH_LZ4=ON -DARROW_DEPENDENCY_SOURCE=BUNDLED -DARROW_BUILD_STATIC=OFF -DARROW_BUILD_SHARED=ON -DPARQUET_MINIMAL_DEPENDENCY=OFF -DARROW_WITH_BROTLI=ON -DARROW_WITH_RE2=ON -DARROW_WITH_ZLIB=OFF -DARROW_WITH_ZSTD=ON -DCMAKE_BUILD_TYPE=Release -DARROW_IPC=ON -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DARROW_COMPUTE=ON -DARROW_ENABLE_THREADING=ON -DARROW_VERBOSE_THIRDPARTY_BUILD=ON -DARROW_POSITION_INDEPENDENT_CODE=ON -DARROW_JEMALLOC=OFF -DARROW_MIMALLOC=ON -DARROW_JSON=ON -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING=OFF -DCMAKE_C_FLAGS=" -std=gnu11 -O2 -fstack-protector-strong -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -Wall -fdiagnostics-color=always -pthread -mthreads -fvisibility=default -mtune=generic -maccumulate-outgoing-args " -DCMAKE_CXX_FLAGS=" -std=gnu++17 -O2 -fstack-protector-strong -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -Wall -fdiagnostics-color=always $(SHLIB_OPENMP_CXXFLAGS) -pthread -mthreads -fpermissive -fvisibility=default -mtune=generic -maccumulate-outgoing-args " -DCMAKE_SHARED_LINKER_FLAGS_INIT=" -Wl,--demangle -Wl,--pic-executable -Wl,-shared -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,--dll -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed " ; \
+	$(MAKE) -j $(NPROC) ; \
+	cd release ; \
+	#cp -uf libarrow.a libarrow_mingw.a ; \
+	cp -uf libarrow.dll libarrow_mingw.dll ; \
+	cp -uf libarrow.dll.a libarrow_mingw.dll.a ; \
+	)
+
+../BUILD/arrow/cpp/BUILD/release/libarrow_full.a: ../BUILD/arrow/cpp/BUILD/release/libarrow.dll.a
+	(cd ../BUILD/arrow/cpp/BUILD ; \
+	/usr/bin/bash -c 'find . -iname "*.o" -or -iname "*.obj" -type f | grep -i -e "static*.dir" -e "utf8proc" -e "re2" -e "bzip2" - |  grep -i -v -e "test*.dir" -e "testing" -e "bzip2recover" -e "benchmark" - > release/objects.txt' ; \
+	#ar -rcs release/libarrow_full.a @release/objects.txt ; \
+	#/usr/bin/bash -c '/usr/bin/ar -rcs release/libarrow_full.a $$(find . -iname "*.o" -or -iname "*.obj" -type f)' ; \
+	#find . -iname "*.o" -or -iname "*.obj" -type f -exec "echo {} >> objects.txt" \; \
+	#ld --verbose -L$(RTOOLS_DIR)/x86_64-w64-mingw32.static.posix/lib/ | grep SEARCH_DIR ; \
+	g++ -v -static -o release/libarrow_full.a -flto=auto -ffat-lto-objects -g -O2 -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -fdiagnostics-color=always -fPIC -fpermissive -Wl,--demangle -Wl,-static -Wl,--as-needed -Wl,-Bsymbolic-functions -Wl,--enable-auto-import -Wl,--relax -Wl,-L$(RTOOLS_DIR)/x86_64-w64-mingw32.static.posix/lib/ -Wl,-lstdc++ -Wl,-lbz2 -Wl,-lole32 -Wl,-ladvapi32 -Wl,-lshell32 -Wl,-luser32 -Wl,-lkernel32 -Wl,-lgcc -Wl,-lmingwex -Wl,-lmsvcrt -Wl,-lkernel32 @release/objects.txt)
+
+#../BUILD/arrow/cpp/BUILD/release/libarrow.dll.a
+../BUILD/arrow/cpp/BUILD_MINGW/release/libarrow_msys_full.a: 
+	(cd ../BUILD/arrow/cpp/BUILD_MINGW ; \
+	/usr/bin/bash -c 'find . -iname "*.o" -or -iname "*.obj" -type f | grep -i -e "static*.dir" -e "utf8proc" -e "re2" -e "bzip2" - |  grep -i -v -e "test*.dir" -e "testing" -e "bzip2recover" -e "benchmark" - > release/objects.txt' ; \
+	#/usr/bin/ar -rcs release/libarrow_msys_full.a @release/objects.txt ; \
+	/usr/bin/g++ -v -static -o release/libarrow_msys_full.a -O2 -fstack-protector-strong -Wformat -Werror=format-security -fdiagnostics-color=always -fpermissive -Wl,--demangle -Wl,--pic-executable -Wl,--support-old-code -Wl,--compat-implib -Wl,--as-needed -Wl,-Bsymbolic-functions @release/objects.txt)
+
+#../BUILD/arrow/cpp/BUILD/release/libarrow_full.a
+ncbi_setup: 
+	(cd ../BUILD/ ; \
+	#cp -f ../ncbi_crosscomp_inject_*.sh ncbi-cxx-toolkit-public/ ; \
+	cd ncbi-cxx-toolkit-public/ ; \
+	TOOLCHAIN_FILE=$(src/build-system/cmake/toolchains/cmkTool.sh GCC $(GCC_VER) | grep "in" | awk -F' ' '{print $NF}') ; \
+	SHLIB_OPENMP_CXXFLAGS=$(SHLIB_OPENMP_CXXFLAGS) RTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"` ./ncbi_crosscomp_inject_pre.sh ; \
+	echo $(MSYSTEM); \
+	$(CC) -dumpmachine ; \
+	##export CMAKE_CMD=`which cmake` ; \
+	##cmake --help ; \
+	export PATH="/usr/bin:$(PATH)" ; \
+	#export PATH="/mingw64/bin:$(PATH)" ; \
+	export CMAKE_ARGS="-G 'Unix Makefiles' -DSHLIB_OPENMP_CXXFLAGS=$(SHLIB_OPENMP_CXXFLAGS) -DROOT_SRC_DIR=`pwd`/../ -DNCBITK_ROOT_DIR=`pwd` -DR_HOME=$(R_HOME) -DR_ARCH=$(R_ARCH) -DMINGW32=1 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON" ; \
+	#--without-dll --with-dll --with-composite-dll ; \
+	./cmake-configure GCC $(GCC_VER) --with-projects=QuickBLAST.prj --with-dll --with-composite-dll --without-debug --with-build-root=BUILD ; \
+	#rm -f $(TOOLCHAIN_FILE) ; \
+	RTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"` ./ncbi_crosscomp_inject_post.sh )
+
+ncbi_setup_clang: 
+	(cd ../BUILD/ ; \
+	#cp -f ../ncbi_crosscomp_inject_*.sh ncbi-cxx-toolkit-public/ ; \
+	cd ncbi-cxx-toolkit-public/ ; \
+	TOOLCHAIN_FILE=$(src/build-system/cmake/toolchains/cmkTool.sh Clang $(CLANG_VER) | grep "in" | awk -F' ' '{print $NF}') ; \
+	SHLIB_OPENMP_CXXFLAGS=$(SHLIB_OPENMP_CXXFLAGS) RTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"` ./ncbi_crosscomp_inject_pre.sh ; \
+	echo $(MSYSTEM); \
+	$(CC) -dumpmachine ; \
+	##export CMAKE_CMD=`which cmake` ; \
+	##cmake --help ; \
+	#export PATH="/clang64/bin:$(PATH)" ; \
+	export PATH="/mingw64/bin:$(PATH)" ; \
+	export CMAKE_ARGS="-G 'Unix Makefiles' -DNCBI_COMPILER_VERSION=$(CLANG_VER_NOPUNCT) -DSHLIB_OPENMP_CXXFLAGS=$(SHLIB_OPENMP_CXXFLAGS) -DROOT_SRC_DIR=`pwd`/../ -DNCBITK_ROOT_DIR=`pwd` -DR_HOME=$(R_HOME) -DR_ARCH=$(R_ARCH) -DMINGW32=1 -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON" ; \
+	#--without-dll --with-dll --with-composite-dll ; \
+	 CC="/mingw64/bin/clang" CXX="/mingw64/bin/clang++" ./cmake-configure Clang $(CLANG_VER) --with-projects=QuickBLAST.prj --with-dll --with-composite-dll --without-debug --with-build-root=BUILD ; \
+	#rm -f $(TOOLCHAIN_FILE) ; \
+	RTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"` ./ncbi_crosscomp_inject_post.sh )
+
+../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/datatool.exe: ncbi_setup
+	(cd ../BUILD/ncbi-cxx-toolkit-public/BUILD/build ; \
+	##export PATH="/mingw64/bin:$(PATH)" ; \
+	export PATH=/usr/bin/:$$PATH ; \
+	/usr/bin/make -j $(NPROC) datatool ; \
+	#export PATH=/clang64/bin/:$$PATH ; \
+	#/clang64/bin/mingw32-make -j $(NPROC) datatool ; \
+	#/mingw64/bin/mingw32-make  --debug --trace -j 1 datatool ; \
+	)
+
+##../BUILD/arrow/cpp/BUILD_MINGW/release/libarrow_msys2.dll.a
+#../BUILD/arrow/cpp/BUILD_MINGW/release/libarrow_mingw.dll.a 
+../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/libQuickBLASTcpp.dll.a: ../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/datatool.exe
+	(cd ../BUILD/ncbi-cxx-toolkit-public/ ; \
+	#export PATH="/mingw64/bin:$(PATH)" ; \
+	export PATH=`pwd`/BUILD/bin/:$$PATH ; \
+	cd BUILD/build ; \
+	#echo $$PATH; \
+	#cp -f ../bin/datatool.exe /usr/bin/ ; \
+	PATH=$$PATH /usr/bin/make -j $(NPROC) all ; \
+	#PATH=$$PATH /clang64/bin/ming32-make -j $(NPROC) all ; \
+	##PATH=$$PATH /mingw64/bin/mingw32-make -j $(NPROC) all ; \
+	)
+
+../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/libQuickBLASTcpp_full.a: ../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/libQuickBLASTcpp.dll.a
+	(cd ../BUILD/ncbi-cxx-toolkit-public/BUILD/ ; \
+	/usr/bin/bash -c '/usr/bin/ar -rcs bin/libQuickBLASTcpp_full.a $$(find build/ -iname "*.o" -or -iname "*.obj" -type f) )
+
+# use clang to compile
+# llvm might need to be built
+#
+
+#GIVE full path to compilers, eg /clang64/bin/gcc (or) /clang64/bin/clang
+#MAKE SURE BUILD SYSTEM bin is first in PATH var, eg /clang64/bin must be first if you are building with clang64 build env
+# clang & gcc - clang64 works - passes conf, doesnt build
+# gcc - msys2
+
+
+buildncbi_gcc:
+	(mkdir ../BUILD_NCBI; \
+	cd ../BUILD_NCBI; \
+	git clone https://github.com/ncbi/ncbi-cxx-toolkit-public ; \
+	cp -r ../src ncbi-cxx-toolkit-public/ ; \
+	cp -r ../include ncbi-cxx-toolkit-public/ ; \
+	cp -f ../QuickBLAST.prj ncbi-cxx-toolkit-public/ ; \
+	#cp -f ../ncbi_crosscomp_inject.sh ncbi-cxx-toolkit-public/ ; \
+	#cp -f ../wsl_inject.sh ncbi-cxx-toolkit-public/ ; \
+	#cp -f ../wsl_inject.bat ncbi-cxx-toolkit-public/ ; \
+	cd ncbi-cxx-toolkit-public; \
+	echo $(MSYSTEM) ; \
+	#RTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"` ./ncbi_crosscomp_inject.sh ; \
+	#cmd.exe wsl_inject.bat ; \
+	#RTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"` \
+	#CC="$(CC)" CXX="$(CXX)" CFLAGS="$(CFLAGS)" \
+	#CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)" \
+	echo "$(CC) $(CFLAGS)" ; \
+	echo "$(CXX)  $(CXXFLAGS) $(CPPFLAGS)" ; \
+	echo "$(LDFLAGS)" ; \
+	echo "$(CPATH)" ; \
+	echo "$(C_INCLUDE_PATH)" ; \
+	echo "$(CPLUS_INCLUDE_PATH)" ; \
+	echo "$(RTOOLS_DIR)" ; \
+	#$(MSYS_CMD) -here -use-full-path -no-start -clang64 -defterm -shell bash ./wsl_inject.sh ; \
+	#sed -i "s/HAVE_WINDOWS_H 1/HAVE_WINDOWS_H 0/g" src/build-system/configure; \
+	#sed -i "s/x_have_windows//g" src/build-system/configure; \
+	#export LDFLAGS="$(LDFLAGS)" ; \
+	export PATH="/x86_64-w64-mingw32.static.posix/bin:/usr/bin:/clang64/bin:/mingw64/bin:/ucrt64/bin:$(PATH)" ; \
+	export CPPFLAGS="-I/usr/include -I/x86_64-w64-mingw32.static.posix/include -I/clang64/include -I/mingw64/include" ; \
+	export CPATH="$(CPATH)" ; \
+	export C_INCLUDE_PATH="$(C_INCLUDE_PATH)" ; \
+	export CPLUS_INCLUDE_PATH="$(CPLUS_INCLUDE_PATH)" ; \
+	export LDFLAGS="-flto=auto" ; \
+	export CC="/x86_64-w64-mingw32.static.posix/bin/gcc" ; \
+	export CPP="/x86_64-w64-mingw32.static.posix/bin/gcc -E -v -H" ; \
+	export CFLAGS="-v -H $(CFLAGS) -O2 -fPIC -isystem /usr/include -isystem /x86_64-w64-mingw32.static.posix/include -isystem /clang64/include -isystem /mingw64/include" ; \
+	export CXX="/clang64/bin/clang++ -nobuiltininc -nostdinc++" ; \
+	export CXXPP="/clang64/bin/clang++ -E -v -H  -nobuiltininc -nostdinc++" ; \
+	export CXXFLAGS="-v -H $(CXXFLAGS) -O2 -fPIC -fopenmp -static-openmp -static -pthread -cxx-isystem /usr/include -cxx-isystem /x86_64-w64-mingw32.static.posix/include -cxx-isystem /clang64/include -cxx-isystem /mingw64/include" ; \
+	./configure --host=x86_64-unknown-cygwin --build=x86_64-w64-mingw32.static.posix --without-debug --with-static --with-static-exe --with-bin-release --with-openmp --with-lfs --with-experimental=C++20 --with-build-root=BUILD_MAKE --with-projects=QuickBLAST.prj ; \
+	cd BUILD_MAKE/build ; \
+	_MSC_VER=0 \
+	$(MAKE) -j $(NPROC) all_r )
+
+#-isystem $(RTOOLS_DIR)/clang64/include -isystem $(RTOOLS_DIR)/usr/include -isystem $(RTOOLS_DIR)/x86_64-w64-mingw32.static.posix/include
+#-isystem /clang64/include -isystem /usr/include -isystem /x86_64-w64-mingw32.static.posix/include 
+#-cxx-isystem /clang64/include -cxx-isystem /usr/include -cxx-isystem /x86_64-w64-mingw32.static.posix/include 
+#/usr/include:/mingw64/include:/x86_64-w64-mingw32.static.posix/include:/ucrt64/include
+#/usr/include:/mingw64/include:/x86_64-w64-mingw32.static.posix/include:/ucrt64/include
+#./cmake-configure.bat --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD --with-conan
+#  \ --with-experimental=C++20  --with-pch -stdlib=libc++
+#CMAKE_ARGS="-G 'Unix Makefiles' -DUNIX=1 -DWIN32=0 -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=x86_64 -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS:bool=OFF -DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON" \
+#./cmake-configure GCC $(GCC_VER) --with-features=unix --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD_CMAKE ; \
+
+#-lc++abi #
+# CPPFLAGS="-I/usr/include -I/x86_64-w64-mingw32.static.posix/include -I/clang64/include -I/mingw64/include"
+#--build=x86_64-w64-mingw32
+##/clang64/bin/gcc, with path /usr/bin and --build=x86_64-pc-msys - if this doesnt work (cc1 error) then revert to almost working params. else try build= x86_64-w64-mingw32 . clang gives  same error as mingw32.static.posix
+#/clang64/bin/gcc,clang, with path /usr/bin and no --build=x86_64-w64-mingw32.static.posix - does not work
+#/clang64/bin/clang, with path mingw32.static.posix and --build=x86_64-w64-mingw32.static.posix works, post conf (almost-headers missing) works
+#/clang64/bin/gcc,clang --build=x86_64-pc-windows works, post conf fails
+
+# --without-boost-tag 	
+#echo `$(R_HOME)/bin/Rscript -e "cat(getwd())"` ; \
+#CC="$(CC)" CXX="$(CXX)" CFLAGS="$(CFLAGS)" \
+#CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)" \
+#RTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"` \
+#PATH="/clang64/bin:/mingw64/bin:/x86_64-w64-mingw32.static.posix/bin:/usr/bin:/ucrt64/bin:$(PATH)" \
+#LD_LIBRARY_PATH="/usr/lib:/clang64/lib:/x86_64-w64-mingw32.static.posix/lib:/mingw64/lib:/ucrt64/lib:$(LD_LIBRARY_PATH)" \
+#C_INCLUDE_PATH="$(C_INCLUDE_PATH):/clang64/include" \
+#CPLUS_INCLUDE_PATH="$(CPLUS_INCLUDE_PATH):/clang64/include" \
+#./configure --host=x86_64-pc-linux-gnu --build=x86_64-pc-linux-gnu --without-debug --with-static --with-static-exe --with-bin-release --with-openmp --with-lfs --with-build-root=BUILD_MAKE --with-projects=QuickBLAST.prj CC="/clang64/bin/clang" CPP="/clang64/bin/clang -E" CFLAGS="$(CFLAGS) -std=c17 -mthreads" CXX="/clang64/bin/clang++" CXXPP="/clang64/bin/clang++ -E" CXXFLAGS="$(CXXFLAGS) -std=c++17 -pthreads -fopenmp" ; \
+#cd BUILD_MAKE/build ; \
+#$(MAKE) -j $(NPROC) all_r ; \
+
+
+buildncbi_clang_cl:
+	(mkdir ../BUILD_NCBI_CLANG_CL; \
+	cd ../BUILD_NCBI_CLANG_CL; \
+	git clone https://github.com/ncbi/ncbi-cxx-toolkit-public ; \
+	cp -r ../src ncbi-cxx-toolkit-public/ ; \
+	cp -r ../include ncbi-cxx-toolkit-public/ ; \
+	cp -f ../QuickBLAST.prj ncbi-cxx-toolkit-public/ ; \
+	cp -f ../ncbi_crosscomp_inject.sh ncbi-cxx-toolkit-public/ ; \
+	cd ncbi-cxx-toolkit-public; \
+	#echo "$(CLANG_CL_VER)" ; \
+	RTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"` ./ncbi_crosscomp_inject.sh ; \
+	CC="$(CC)" CFLAGS="$(CFLAGS)" \
+	CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)" \
+	RTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"` \
+	PATH="/x86_64-w64-mingw32.static.posix/bin:/mingw64/bin:/ucrt64/bin:/usr/bin:$(PATH)" \
+	LD_LIBRARY_PATH="/x86_64-w64-mingw32.static.posix/lib:/mingw64/lib:/ucrt64/lib:/usr/lib:$(LD_LIBRARY_PATH)" \
+	C_INCLUDE_PATH="/x86_64-w64-mingw32.static.posix/include:/mingw64/include:/ucrt64/include:/usr/include" \
+	CPLUS_INCLUDE_PATH="/x86_64-w64-mingw32.static.posix/include:/mingw64/include:/ucrt64/include:/usr/include" \
+	CMAKE_ARGS="-GNinja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS:bool=OFF -DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON" \
+	./cmake-configure GCC $(GCC_VER) --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD)
