@@ -19,7 +19,10 @@ PKG_CXXFLAGS = $(CXX_VISIBILITY) -DQBLIBRARY_IMPORTS -gdwarf-2 -mfpmath=sse -mss
 
 #.PHONY: all builddeps QuickBLASTcpp.a
 
-#all: QuickBLASTdeps $(SHLIB)
+all: document $(SHLIB)
+
+document:
+	(cd ../ && `$(R_HOME)/bin/Rscript -e "devtools::document()"` ;)
 
 #QuickBLASTdeps:#
 #    (`$(R_HOME)/bin/Rscript -e "remotes::install_local("pkg/QuickBLASTdeps")"` ;)

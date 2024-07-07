@@ -1,3 +1,18 @@
+
+#' Stub function that always returns true. Only to test the connection of DLLs and C function calls
+#' @examples
+#' \dontrun{
+#' QuickBLASTdeps::isQuickBLASTLoaded()
+#' }
+#'
+#' @return Always TRUE
+#' @md
+#' @export
+isQuickBLASTLoaded <- function() {
+  load_result <- .Call("isQuickBLASTLoaded")
+  return(load_result)
+}
+
 R_dll_paths <- list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=".dll", full.names = T)
 
 dll_paths <- c(             

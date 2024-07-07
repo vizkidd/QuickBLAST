@@ -289,6 +289,22 @@ all2all <- function(first_list, second_list, input_type, seq_info, blast_program
 #   #"inst/libs", Sys.getenv("R_ARCH"),"QuickBLAST.dll"
 # )
 
+#' Stub function that always returns true. Only to load the dependency package, test the connection of DLLs and C function calls
+#' @examples
+#' \dontrun{
+#' QuickBLASTdeps::isQuickBLASTLoaded()
+#' QuickBLAST::isQuickBLASTLoaded()
+#' }
+#'
+#' @return Always TRUE
+#' @md
+#' @export
+isQuickBLASTLoaded <- function() {
+  require(QuickBLASTdeps)
+  load_result <- .Call("isQuickBLASTLoaded")
+  return(load_result)
+}
+
 .onLoad <- function(libname, pkgname) {
   # # Load the DLLs when the package is loaded
   require(QuickBLASTdeps)
