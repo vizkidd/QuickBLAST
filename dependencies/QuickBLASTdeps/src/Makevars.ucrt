@@ -17,6 +17,7 @@ CLANG_VER_NOPUNCT=`/mingw64/bin/clang -dumpversion | tr -d '[:space:]' | tr -d '
 #GCC_VER=`/mingw64/bin/gcc -dumpversion | tr -d '[:space:]'` - wont compile
 WSL:=`which wsl.exe`
 RTOOLS_DIR := $(shell cygpath -m `$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"`)
+PKG_DIR_ROOT=`$(R_HOME)/bin/Rscript -e "fs::path_package('QuickBLASTdeps')"`
 #MSYS_CMD := "$(RTOOLS_DIR)/msys2_shell.cmd"
 #PWD=`pwd`
 #ABS_PWD=`realpath $(PWD)`
@@ -67,7 +68,7 @@ PKG_CXXFLAGS = $(CXX_VISIBILITY) -DQBLIBRARY_IMPORTS -gdwarf-2 -mfpmath=sse -mss
 # ../BUILD/arrow/cpp/BUILD_CLANG/release/libarrow_clang.dll.a
 #../BUILD/arrow/cpp/BUILD_MINGW/release/libarrow_mingw.dll.a ncbi_setup ../BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.dll.a ../BUILD/arrow/cpp/BUILD_MINGW/release/libarrow_msys_full.a ../BUILD/arrow/cpp/BUILD/release/libarrow.dll.a ncbi_setup ../BUILD/arrow/cpp/BUILD_MINGW/release/libarrow_mingw.dll.a ../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/datatool.exe 
 #QuickBLAST
-all: builddeps ../BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.dll.a ../BUILD/arrow/cpp/BUILD/release/libarrow.dll.a ../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/libQuickBLASTcpp.dll.a install_libs $(SHLIB) 
+all: builddeps ../BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.dll.a ../BUILD/arrow/cpp/BUILD/release/libarrow.dll.a ../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/libQuickBLASTcpp.dll.a install_libs document $(SHLIB) 
 
 install_deps:
 	(pacman -Syuu  -q --needed --noconfirm; \
@@ -75,9 +76,9 @@ install_deps:
 	pacman -Sy -q --needed --noconfirm cmake mingw-w64-clang-x86_64-cmake mingw-w64-ucrt-x86_64-cmake git mingw-w64-ucrt-x86_64-libutf8proc mingw-w64-ucrt-x86_64-utf8cpp mingw-w64-clang-x86_64-utf8cpp mingw-w64-clang-x86_64-libutf8proc mingw-w64-x86_64-libutf8proc mingw-w64-x86_64-utf8cpp mingw-w64-ucrt-x86_64-xsimd mingw-w64-x86_64-xsimd mingw-w64-clang-x86_64-xsimd mingw-w64-ucrt-x86_64-re2 mingw-w64-clang-x86_64-re2 mingw-w64-x86_64-re2 mingw-w64-ucrt-x86_64-boost mingw-w64-clang-x86_64-boost mingw-w64-x86_64-boost mingw-w64-ucrt-x86_64-thrift mingw-w64-clang-x86_64-thrift inetutils mingw-w64-ucrt-x86_64-python-win_inet_pton mingw-w64-clang-x86_64-python-win_inet_pton mingw-w64-x86_64-python-win_inet_pton mingw-w64-clang-x86_64-clang mingw-w64-ucrt-x86_64-clang clang llvm mingw-w64-clang-x86_64-llvm mingw-w64-ucrt-x86_64-llvm mingw-w64-x86_64-llvm mingw-w64-ucrt-x86_64-llvm-libs mingw-w64-clang-x86_64-llvm-libs mingw-w64-x86_64-llvm-libs lzop mingw-w64-clang-x86_64-lzo2 mingw-w64-ucrt-x86_64-lzo2 mingw-w64-x86_64-lzo2 liblzo2 liblzo2-devel mingw-w64-x86_64-openmp mingw-w64-ucrt-x86_64-openmp mingw-w64-clang-x86_64-openmp brotli mingw-w64-clang-x86_64-brotli mingw-w64-ucrt-x86_64-brotli mingw-w64-x86_64-brotli brotli-devel mingw-w64-ucrt-x86_64-samtools mingw-w64-clang-x86_64-samtools mingw-w64-x86_64-samtools mingw-w64-ucrt-x86_64-arrow mingw-w64-x86_64-arrow liblz4 lz4 mingw-w64-clang-x86_64-lz4 mingw-w64-ucrt-x86_64-lz4 mingw-w64-x86_64-lz4 zlib zlib-devel mingw-w64-cross-zlib mingw-w64-x86_64-zlib mingw-w64-ucrt-x86_64-zlib mingw-w64-clang-x86_64-zlib mingw-w64-clang-x86_64-python-conan mingw-w64-ucrt-x86_64-python-conan mingw-w64-x86_64-libc++ mingw-w64-ucrt-x86_64-libc++ mingw-w64-clang-x86_64-libc++ mingw-w64-clang-x86_64-headers-git mingw-w64-ucrt-x86_64-headers-git mingw-w64-x86_64-headers-git mingw-w64-ucrt-x86_64-libunwind mingw-w64-x86_64-libunwind mingw-w64-clang-x86_64-libunwind mingw-w64-x86_64-libbacktrace mingw-w64-ucrt-x86_64-libbacktrace mingw-w64-clang-x86_64-libbacktrace mingw-w64-x86_64-python-conan mingw-w64-clang-x86_64-python-conan mingw-w64-ucrt-x86_64-python-conan make mingw-w64-x86_64-clang mingw-w64-x86_64-libxml2 mingw-w64-clang-x86_64-libxml2 mingw-w64-ucrt-x86_64-libxml2 libxml2 mingw-w64-clang-x86_64-lld mingw-w64-ucrt-x86_64-lld mingw-w64-x86_64-lld lld autotools mingw-w64-clang-x86_64-autotools mingw-w64-ucrt-x86_64-autotools mingw-w64-x86_64-autotools libgcrypt-devel libgcrypt mingw-w64-x86_64-libgcrypt mingw-w64-ucrt-x86_64-libgcrypt mingw-w64-clang-x86_64-libgcrypt bison bisonc++ flex reflex flexc++ mingw-w64-ucrt-x86_64-flexdll mingw-w64-x86_64-flexdll msys2-runtime-devel msys2-runtime  msys2-w32api-runtime mingw-w64-cross-binutils mingw-w64-ucrt-x86_64-binutils mingw-w64-x86_64-binutils binutils mingw-w64-clang-x86_64-lmdb mingw-w64-ucrt-x86_64-lmdb mingw-w64-x86_64-lmdb mingw-w64-clang-x86_64-lmdbxx mingw-w64-ucrt-x86_64-lmdbxx mingw-w64-x86_64-lmdbxx)
 
 install_libs:
-	(mkdir -p ../inst/libs/$(R_ARCH) ; \
-	cd ../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/ ; \
-	cp -uf libct_ftds100.dll.a libefetch.dll.a liblmdb.dll.a libncbi_algo.dll.a libncbi_align_format.dll.a libncbi_core.dll.a libncbi_dbapi_driver.dll.a libncbi_eutils.dll.a libncbi_general.dll.a libncbi_misc.dll.a libncbi_pub.dll.a libncbi_seq.dll.a libncbi_seqext.dll.a libncbi_trackmgr.dll.a libncbi_web.dll.a libncbi_xdbapi_ftds.dll.a libncbi_xloader_blastdb.dll.a libncbi_xloader_blastdb_rmt.dll.a libncbi_xloader_genbank.dll.a libncbi_xobjsimple.dll.a libncbi_xreader.dll.a libncbi_xreader_cache.dll.a libncbi_xreader_id1.dll.a libncbi_xreader_id2.dll.a libpsg_client.dll.a libsqlitewrapp.dll.a libutrtprof.dll.a libxflatfile.dll.a libxxconnect2.dll.a libncbi_blastinput.dll.a libQuickBLASTcpp.dll.a ../../../../inst/libs/$(R_ARCH)/ ; \
+	(mkdir -p $(PKG_DIR_ROOT)/inst/libs/$(R_ARCH) ; \
+	cd $(PKG_DIR_ROOT)/BUILD/ncbi-cxx-toolkit-public/BUILD/bin/ ; \
+	cp -uf libct_ftds100.dll libefetch.dll liblmdb.dll libncbi_algo.dll libncbi_align_format.dll libncbi_core.dll libncbi_dbapi_driver.dll libncbi_eutils.dll libncbi_general.dll libncbi_misc.dll libncbi_pub.dll libncbi_seq.dll libncbi_seqext.dll libncbi_trackmgr.dll libncbi_web.dll libncbi_xdbapi_ftds.dll libncbi_xloader_blastdb.dll libncbi_xloader_blastdb_rmt.dll libncbi_xloader_genbank.dll libncbi_xobjsimple.dll libncbi_xreader.dll libncbi_xreader_cache.dll libncbi_xreader_id1.dll libncbi_xreader_id2.dll libpsg_client.dll libsqlitewrapp.dll libutrtprof.dll libxflatfile.dll libxxconnect2.dll libncbi_blastinput.dll libQuickBLASTcpp.dll ../../../../inst/libs/$(R_ARCH)/ ; \
 	cd ../../../arrow/cpp/BUILD_MSYS2/release/ ; \
 	cp -uf *.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
 	cd ../../BUILD/release/ ; \
@@ -89,6 +90,9 @@ install_libs:
 	cd ../../../../../ ; \
 	#$(R_HOME)/bin/Rscript -e "devtools::install(build = T,force = T, quick=F, args = c('--no-staged-install'))" ; \
 	)
+
+document:
+	(cd ../ && `$(R_HOME)/bin/Rscript -e "devtools::document()"` ;)
 
 QuickBLAST:
 	(cd ../QuickBLAST ; \

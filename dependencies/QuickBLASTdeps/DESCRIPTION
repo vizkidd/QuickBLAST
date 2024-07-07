@@ -9,7 +9,8 @@ Description: R pacakge which holds the DLL/SO dependencies of QuickBLAST
 License: GPL (>= 2)
 Depends:
    Rcpp (>= 1.0.10),
-   RcppProgress (>= 0.4.2)
+   RcppProgress (>= 0.4.2),
+   devtools (>= 2.4.5)
 Imports:
    Rcpp (>= 1.0.10),
    RcppProgress (>= 0.4.2)
