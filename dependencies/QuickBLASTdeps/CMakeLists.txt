@@ -209,11 +209,13 @@ elseif(WIN32)
 		)
 	endif()
 
+    if (NOT EXISTS "${ROOT_SRC_DIR}/arrow/")
     execute_process(
         COMMAND git clone https://github.com/apache/arrow
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND_ERROR_IS_FATAL ANY    
     )
+    endif()
 
     execute_process(
         COMMAND bash -c "git tag -l | sort -r -u -h -k3 -t '-' | grep -iv \"dev\" | head -n 1" ; #no dev versions
@@ -289,11 +291,13 @@ elseif(WIN32)
     # # list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_BINARY_DIR}/backward-cpp)
     # find_package(Backward)
 
+    if (NOT EXISTS "${ROOT_SRC_DIR}/ncbi-cxx-toolkit-public/")
     execute_process(
     COMMAND git clone https://github.com/ncbi/ncbi-cxx-toolkit-public
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMAND_ERROR_IS_FATAL ANY
     )
+    endif()
 
     execute_process(
         COMMAND bash -c "git tag -l | sort -r | head -n 1" ;

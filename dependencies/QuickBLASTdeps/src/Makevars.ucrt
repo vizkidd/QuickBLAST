@@ -84,11 +84,11 @@ install_libs:
 	cp -uf *.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
 	cd ../../BUILD/release/ ; \
 	cp -uf *.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-gomp-1.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-stdc++-6.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-gcc_s-seh-1.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-2.0.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cd ../../../../../ ; \
+	#cp -uf /usr/bin/msys-gomp-1.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-stdc++-6.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-gcc_s-seh-1.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-2.0.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cd ../../../../../ ; \
 	#$(R_HOME)/bin/Rscript -e "devtools::install(build = T,force = T, quick=F, args = c('--no-staged-install'))" ; \
 	)
 

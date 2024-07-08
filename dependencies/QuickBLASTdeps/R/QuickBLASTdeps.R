@@ -15,14 +15,14 @@ isQuickBLASTLoaded <- function() {
 
 R_dll_paths <- c(
   list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=".dll", full.names = T),
-  # file.path(Sys.getenv("RTOOLS43_HOME"),"usr","bin","msys-gomp-1.dll"),
-  # file.path(Sys.getenv("RTOOLS43_HOME"),"usr","bin","msys-stdc++-6.dll"),
-  # file.path(Sys.getenv("RTOOLS43_HOME"),"usr","bin","msys-gcc_s-seh-1.dll"),
-  # file.path(Sys.getenv("RTOOLS43_HOME"),"usr","bin","msys-2.0.dll")
-  fs::path_package("QuickBLASTdeps","libs", Sys.getenv("R_ARCH"),"msys-gomp-1.dll"),
-  fs::path_package("QuickBLASTdeps","libs", Sys.getenv("R_ARCH"),"msys-stdc++-6.dll"),
-  fs::path_package("QuickBLASTdeps","libs", Sys.getenv("R_ARCH"),"msys-gcc_s-seh-1.dll"),
-  fs::path_package("QuickBLASTdeps","libs", Sys.getenv("R_ARCH"),"msys-2.0.dll")
+  file.path(Sys.getenv("RTOOLS43_HOME"),"usr","bin","msys-gomp-1.dll"),
+  file.path(Sys.getenv("RTOOLS43_HOME"),"usr","bin","msys-stdc++-6.dll"),
+  file.path(Sys.getenv("RTOOLS43_HOME"),"usr","bin","msys-gcc_s-seh-1.dll"),
+  file.path(Sys.getenv("RTOOLS43_HOME"),"usr","bin","msys-2.0.dll")
+  # fs::path_package("QuickBLASTdeps","libs", Sys.getenv("R_ARCH"),"msys-gomp-1.dll"),
+  # fs::path_package("QuickBLASTdeps","libs", Sys.getenv("R_ARCH"),"msys-stdc++-6.dll"),
+  # fs::path_package("QuickBLASTdeps","libs", Sys.getenv("R_ARCH"),"msys-gcc_s-seh-1.dll"),
+  # fs::path_package("QuickBLASTdeps","libs", Sys.getenv("R_ARCH"),"msys-2.0.dll")
 )
 
 dll_paths <- c(             
@@ -52,7 +52,7 @@ dll_paths <- c(
   #"inst/libs", Sys.getenv("R_ARCH"),"msys-arrow-1601.dll",
   list.files(fs::path_package("QuickBLASTdeps","libs", Sys.getenv("R_ARCH")),pattern = "*arrow.*dll", full.names = T),
   R_dll_paths,
-  fs::path_package("QuickBLASTdeps","libs", Sys.getenv("R_ARCH"),paste("libQuickBLASTcpp", .Platform$dynlib.ext,sep="") ),
+  fs::path_package("QuickBLASTdeps","libs", Sys.getenv("R_ARCH"),paste("libQuickBLASTcpp", .Platform$dynlib.ext,sep="") )
   #"inst/libs", Sys.getenv("R_ARCH"),"QuickBLAST.dll"
 )
 
