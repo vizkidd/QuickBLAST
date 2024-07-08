@@ -18,8 +18,8 @@ PKG_LIBS = -v -L$(R_HOME)/bin/$(R_ARCH)/ -L$(DEP_DIR)/$(R_ARCH) -L/usr/bin/ -lct
 PKG_CXXFLAGS = $(CXX_VISIBILITY) -DQBLIBRARY_IMPORTS -gdwarf-2 -mfpmath=sse -msse2 -mstackrealign -Wall -Wno-format-y2k -O2 -fPIC -Wextra -shared -Ilibsrc `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` $(SHLIB_OPENMP_CXXFLAGS) -DMINGW32=1 -DR_DLL=1 -pthread -fstack-protector-strong -mthreads -mtune=generic -maccumulate-outgoing-args 
 
 #.PHONY: all builddeps QuickBLASTcpp.a
-
-all: document $(SHLIB)
+#document
+all: $(SHLIB)
 
 document:
 	(cd ../ && `$(R_HOME)/bin/Rscript -e "devtools::document()"` ;)

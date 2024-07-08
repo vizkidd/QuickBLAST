@@ -8,6 +8,8 @@
 ..Rcheck/
 .Rproj.user
 dependencies/new/
+dependencies/QuickBLASTdeps/BUILD/
+dependencies/QuickBLASTdeps/inst/
 old/
 *.old
 *.dll

@@ -1,4 +1,4 @@
-# QuickBLAST
+# QuickBLAST v1.2
 
 Current BUILD is being tested and is not guaranteed to work. [Binaries of older version available here](https://github.com/vizkidd/QuickBLAST/releases/tag/binaries)
 
@@ -7,11 +7,12 @@ Current BUILD is being tested and is not guaranteed to work. [Binaries of older 
 ??QuickBLAST
 ```
 
- Written in C++ and interfaced with R using Rcpp, the package is wrapped around ncbi-c++ toolkit's CBl2Seq Class (same with arrow) and exposing the functions to R with C linkage. I use getlogin() to store username as output metadata, this might raise red flags (in ArrowWrapper.cpp). QuickBLAST provides better interoperability with R for NCBI-BLAST. After much poking around, Dependent libraries (Apache Arrow and NCBI-C++ Toolkit) are compiled from scratch (and without Windows APIs on Windows - using MSYS2 and MinGW provided with RTools4.3).
+ Written in C++ and interfaced with R using Rcpp, the package is wrapped around ncbi-c++ toolkit's CBl2Seq Class (same with arrow) and exposing the functions to R with C linkage. I use getlogin() to store username in output metadata, this might raise red flags (in ArrowWrapper.cpp). QuickBLAST provides better interoperability with R for NCBI-BLAST. After much poking around, dependent libraries (Apache Arrow and NCBI-C++ Toolkit) are now compiled from scratch (and without Windows APIs on Windows - using MSYS2 and MinGW provided with RTools4.3).
 
 The main difference between this PKG and the rest would be that
 + Quick blast is multi-threaded with { file reading (as chunks), BLASTing, wrapping hits into Arrow data structures }, and { writing of Arrow::RecordBatches to the output file in batches } is done in seperate threads. Hits are also converted into Rcpp::List if you want values to be returned to R.
 + QuickBLAST does not use Sys.Calls to invoke BLAST. You don't need BLAST programs in you system
++ BLAST DBs are not explicitly created
 
 Cons :
 + Limited score attributes
@@ -20,8 +21,8 @@ Let me know if you want more information and please address bugs to me on github
 
 ## Installation (under construction)
 
-[Install Apache Arrow](https://arrow.apache.org/install/) - (Optional).
-[install RTools4.3](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html) - (For Windows)
++ [Install Apache Arrow](https://arrow.apache.org/install/) - (Optional).
++ [Install RTools4.3](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html) - (For Windows)
 
 ```R
 devtools::install_github("https://github.com/vizkidd/QuickBLAST", force=T)

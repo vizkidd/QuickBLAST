@@ -16,4 +16,4 @@ Imports:
    RcppProgress (>= 0.4.2)
 LinkingTo: Rcpp, RcppProgress
 Encoding: UTF-8
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
