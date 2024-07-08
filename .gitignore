@@ -10,10 +10,6 @@
 dependencies/new/
 dependencies/QuickBLASTdeps/BUILD/
 dependencies/QuickBLASTdeps/inst/
-R/RcppExports.R
-src/RcppExports.cpp
-dependencies/QuickBLASTdeps/R/RcppExports.R
-dependencies/QuickBLASTdeps/src/RcppExports.cpp
 old/
 *.old
 *.dll
