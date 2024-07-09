@@ -8,6 +8,7 @@
 ..Rcheck/
 .Rproj.user
 .Rhistory
+dependencies/
 dependencies/new/
 dependencies/QuickBLASTdeps/BUILD/
 dependencies/QuickBLASTdeps/inst/

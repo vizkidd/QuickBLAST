@@ -25,7 +25,7 @@ Imports:
   tools (>= 4.3.1),
   QuickBLASTdeps
 Remotes:
-  github::vizkidd/QuickBLAST/tree/main/dependencies/QuickBLASTdeps
+  github::vizkidd/QuickBLASTdeps
 LinkingTo: Rcpp, RcppProgress
 Encoding: UTF-8
 RoxygenNote: 7.3.2
