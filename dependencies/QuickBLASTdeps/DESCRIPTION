@@ -8,6 +8,7 @@ Maintainer: Vishvesh Karthik <vishveshkarthik@gmail.com>
 Description: R pacakge which holds the DLL/SO dependencies of QuickBLAST
 License: GPL (>= 2)
 Depends:
+   R (>= 4.3.0),
    Rcpp (>= 1.0.10),
    RcppProgress (>= 0.4.2),
    devtools (>= 2.4.5)

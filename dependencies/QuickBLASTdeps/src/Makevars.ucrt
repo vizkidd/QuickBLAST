@@ -16,8 +16,9 @@ CLANG_VER_NOPUNCT=`/mingw64/bin/clang -dumpversion | tr -d '[:space:]' | tr -d '
 #CLANG_VER_NOPUNCT=`/mingw64/bin/clang-cl --version | sed -n 's/clang version \([0-9.]\+\).*/\1/p' | tr -d '[:punct:]'`
 #GCC_VER=`/mingw64/bin/gcc -dumpversion | tr -d '[:space:]'` - wont compile
 WSL:=`which wsl.exe`
-RTOOLS_DIR := $(shell cygpath -m `$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"`)
+#RTOOLS_DIR := $(shell cygpath -m `$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"`)
 PKG_DIR_ROOT=`$(R_HOME)/bin/Rscript -e "fs::path_package('QuickBLASTdeps')"`
+RTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv(paste('RTOOLS',version[['major']],unlist(strsplit(x=version[['minor']],fixed = T, split = '.'))[1], '_HOME', sep='')))"`
 #MSYS_CMD := "$(RTOOLS_DIR)/msys2_shell.cmd"
 #PWD=`pwd`
 #ABS_PWD=`realpath $(PWD)`
@@ -127,14 +128,15 @@ builddeps:
 	#BUILD_DIR=$(pwd); \
 	CC="$(CC)" CFLAGS="$(CFLAGS)" \
 	CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)" \
-	RTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"` \
+	#RTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"` \
+	RTOOLS_DIR=$(RTOOLS_DIR) \
 	cmake .. \
 	-DROOT_SRC_DIR=`pwd` \
 	-DCMAKE_BUILD_TYPE=Release \
 	-DBUILD_SHARED_LIBS:bool=OFF \
 	-DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON \
 	-DR_SHELL=1 \
-	-DRTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"` || exit )
+	-DRTOOLS_DIR=$(RTOOLS_DIR) || exit )
 
 #builddeps 
 ../BUILD/arrow/cpp/BUILD_CLANG/release/libarrow_clang.dll.a:
@@ -214,7 +216,7 @@ ncbi_setup:
 	#cp -f ../ncbi_crosscomp_inject_*.sh ncbi-cxx-toolkit-public/ ; \
 	cd ncbi-cxx-toolkit-public/ ; \
 	TOOLCHAIN_FILE=$(src/build-system/cmake/toolchains/cmkTool.sh GCC $(GCC_VER) | grep "in" | awk -F' ' '{print $NF}') ; \
-	SHLIB_OPENMP_CXXFLAGS=$(SHLIB_OPENMP_CXXFLAGS) RTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"` ./ncbi_crosscomp_inject_pre.sh ; \
+	SHLIB_OPENMP_CXXFLAGS=$(SHLIB_OPENMP_CXXFLAGS) RTOOLS_DIR=$(RTOOLS_DIR) ./ncbi_crosscomp_inject_pre.sh ; \
 	echo $(MSYSTEM); \
 	$(CC) -dumpmachine ; \
 	##export CMAKE_CMD=`which cmake` ; \
@@ -225,14 +227,14 @@ ncbi_setup:
 	#--without-dll --with-dll --with-composite-dll ; \
 	./cmake-configure GCC $(GCC_VER) --with-projects=QuickBLAST.prj --with-dll --with-composite-dll --without-debug --with-build-root=BUILD ; \
 	#rm -f $(TOOLCHAIN_FILE) ; \
-	RTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"` ./ncbi_crosscomp_inject_post.sh )
+	RTOOLS_DIR=$(RTOOLS_DIR) ./ncbi_crosscomp_inject_post.sh )
 
 ncbi_setup_clang: 
 	(cd ../BUILD/ ; \
 	#cp -f ../ncbi_crosscomp_inject_*.sh ncbi-cxx-toolkit-public/ ; \
 	cd ncbi-cxx-toolkit-public/ ; \
 	TOOLCHAIN_FILE=$(src/build-system/cmake/toolchains/cmkTool.sh Clang $(CLANG_VER) | grep "in" | awk -F' ' '{print $NF}') ; \
-	SHLIB_OPENMP_CXXFLAGS=$(SHLIB_OPENMP_CXXFLAGS) RTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"` ./ncbi_crosscomp_inject_pre.sh ; \
+	SHLIB_OPENMP_CXXFLAGS=$(SHLIB_OPENMP_CXXFLAGS) RTOOLS_DIR=$(RTOOLS_DIR) ./ncbi_crosscomp_inject_pre.sh ; \
 	echo $(MSYSTEM); \
 	$(CC) -dumpmachine ; \
 	##export CMAKE_CMD=`which cmake` ; \
@@ -243,7 +245,7 @@ ncbi_setup_clang:
 	#--without-dll --with-dll --with-composite-dll ; \
 	 CC="/mingw64/bin/clang" CXX="/mingw64/bin/clang++" ./cmake-configure Clang $(CLANG_VER) --with-projects=QuickBLAST.prj --with-dll --with-composite-dll --without-debug --with-build-root=BUILD ; \
 	#rm -f $(TOOLCHAIN_FILE) ; \
-	RTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat(Sys.getenv('RTOOLS43_HOME'))"` ./ncbi_crosscomp_inject_post.sh )
+	RTOOLS_DIR=$(RTOOLS_DIR) ./ncbi_crosscomp_inject_post.sh )
 
 ../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/datatool.exe: ncbi_setup
 	(cd ../BUILD/ncbi-cxx-toolkit-public/BUILD/build ; \

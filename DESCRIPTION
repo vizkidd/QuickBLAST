@@ -8,6 +8,7 @@ Maintainer: Vishvesh Karthik <vishveshkarthik@gmail.com>
 Description: A BLAST Wrapper to call BLAST directly from R (interoperable and without Sys.call()) coupled with Apache Arrow's IPC and columnar format
 License: GPL (>= 2)
 Depends:
+  R (>= 4.3.0),
   Rcpp (>= 1.0.10),
   RcppProgress (>= 0.4.2),
   arrow (>= 15.0.0.0),

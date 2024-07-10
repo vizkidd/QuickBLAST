@@ -195,16 +195,16 @@ elseif(WIN32)
     if (NOT EXISTS "${ROOT_SRC_DIR}/R_src/")
 	message(STATUS "Downloading R-src...")	
 	execute_process(
-			COMMAND bash -c "mkdir -p ${ROOT_SRC_DIR}/R_src/" ;
+			COMMAND ${RTOOLS_DIR}/usr/bin/bash -c "mkdir -p ${ROOT_SRC_DIR}/R_src/" ;
 			WORKING_DIRECTORY ${ROOT_SRC_DIR}
 		)
 		execute_process(
-			COMMAND bash -c "curl https://cran.r-project.org/src/base/R-latest.tar.gz -o R-latest.tar.gz" ;
+			COMMAND ${RTOOLS_DIR}/usr/bin/bash -c "curl https://cran.r-project.org/src/base/R-latest.tar.gz -o R-latest.tar.gz" ;
 			WORKING_DIRECTORY ${ROOT_SRC_DIR}/R_src/
 			COMMAND_ERROR_IS_FATAL ANY
 		)
 		execute_process(
-			COMMAND bash -c "tar xzf R-latest.tar.gz 2> /dev/null" ;
+			COMMAND ${RTOOLS_DIR}/usr/bin/bash -c "tar xzf R-latest.tar.gz 2> /dev/null" ;
 			WORKING_DIRECTORY ${ROOT_SRC_DIR}/R_src/
 		)
 	endif()
@@ -218,8 +218,8 @@ elseif(WIN32)
     endif()
 
     execute_process(
-        COMMAND bash -c "git tag -l | sort -r -u -h -k3 -t '-' | grep -iv \"dev\" | head -n 1" ; #no dev versions
-        # COMMAND bash -c "git tag -l | sort -r -u -h -k3 -t '-' | head -n 1" ; #- include dev versions
+        COMMAND ${RTOOLS_DIR}/usr/bin/bash -c "git tag -l | sort -r -u -h -k3 -t '-' | grep -iv \"dev\" | head -n 1" ; #no dev versions
+        # COMMAND ${RTOOLS_DIR}/usr/bin/bash -c "git tag -l | sort -r -u -h -k3 -t '-' | head -n 1" ; #- include dev versions
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/arrow
         OUTPUT_VARIABLE ARROW_GIT_TAG
     	OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -300,7 +300,7 @@ elseif(WIN32)
     endif()
 
     execute_process(
-        COMMAND bash -c "git tag -l | sort -r | head -n 1" ;
+        COMMAND ${RTOOLS_DIR}/usr/bin/bash -c "git tag -l | sort -r | head -n 1" ;
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public
         OUTPUT_VARIABLE NCBI_GIT_TAG
     	OUTPUT_STRIP_TRAILING_WHITESPACE
