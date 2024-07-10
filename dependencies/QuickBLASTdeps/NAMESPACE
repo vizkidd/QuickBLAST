@@ -1,4 +1,0 @@
-useDynLib(QuickBLASTdeps, .registration=TRUE)
-importFrom(Rcpp, evalCpp)
-export(isQuickBLASTLoaded)
-exportPattern("^[[:alpha:]]+")
