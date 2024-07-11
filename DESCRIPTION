@@ -8,13 +8,12 @@ Maintainer: Vishvesh Karthik <vishveshkarthik@gmail.com>
 Description: A BLAST Wrapper to call BLAST directly from R (interoperable and without Sys.call()) coupled with Apache Arrow's IPC and columnar format
 License: GPL (>= 2)
 Depends:
-  R (>= 4.3.0),
+  R (>= 4.4.0),
   Rcpp (>= 1.0.10),
   RcppProgress (>= 0.4.2),
   arrow (>= 15.0.0.0),
   remotes (>= 2.4.2.1),
   devtools (>= 2.4.5),
-  QuickBLASTdeps
 Imports:
   iterators (>= 1.0.14),
   arrow (>= 12.0.1),
@@ -24,9 +23,6 @@ Imports:
   methods (>= 4.3.1),
   stringi (>= 1.7.1),
   tools (>= 4.3.1),
-  QuickBLASTdeps
-Remotes:
-  github::vizkidd/QuickBLASTdeps
 LinkingTo: Rcpp, RcppProgress
 Encoding: UTF-8
 RoxygenNote: 7.3.2

@@ -8,7 +8,6 @@
 ..Rcheck/
 .Rproj.user
 .Rhistory
-dependencies/
 dependencies/new/
 dependencies/QuickBLASTdeps/BUILD/
 dependencies/QuickBLASTdeps/inst/
@@ -17,6 +16,8 @@ src/RcppExports.cpp
 dependencies/
 dependencies/QuickBLASTdeps/R/RcppExports.R
 dependencies/QuickBLASTdeps/src/RcppExports.cpp
+BUILD/
+inst/
 old/
 *.old
 *.dll

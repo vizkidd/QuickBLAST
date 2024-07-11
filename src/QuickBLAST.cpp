@@ -119,6 +119,13 @@ extern "C"
 }
 
 // [[Rcpp::export]]
+RcppExport SEXP isQuickBLASTLoaded()
+{
+    Rcpp::Rcout << "QuickBLAST dependencies Loaded!" << std::endl;
+    return Rcpp::wrap(true);
+}
+
+// [[Rcpp::export]]
 RcppExport SEXP test_QBR()
 {
   Rcpp::Rcout << "Hello from QuickBLAST R side" << std::endl;
@@ -431,6 +438,7 @@ RcppExport SEXP QB_BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEX
 }*/
 
 static const R_CallMethodDef callMethods[] = {
+    {"isQuickBLASTLoaded", (DL_FUNC)&isQuickBLASTLoaded, 0},
     {"GetInstanceCount", (DL_FUNC)&GetInstanceCount, 0},
     {"BLAST2Files", (DL_FUNC)&BLAST2Files, 9},
     // {"BLAST1Folder", (DL_FUNC)&QB_BLAST1Folder, 7},

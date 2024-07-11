@@ -1,0 +1,14 @@
+# $Id$
+
+# Meta-makefile("QuickBLAST" project)
+#################################
+
+
+#DLL_PROJ = QuickBLASTcpp_DLL
+LIB_PROJ = QuickBLASTcpp
+
+#SUB_PROJ = unit_test demo
+#EXPENDABLE_SUB_PROJ = demo
+
+srcdir = @srcdir@
+include @builddir@/Makefile.meta

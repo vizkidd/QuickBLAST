@@ -22,7 +22,7 @@ Let me know if you want more information and please address bugs to me on github
 ## Installation (under construction)
 
 + [Install Apache Arrow](https://arrow.apache.org/install/) - (Optional).
-+ [Install RTools4.3](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html) - (For Windows)
++ [Install RTools 4.4 or greater](https://cran.r-project.org/bin/windows/Rtools/) - (For Windows. Rtools must be the same Major and Minor version of R)
 
 ```R
 devtools::install_github("https://github.com/vizkidd/QuickBLAST", force=T)
