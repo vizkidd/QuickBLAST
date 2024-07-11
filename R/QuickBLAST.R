@@ -238,7 +238,7 @@ isQuickBLASTLoaded <- function() {
 }
 
 R_dll_paths <- c(
-  list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=".dll", full.names = T)
+  list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=".dll", full.names = T),
   file.path(Sys.getenv( paste('RTOOLS',version[['major']],unlist(strsplit(x=version[['minor']],fixed = T, split = '.'))[1], '_HOME', sep='') ),"usr","bin","msys-gomp-1.dll"),
   file.path(Sys.getenv( paste('RTOOLS',version[['major']],unlist(strsplit(x=version[['minor']],fixed = T, split = '.'))[1], '_HOME', sep='') ),"usr","bin","msys-stdc++-6.dll"),
   file.path(Sys.getenv( paste('RTOOLS',version[['major']],unlist(strsplit(x=version[['minor']],fixed = T, split = '.'))[1], '_HOME', sep='') ),"usr","bin","msys-gcc_s-seh-1.dll"),
