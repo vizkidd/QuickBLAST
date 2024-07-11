@@ -13,7 +13,6 @@ dependencies/QuickBLASTdeps/BUILD/
 dependencies/QuickBLASTdeps/inst/
 R/RcppExports.R
 src/RcppExports.cpp
-dependencies/
 dependencies/QuickBLASTdeps/R/RcppExports.R
 dependencies/QuickBLASTdeps/src/RcppExports.cpp
 BUILD/
