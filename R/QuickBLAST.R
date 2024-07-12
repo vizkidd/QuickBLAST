@@ -283,37 +283,37 @@ dll_paths <- c(
 .onLoad <- function(libname, pkgname) {
   # # Load the DLLs when the package is loaded
   #require(QuickBLASTdeps)
-  require(arrow)
+  # require(arrow)
   
-  for (dll_path in c(R_dll_paths,dll_paths)) {
-    if (!file.exists(dll_path)) {
-      cat("DLL file not found:", dll_path, "\n")
-    } else {
-      # dyn.load(dll_path, local=F, now = T)
-      if(!invisible(is.loaded(dll_path))){
-        dyn.load(dll_path,now = T)
-      }
-      cat("Loaded DLL:", dll_path, "\n")
-    }
-  }
+  # for (dll_path in c(R_dll_paths,dll_paths)) {
+  #   if (!file.exists(dll_path)) {
+  #     cat("DLL file not found:", dll_path, "\n")
+  #   } else {
+  #     # dyn.load(dll_path, local=F, now = T)
+  #     if(!invisible(is.loaded(dll_path))){
+  #       dyn.load(dll_path,now = T)
+  #     }
+  #     cat("Loaded DLL:", dll_path, "\n")
+  #   }
+  # }
 }
 
 .onAttach <- function(libname, pkgname) {
   # # Load the DLLs when the package is loaded
   #require(QuickBLASTdeps)
-  require(arrow)
+  # require(arrow)
   
-  for (dll_path in c(R_dll_paths,dll_paths)) {
-    if (!file.exists(dll_path)) {
-      cat("DLL file not found:", dll_path, "\n")
-    } else {
-      #dyn.load(dll_path, local=F, now = T)
-      if(!invisible(is.loaded(dll_path))){
-        dyn.load(dll_path, now = T)
-      }
-      cat("Loaded DLL:", dll_path, "\n")
-    }
-  }
+  # for (dll_path in c(R_dll_paths,dll_paths)) {
+  #   if (!file.exists(dll_path)) {
+  #     cat("DLL file not found:", dll_path, "\n")
+  #   } else {
+  #     #dyn.load(dll_path, local=F, now = T)
+  #     if(!invisible(is.loaded(dll_path))){
+  #       dyn.load(dll_path, now = T)
+  #     }
+  #     cat("Loaded DLL:", dll_path, "\n")
+  #   }
+  # }
 }
 
 # .onUnload() function
@@ -321,13 +321,13 @@ dll_paths <- c(
   # # Unload the DLLs when the package is unloaded
   # detach("package:QuickBLASTdeps", unload = TRUE)
   
-  for (dll_path in dll_paths) {
-    # if(is.loaded(dll_path)){
-      if (dyn.unload(dll_path)) {
-        cat("Unloaded DLL:", dll_path, "\n")
-      } else {
-        cat("Failed to unload DLL:", dll_path, "\n")
-      }
-    # }
-  }
+  # for (dll_path in dll_paths) {
+  #   # if(is.loaded(dll_path)){
+  #     if (dyn.unload(dll_path)) {
+  #       cat("Unloaded DLL:", dll_path, "\n")
+  #     } else {
+  #       cat("Failed to unload DLL:", dll_path, "\n")
+  #     }
+  #   # }
+  # }
 }
