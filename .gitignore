@@ -7,6 +7,8 @@
 *.so
 ..Rcheck/
 .Rproj.user
+*.Rproj.user
+*.Rproj
 .Rhistory
 dependencies/new/
 dependencies/QuickBLASTdeps/BUILD/

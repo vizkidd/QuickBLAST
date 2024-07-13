@@ -230,6 +230,7 @@ all2all <- function(first_list, second_list, input_type, seq_info, blast_program
 #' }
 #'
 #' @return Always TRUE
+#' @useDynLib QuickBLAST, .registration = TRUE,  .fixes = "QB_" 
 #' @md
 #' @export
 isQuickBLASTLoaded <- function() {
@@ -238,15 +239,24 @@ isQuickBLASTLoaded <- function() {
 }
 
 R_dll_paths <- c(
-  list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=".dll", full.names = T),
-  file.path(Sys.getenv( paste('RTOOLS',version[['major']],unlist(strsplit(x=version[['minor']],fixed = T, split = '.'))[1], '_HOME', sep='') ),"usr","bin","msys-gomp-1.dll"),
-  file.path(Sys.getenv( paste('RTOOLS',version[['major']],unlist(strsplit(x=version[['minor']],fixed = T, split = '.'))[1], '_HOME', sep='') ),"usr","bin","msys-stdc++-6.dll"),
-  file.path(Sys.getenv( paste('RTOOLS',version[['major']],unlist(strsplit(x=version[['minor']],fixed = T, split = '.'))[1], '_HOME', sep='') ),"usr","bin","msys-gcc_s-seh-1.dll"),
-  file.path(Sys.getenv( paste('RTOOLS',version[['major']],unlist(strsplit(x=version[['minor']],fixed = T, split = '.'))[1], '_HOME', sep='') ),"usr","bin","msys-2.0.dll")
-  # fs::path_package("QuickBLASTdeps","libs", Sys.getenv("R_ARCH"),"msys-gomp-1.dll"),
-  # fs::path_package("QuickBLASTdeps","libs", Sys.getenv("R_ARCH"),"msys-stdc++-6.dll"),
-  # fs::path_package("QuickBLASTdeps","libs", Sys.getenv("R_ARCH"),"msys-gcc_s-seh-1.dll"),
-  # fs::path_package("QuickBLASTdeps","libs", Sys.getenv("R_ARCH"),"msys-2.0.dll")
+  list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=".dll", full.names = T)
+)
+
+msys_dll_paths <- c(
+  # file.path(Sys.getenv( paste('RTOOLS',version[['major']],unlist(strsplit(x=version[['minor']],fixed = T, split = '.'))[1], '_HOME', sep='') ),"usr","bin","msys-gomp-1.dll"),
+  # file.path(Sys.getenv( paste('RTOOLS',version[['major']],unlist(strsplit(x=version[['minor']],fixed = T, split = '.'))[1], '_HOME', sep='') ),"usr","bin","msys-stdc++-6.dll"),
+  # file.path(Sys.getenv( paste('RTOOLS',version[['major']],unlist(strsplit(x=version[['minor']],fixed = T, split = '.'))[1], '_HOME', sep='') ),"usr","bin","msys-gcc_s-seh-1.dll"),
+  # file.path(Sys.getenv( paste('RTOOLS',version[['major']],unlist(strsplit(x=version[['minor']],fixed = T, split = '.'))[1], '_HOME', sep='') ),"usr","bin","msys-2.0.dll")
+  fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"msys-bz2-1.dll"),
+  fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"msys-lzo2-2.dll"),
+  fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"msys-z.dll"),
+  fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"msys-pcre-1.dll"),
+  fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"msys-zstd-1.dll"),
+  fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"msys-sqlite3-0.dll"),
+  fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"msys-gomp-1.dll"),
+  fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"msys-stdc++-6.dll"),
+  fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"msys-gcc_s-seh-1.dll"),
+  fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"msys-2.0.dll")
 )
 
 dll_paths <- c(             
@@ -275,7 +285,6 @@ dll_paths <- c(
   #"inst/libs", Sys.getenv("R_ARCH"),"libarrow_msys2.dll.a",
   #"inst/libs", Sys.getenv("R_ARCH"),"msys-arrow-1601.dll",
   list.files(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")),pattern = "*arrow.*dll", full.names = T),
-  # R_dll_paths,
   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),paste("libQuickBLASTcpp", .Platform$dynlib.ext,sep="") )
   #"inst/libs", Sys.getenv("R_ARCH"),"QuickBLAST.dll"
 )
@@ -284,44 +293,56 @@ dll_paths <- c(
   # # Load the DLLs when the package is loaded
   #require(QuickBLASTdeps)
   # require(arrow)
-  
-  # for (dll_path in c(R_dll_paths,dll_paths)) {
-  #   if (!file.exists(dll_path)) {
-  #     cat("DLL file not found:", dll_path, "\n")
-  #   } else {
-  #     # dyn.load(dll_path, local=F, now = T)
-  #     if(!invisible(is.loaded(dll_path))){
-  #       dyn.load(dll_path,now = T)
-  #     }
-  #     cat("Loaded DLL:", dll_path, "\n")
-  #   }
-  # }
+  #R_dll_paths, msys_dll_paths
+  for (dll_path in c(dll_paths)) {
+    if (!file.exists(dll_path)) {
+      cat("DLL file not found:", dll_path, "\n")
+    } else {
+      # dyn.load(dll_path, local=F, now = T)
+      if(!invisible(is.loaded(dll_path))){
+        dyn.load(dll_path,now = T)
+      }
+      cat("Loaded DLL:", dll_path, "\n")
+    }
+  }
 }
 
 .onAttach <- function(libname, pkgname) {
   # # Load the DLLs when the package is loaded
   #require(QuickBLASTdeps)
   # require(arrow)
-  
-  # for (dll_path in c(R_dll_paths,dll_paths)) {
-  #   if (!file.exists(dll_path)) {
-  #     cat("DLL file not found:", dll_path, "\n")
-  #   } else {
-  #     #dyn.load(dll_path, local=F, now = T)
-  #     if(!invisible(is.loaded(dll_path))){
-  #       dyn.load(dll_path, now = T)
-  #     }
-  #     cat("Loaded DLL:", dll_path, "\n")
-  #   }
-  # }
+  #R_dll_paths, msys_dll_paths
+  for (dll_path in c(dll_paths)) {
+    if (!file.exists(dll_path)) {
+      cat("DLL file not found:", dll_path, "\n")
+    } else {
+      #dyn.load(dll_path, local=F, now = T)
+      if(!invisible(is.loaded(dll_path))){
+        dyn.load(dll_path, now = T)
+      }
+      cat("Loaded DLL:", dll_path, "\n")
+    }
+  }
 }
 
 # .onUnload() function
 .onUnload <- function(libpath) {
   # # Unload the DLLs when the package is unloaded
   # detach("package:QuickBLASTdeps", unload = TRUE)
-  
-  # for (dll_path in dll_paths) {
+  #msys_dll_paths
+  for (dll_path in c(dll_paths)) {
+    # if(is.loaded(dll_path)){
+      if (dyn.unload(dll_path)) {
+        cat("Unloaded DLL:", dll_path, "\n")
+      } else {
+        cat("Failed to unload DLL:", dll_path, "\n")
+      }
+    # }
+  }
+}
+
+.onDetach <- function(libpath) {
+  # for (dll_path in c(dll_paths)) {
   #   # if(is.loaded(dll_path)){
   #     if (dyn.unload(dll_path)) {
   #       cat("Unloaded DLL:", dll_path, "\n")
