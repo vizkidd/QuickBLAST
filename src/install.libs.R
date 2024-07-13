@@ -26,7 +26,7 @@ files <- c(Sys.glob(paste0(file.path(R_PACKAGE_SOURCE,"inst","libs",Sys.getenv("
 
 if(WINDOWS) files <- c(files, list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=SHLIB_EXT, full.names = T))
 
-cat(files)
+# cat(files)
 
 file.copy(files, dest, overwrite = TRUE)
 # file.copy(files, staged_dest, overwrite = TRUE)

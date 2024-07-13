@@ -342,13 +342,13 @@ dll_paths <- c(
 }
 
 .onDetach <- function(libpath) {
-  # for (dll_path in c(dll_paths)) {
-  #   # if(is.loaded(dll_path)){
-  #     if (dyn.unload(dll_path)) {
-  #       cat("Unloaded DLL:", dll_path, "\n")
-  #     } else {
-  #       cat("Failed to unload DLL:", dll_path, "\n")
-  #     }
-  #   # }
-  # }
+  for (dll_path in c(dll_paths)) {
+    # if(is.loaded(dll_path)){
+      if (dyn.unload(dll_path)) {
+        cat("Unloaded DLL:", dll_path, "\n")
+      } else {
+        cat("Failed to unload DLL:", dll_path, "\n")
+      }
+    # }
+  }
 }

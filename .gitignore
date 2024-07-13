@@ -9,6 +9,7 @@
 .Rproj.user
 *.Rproj.user
 *.Rproj
+.RData
 .Rhistory
 dependencies/new/
 dependencies/QuickBLASTdeps/BUILD/
