@@ -285,8 +285,8 @@ dll_paths <- c(
   #"inst/libs", Sys.getenv("R_ARCH"),"libarrow_msys2.dll.a",
   #"inst/libs", Sys.getenv("R_ARCH"),"msys-arrow-1601.dll",
   list.files(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")),pattern = "*arrow.*dll", full.names = T),
-  fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),paste("libQuickBLASTcpp", .Platform$dynlib.ext,sep="") ),
-  fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),paste("QuickBLAST", .Platform$dynlib.ext,sep="") )
+  fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),paste("libQuickBLASTcpp", .Platform$dynlib.ext,sep="") )
+  # fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),paste("QuickBLAST", .Platform$dynlib.ext,sep="") )
   #"inst/libs", Sys.getenv("R_ARCH"),"QuickBLAST.dll"
 )
 
@@ -295,7 +295,7 @@ dll_paths <- c(
   #require(QuickBLASTdeps)
   # require(arrow)
   #R_dll_paths, msys_dll_paths
-  for (dll_path in c(dll_paths)) {
+  for (dll_path in c(R_dll_paths, msys_dll_paths, dll_paths)) {
     if (!file.exists(dll_path)) {
       cat("DLL file not found:", dll_path, "\n")
     } else {
@@ -313,7 +313,7 @@ dll_paths <- c(
   #require(QuickBLASTdeps)
   # require(arrow)
   #R_dll_paths, msys_dll_paths
-  for (dll_path in c(dll_paths)) {
+  for (dll_path in c(R_dll_paths, msys_dll_paths, dll_paths)) {
     if (!file.exists(dll_path)) {
       cat("DLL file not found:", dll_path, "\n")
     } else {
