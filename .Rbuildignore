@@ -4,5 +4,6 @@
 ^\.RData$
 ^BUILD/*
 ^old/*
+^.vscode/*
 ^.*\.old$
 ^.*\.dll$

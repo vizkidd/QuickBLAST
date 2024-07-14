@@ -6,6 +6,7 @@
 *.json
 *.so
 ..Rcheck/
+.vscode/
 .Rproj.user
 *.Rproj.user
 *.Rproj
