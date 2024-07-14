@@ -285,7 +285,8 @@ dll_paths <- c(
   #"inst/libs", Sys.getenv("R_ARCH"),"libarrow_msys2.dll.a",
   #"inst/libs", Sys.getenv("R_ARCH"),"msys-arrow-1601.dll",
   list.files(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")),pattern = "*arrow.*dll", full.names = T),
-  fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),paste("libQuickBLASTcpp", .Platform$dynlib.ext,sep="") )
+  fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),paste("libQuickBLASTcpp", .Platform$dynlib.ext,sep="") ),
+  fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),paste("QuickBLAST", .Platform$dynlib.ext,sep="") )
   #"inst/libs", Sys.getenv("R_ARCH"),"QuickBLAST.dll"
 )
 
@@ -298,10 +299,10 @@ dll_paths <- c(
     if (!file.exists(dll_path)) {
       cat("DLL file not found:", dll_path, "\n")
     } else {
-      # dyn.load(dll_path, local=F, now = T)
-      if(!invisible(is.loaded(dll_path))){
-        dyn.load(dll_path,now = T)
-      }
+      dyn.load(dll_path, local=F, now = T)
+      # if(!invisible(is.loaded(dll_path))){
+      #   dyn.load(dll_path,now = T)
+      # }
       cat("Loaded DLL:", dll_path, "\n")
     }
   }
@@ -316,10 +317,10 @@ dll_paths <- c(
     if (!file.exists(dll_path)) {
       cat("DLL file not found:", dll_path, "\n")
     } else {
-      #dyn.load(dll_path, local=F, now = T)
-      if(!invisible(is.loaded(dll_path))){
-        dyn.load(dll_path, now = T)
-      }
+      dyn.load(dll_path, local=F, now = T)
+      # if(!invisible(is.loaded(dll_path))){
+      #   dyn.load(dll_path, now = T)
+      # }
       cat("Loaded DLL:", dll_path, "\n")
     }
   }

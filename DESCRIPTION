@@ -1,7 +1,7 @@
 Package: QuickBLAST
 Type: Package
 Title: BLAST Files/Sequences from R
-Version: 1.2
+Version: 1.2.2
 Date: 2023-07-09
 Author: Vishvesh Karthik
 Maintainer: Vishvesh Karthik <vishveshkarthik@gmail.com>
@@ -28,3 +28,4 @@ Encoding: UTF-8
 StagedInstall: no
 UseLTO: yes
 RoxygenNote: 7.3.2
+Language: en-US
