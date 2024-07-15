@@ -295,17 +295,17 @@ dll_paths <- c(
   #require(QuickBLASTdeps)
   # require(arrow)
   #R_dll_paths, msys_dll_paths
-  for (dll_path in c(R_dll_paths, msys_dll_paths, dll_paths)) {
-    if (!file.exists(dll_path)) {
-      cat("DLL file not found:", dll_path, "\n")
-    } else {
-      dyn.load(dll_path, local=F, now = T)
-      # if(!invisible(is.loaded(dll_path))){
-      #   dyn.load(dll_path,now = T)
-      # }
-      cat("Loaded DLL:", dll_path, "\n")
-    }
-  }
+  # for (dll_path in c(R_dll_paths, msys_dll_paths, dll_paths)) {
+  #   if (!file.exists(dll_path)) {
+  #     cat("DLL file not found:", dll_path, "\n")
+  #   } else {
+  #     dyn.load(dll_path, local=F, now = T)
+  #     # if(!invisible(is.loaded(dll_path))){
+  #     #   dyn.load(dll_path,now = T)
+  #     # }
+  #     cat("Loaded DLL:", dll_path, "\n")
+  #   }
+  # }
 }
 
 .onAttach <- function(libname, pkgname) {
@@ -313,17 +313,17 @@ dll_paths <- c(
   #require(QuickBLASTdeps)
   # require(arrow)
   #R_dll_paths, msys_dll_paths
-  for (dll_path in c(R_dll_paths, msys_dll_paths, dll_paths)) {
-    if (!file.exists(dll_path)) {
-      cat("DLL file not found:", dll_path, "\n")
-    } else {
-      dyn.load(dll_path, local=F, now = T)
-      # if(!invisible(is.loaded(dll_path))){
-      #   dyn.load(dll_path, now = T)
-      # }
-      cat("Loaded DLL:", dll_path, "\n")
-    }
-  }
+  # for (dll_path in c(R_dll_paths, msys_dll_paths, dll_paths)) {
+  #   if (!file.exists(dll_path)) {
+  #     cat("DLL file not found:", dll_path, "\n")
+  #   } else {
+  #     dyn.load(dll_path, local=F, now = T)
+  #     # if(!invisible(is.loaded(dll_path))){
+  #     #   dyn.load(dll_path, now = T)
+  #     # }
+  #     cat("Loaded DLL:", dll_path, "\n")
+  #   }
+  # }
 }
 
 # .onUnload() function
@@ -331,25 +331,25 @@ dll_paths <- c(
   # # Unload the DLLs when the package is unloaded
   # detach("package:QuickBLASTdeps", unload = TRUE)
   #msys_dll_paths
-  for (dll_path in c(dll_paths)) {
-    # if(is.loaded(dll_path)){
-      if (dyn.unload(dll_path)) {
-        cat("Unloaded DLL:", dll_path, "\n")
-      } else {
-        cat("Failed to unload DLL:", dll_path, "\n")
-      }
-    # }
-  }
+  # for (dll_path in c(dll_paths)) {
+  #   # if(is.loaded(dll_path)){
+  #     if (dyn.unload(dll_path)) {
+  #       cat("Unloaded DLL:", dll_path, "\n")
+  #     } else {
+  #       cat("Failed to unload DLL:", dll_path, "\n")
+  #     }
+  #   # }
+  # }
 }
 
 .onDetach <- function(libpath) {
-  for (dll_path in c(dll_paths)) {
-    # if(is.loaded(dll_path)){
-      if (dyn.unload(dll_path)) {
-        cat("Unloaded DLL:", dll_path, "\n")
-      } else {
-        cat("Failed to unload DLL:", dll_path, "\n")
-      }
-    # }
-  }
+  # for (dll_path in c(dll_paths)) {
+  #   # if(is.loaded(dll_path)){
+  #     if (dyn.unload(dll_path)) {
+  #       cat("Unloaded DLL:", dll_path, "\n")
+  #     } else {
+  #       cat("Failed to unload DLL:", dll_path, "\n")
+  #     }
+  #   # }
+  # }
 }
