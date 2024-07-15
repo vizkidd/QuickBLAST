@@ -223,20 +223,20 @@ all2all <- function(first_list, second_list, input_type, seq_info, blast_program
   }, mc.cores = n_threads, mc.preschedule = T)
 }
 
-#' Stub function that always returns true. Only to test the connection of DLLs and C function calls
-#' @examples
-#' \dontrun{
-#' QuickBLAST::isQuickBLASTLoaded()
-#' }
-#'
-#' @return Always TRUE
-#' @useDynLib QuickBLAST, .registration = TRUE,  .fixes = "QB_" 
-#' @md
-#' @export
-isQuickBLASTLoaded <- function() {
-  load_result <- .Call("isQuickBLASTLoaded")
-  return(load_result)
-}
+# #' Stub function that always returns true. Only to test the connection of DLLs and C function calls
+# #' @examples
+# #' \dontrun{
+# #' QuickBLAST::isQuickBLASTLoaded()
+# #' }
+# #'
+# #' @return Always TRUE
+# #' @useDynLib QuickBLAST, .registration = TRUE
+# #' @md
+# #' @export
+# isQuickBLASTLoaded <- function() {
+#   load_result <- .Call("isQuickBLASTLoaded")
+#   return(load_result)
+# }
 
 R_dll_paths <- c(
   list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=".dll", full.names = T)

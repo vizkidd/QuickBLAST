@@ -2,19 +2,19 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 isQuickBLASTLoaded <- function() {
-    .Call(`_QuickBLAST_isQuickBLASTLoaded`)
+    .Call('_QuickBLAST_isQuickBLASTLoaded', PACKAGE = 'QuickBLAST')
 }
 
 test_QBR <- function() {
-    .Call(`_QuickBLAST_test_QBR`)
+    .Call('_QuickBLAST_test_QBR', PACKAGE = 'QuickBLAST')
 }
 
 test_QBR_cpp <- function() {
-    .Call(`_QuickBLAST_test_QBR_cpp`)
+    .Call('_QuickBLAST_test_QBR_cpp', PACKAGE = 'QuickBLAST')
 }
 
 test_Rnil <- function() {
-    .Call(`_QuickBLAST_test_Rnil`)
+    .Call('_QuickBLAST_test_Rnil', PACKAGE = 'QuickBLAST')
 }
 
 #' @name CreateNewBLASTInstance
@@ -28,6 +28,6 @@ test_Rnil <- function() {
 #' @param options (string (or) Named List) List of BLAST options - check QuickBLAST::GetAvailableBLASTOptions()
 #' @return C++ Pointer of QuickBLAST Object (Cannot be used in R)
 QB_CreateNewBLASTInstance <- function(seq_info, program, options) {
-    .Call(`_QuickBLAST_QB_CreateNewBLASTInstance`, seq_info, program, options)
+    .Call('_QuickBLAST_QB_CreateNewBLASTInstance', PACKAGE = 'QuickBLAST', seq_info, program, options)
 }
 

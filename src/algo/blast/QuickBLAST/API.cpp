@@ -59,7 +59,7 @@ extern "C"
 
 void test_QBcpp()
 {
-    std::cout << "Hello from QuickBLASTcpp" << std::endl;
+    Rcpp::Rcout << "Hello from QuickBLASTcpp" << std::endl;
 }
 
 void PrintClock(std::chrono::time_point<std::chrono::high_resolution_clock> start)

@@ -1,5 +1,8 @@
 // [[Rcpp::plugins(openmp)]]
-#define CALLDEF(name, n) {#name, (DL_FUNC) & name, n}
+#define CALLDEF(name, n)       \
+  {                            \
+    #name, (DL_FUNC) & name, n \
+  }
 
 // #include <cassert>
 // #include <chrono>
@@ -20,6 +23,8 @@
 
 #include <map>
 #include <tuple>
+
+// #include <algo\blast\QuickBLAST\QuickBLAST.hpp>
 
 std::map<unsigned int, std::tuple<int, std::string, std::string, std::string, std::string, bool>> obj_list;
 
@@ -121,8 +126,8 @@ extern "C"
 // [[Rcpp::export]]
 RcppExport SEXP isQuickBLASTLoaded()
 {
-    Rcpp::Rcout << "QuickBLAST dependencies Loaded!" << std::endl;
-    return Rcpp::wrap(true);
+  Rcpp::Rcout << "QuickBLAST dependencies Loaded!" << std::endl;
+  return Rcpp::wrap(true);
 }
 
 // [[Rcpp::export]]
@@ -136,7 +141,8 @@ RcppExport SEXP test_QBR()
 RcppExport SEXP test_QBR_cpp()
 {
   Rcpp::Rcout << "Hello from QuickBLAST R side connected with cpp" << std::endl;
-  test_QBcpp();
+  Rcpp::Rcout << test_QBcpp() << std::endl;
+  Rcpp::Rcout << GetInstanceCount() << std::endl;
   return Rcpp::wrap(true);
 }
 
@@ -477,5 +483,6 @@ void R_init_QuickBLAST(DllInfo *dll)
 {
   class_<QuickBLAST>("QuickBLAST")
       .constructor<QuickBLAST::ESeqType, QuickBLAST::EStrand, std::string, std::string, bool>()
+      .constructor<QuickBLAST::ESeqType, QuickBLAST::EStrand, std::string, Rcpp::List, bool>()
       .method("BLAST", &QuickBLAST::BLAST);
 }*/

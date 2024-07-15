@@ -15,7 +15,8 @@ PKG_CXXFLAGS = $(CXX_VISIBILITY) -DQBLIBRARY_IMPORTS -gdwarf-2 -mfpmath=sse -mss
 
 .PHONY: all
 
-all: builddeps ../BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.dll.a ../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/libQuickBLASTcpp.dll.a install_libs $(SHLIB) rm_build
+#rm_build
+all: builddeps ../BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.dll.a ../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/libQuickBLASTcpp.dll.a install_libs $(SHLIB)
 
 rm_build:
 	(rm -rf ../BUILD/ )
