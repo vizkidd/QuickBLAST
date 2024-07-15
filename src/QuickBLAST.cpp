@@ -152,6 +152,10 @@ RcppExport SEXP test_Rnil()
   return R_NilValue;
 }
 
+bool QueryOOBESupport(){
+  return true;
+}
+
 /*extern "C" attribute_visible void R_unload_QuickBLAST(DllInfo *dll)
 {
 
