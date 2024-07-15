@@ -16,7 +16,7 @@ PKG_CXXFLAGS = $(CXX_VISIBILITY) -DQBLIBRARY_IMPORTS -gdwarf-2 -mfpmath=sse -mss
 .PHONY: all
 
 #rm_build
-all: builddeps ../BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.dll.a ../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/libQuickBLASTcpp.dll.a install_libs $(SHLIB)
+all: builddeps ../BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.dll.a ../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/datatool.exe ../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/libQuickBLASTcpp.dll.a install_libs $(SHLIB)
 
 rm_build:
 	(rm -rf ../BUILD/ )
@@ -91,7 +91,8 @@ ncbi_setup:
 	/usr/bin/make -j $(NPROC) datatool ; \
 	)
 
-../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/libQuickBLASTcpp.dll.a: ../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/datatool.exe
+#../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/datatool.exe
+../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/libQuickBLASTcpp.dll.a:
 	(cd ../BUILD/ncbi-cxx-toolkit-public/ ; \
 	export PATH=`pwd`/BUILD/bin/:$$PATH ; \
 	cd BUILD/build ; \
