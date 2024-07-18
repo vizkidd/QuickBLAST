@@ -27,7 +27,7 @@
 // #include <algo\blast\QuickBLAST\QuickBLAST.hpp>
 using namespace Rcpp;
 
-std::map<unsigned int, std::tuple<int, int, int, std::string, std::string, bool>> obj_list = {};
+std::map<unsigned int, std::tuple<int, int, int, std::string, std::string, bool>> obj_list;
 
 #if defined(MINGW32) || defined(WIN32)
 #ifdef QBLIBRARY_IMPORTS
@@ -95,19 +95,19 @@ extern "C"
   // QBLIBRARY_API std::vector<std::string> getFilesInDir(const std::string &folderPath, const std::string &extension);
   // // QBLIBRARY_API void R_init_QuickBLAST(DllInfo *dll);
 
-  QBLIBRARY_API SEXP QB_GetInstanceCount();
-  QBLIBRARY_API SEXP QB_CreateQuickBLASTInstance(SEXP seq_type, SEXP strand, SEXP program, SEXP options, SEXP save_sequences);
-  QBLIBRARY_API SEXP QB_DeleteQuickBLASTInstance(SEXP ptr_id);
+  QBLIBRARY_API SEXP libQB_GetInstanceCount();
+  QBLIBRARY_API SEXP libQB_CreateQuickBLASTInstance(SEXP seq_type, SEXP strand, SEXP program, SEXP options, SEXP save_sequences);
+  QBLIBRARY_API SEXP libQB_DeleteQuickBLASTInstance(SEXP ptr_id);
   //     //QBLIBRARY_API ArrowWrapper* CreateArrowWrapperInstance();
   //     //QBLIBRARY_API std::shared_ptr<arrow::RecordBatch> cpp_BLAST2Seqs(std::shared_ptr<QuickBLAST> ptr, std::string query, std::string subject);
   //     //QBLIBRARY_API std::shared_ptr<arrow::RecordBatchVector> cpp_BLAST2Files(std::shared_ptr<QuickBLAST> ptr, std::string queryFile, std::string subjectFile, std::string outFile, int blast_sequence_limit, int num_threads, const bool show_progress = true, const bool return_values = false, int batch_size = 1024);
-  QBLIBRARY_API SEXP QB_SetQuickBLASTOptions(SEXP ptr_id, SEXP program_name, SEXP options);
+  QBLIBRARY_API SEXP libQB_SetQuickBLASTOptions(SEXP ptr_id, SEXP program_name, SEXP options);
   QBLIBRARY_API SEXP BLAST2Seqs(SEXP ptr_id, SEXP query, SEXP subject);
   QBLIBRARY_API SEXP BLAST2Files(SEXP ptr_id, SEXP query, SEXP subject, SEXP out_file, SEXP seq_limit, SEXP num_threads, SEXP show_progress, SEXP return_values, SEXP min_batch_size);
 
   // __declspec(dllexport) SEXP test_QBR();
   // __declspec(dllexport) SEXP test_QBR_cpp();
-  QBLIBRARY_API SEXP QB_isQuickBLASTLoaded();
+  QBLIBRARY_API SEXP libQB_isQuickBLASTLoaded();
 
   /*SEXP GetQuickBLASTInstance(INTSXP id);
   INTSXP GetInstanceCount();
@@ -136,7 +136,7 @@ extern "C"
 // [[Rcpp::export]]
 SEXP isQuickBLASTLoaded()
 {
-  std::string ret_str = Rcpp::as<std::string>(QB_isQuickBLASTLoaded());
+  std::string ret_str = Rcpp::as<std::string>(libQB_isQuickBLASTLoaded());
   Rcpp::Rcout << ret_str << std::endl;
   Rcpp::Rcout << "Rcpp - QuickBLAST dependencies Loaded!" << std::endl;
   return Rcpp::wrap(true);
@@ -147,7 +147,7 @@ SEXP isQuickBLASTLoaded()
 SEXP GetInstanceCount()
 {
   Rprintf("testing R side");
-  int ret_val = Rcpp::as<int>(QB_GetInstanceCount());
+  int ret_val = Rcpp::as<int>(libQB_GetInstanceCount());
   Rprintf("testing R side");
   if (ret_val == obj_list.size())
   {
@@ -259,7 +259,7 @@ SEXP CreateNewBLASTInstance(SEXP seq_info, SEXP program, SEXP options)
   SEXP options_SEXP = Rcpp::wrap(options_);
   SEXP save_sequences_SEXP = Rcpp::wrap(save_sequences_);
 
-  SEXP obj_id = QB_CreateQuickBLASTInstance(seq_type_SEXP, strand_SEXP, program, options_SEXP, save_sequences_SEXP);
+  SEXP obj_id = libQB_CreateQuickBLASTInstance(seq_type_SEXP, strand_SEXP, program, options_SEXP, save_sequences_SEXP);
   unsigned int obj_id_ = Rcpp::as<unsigned int>(obj_id);
 
   obj_list.insert(std::make_pair(obj_id_, std::make_tuple(obj_id_, seq_type_, strand_, program_, options_, save_sequences_)));

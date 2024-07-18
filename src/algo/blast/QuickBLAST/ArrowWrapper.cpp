@@ -403,7 +403,7 @@ arrow::Status ArrowWrapper::WriteBatch2File()
             // std::cout << "ERROR : Could not write RB" << sts.detail() << std::endl
             //           << sts.message() << std::endl
             //           << rb->schema()->ToString() << std::endl;
-            Rprintf("ERROR : Could not write RB \n %s \n %s \n %s \n", sts.detail(), sts.message(), rb->schema()->ToString());
+            Rprintf("ERROR : Could not write RB \n %s \n %s \n %s \n", sts.detail()->ToString().c_str(), sts.message().c_str(), rb->schema()->ToString().c_str());
             return sts;
           }
         }
@@ -412,7 +412,7 @@ arrow::Status ArrowWrapper::WriteBatch2File()
           // std::cerr << "Warn : Invalid Alignment RB (Not Writing) : " << rb_sts.detail() << std::endl
           //           << rb_sts.message() << std::endl
           //           << rb->schema()->ToString() << std::endl;
-          REprintf("Warn : Invalid Alignment RB (Not Writing) : \n %s \n %s \n %s \n", rb_sts.detail(), rb_sts.message(), rb->schema()->ToString());
+          REprintf("Warn : Invalid Alignment RB (Not Writing) : \n %s \n %s \n %s \n", rb_sts.detail()->ToString().c_str(), rb_sts.message().c_str(), rb->schema()->ToString().c_str());
         }
       }
     }
@@ -499,7 +499,7 @@ int ArrowWrapper::GetColumnCount(const std::string_view &filename, char delim)
   if (!file.is_open())
   {
     // std::cerr << "Failed to open file: " << filename << std::endl;
-    REprintf("Failed to open the file: %s \n", filename);
+    REprintf("Failed to open the file: %s \n", filename.data());
     return -1;
   }
 
@@ -519,7 +519,7 @@ int ArrowWrapper::GetColumnCount(const std::string_view &filename, char delim)
   {
     // Rcpp::Rcerr << "File is empty: " << filename << std::endl;
     // std::cerr << "File is empty: " << filename << std::endl;
-    REprintf("File is empty: %s \n", filename);
+    REprintf("File is empty: %s \n", filename.data());
     return -1;
   }
 }

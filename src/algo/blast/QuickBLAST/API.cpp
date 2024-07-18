@@ -32,14 +32,14 @@ extern "C"
     //     }
 
     QuickBLASTHandle GetQuickBLASTInstance(int id);
-    QBLIBRARY_API SEXP QB_GetInstanceCount();
+    QBLIBRARY_API SEXP libQB_GetInstanceCount();
     int GetInstanceID(QuickBLASTHandle ptr);
-    QBLIBRARY_API SEXP QB_CreateQuickBLASTInstance(SEXP seq_type, SEXP strand, SEXP program, SEXP options, SEXP save_sequences);
-    QBLIBRARY_API SEXP QB_DeleteQuickBLASTInstance(SEXP ptr_id);
+    QBLIBRARY_API SEXP libQB_CreateQuickBLASTInstance(SEXP seq_type, SEXP strand, SEXP program, SEXP options, SEXP save_sequences);
+    QBLIBRARY_API SEXP libQB_DeleteQuickBLASTInstance(SEXP ptr_id);
     //     //QBLIBRARY_API ArrowWrapper* CreateArrowWrapperInstance();
     //     //QBLIBRARY_API std::shared_ptr<arrow::RecordBatch> cpp_BLAST2Seqs(std::shared_ptr<QuickBLAST> ptr, std::string query, std::string subject);
     //     //QBLIBRARY_API std::shared_ptr<arrow::RecordBatchVector> cpp_BLAST2Files(std::shared_ptr<QuickBLAST> ptr, std::string queryFile, std::string subjectFile, std::string outFile, int blast_sequence_limit, int num_threads, const bool show_progress = true, const bool return_values = false, int batch_size = 1024);
-    QBLIBRARY_API SEXP QB_SetQuickBLASTOptions(SEXP ptr_id, SEXP program_name, SEXP options);
+    QBLIBRARY_API SEXP libQB_SetQuickBLASTOptions(SEXP ptr_id, SEXP program_name, SEXP options);
     QBLIBRARY_API SEXP BLAST2Seqs(SEXP ptr_id, SEXP query, SEXP subject);
     QBLIBRARY_API SEXP BLAST2Files(SEXP ptr_id, SEXP query, SEXP subject, SEXP out_file, SEXP seq_limit, SEXP num_threads, SEXP show_progress, SEXP return_values, SEXP min_batch_size);
     // QBLIBRARY_API SEXP BLAST2Folders(int ptr_id, std::string query, std::string subject, std::string extension, std::string out_folder, int num_threads, bool reciprocal_hits, int min_batch_size = 1024);
@@ -47,7 +47,7 @@ extern "C"
     // // QBLIBRARY_API std::string getFilenameWithoutExtension(const std::string &filename);
     // // QBLIBRARY_API Rcpp::List rm_null(Rcpp::List x);
     // // QBLIBRARY_API std::vector<std::string> getFilesInDir(const std::string &folderPath, const std::string &extension);
-    QBLIBRARY_API SEXP QB_isQuickBLASTLoaded();
+    QBLIBRARY_API SEXP libQB_isQuickBLASTLoaded();
     //     //QBLIBRARY_API  bool QueryOOBESupport() { return false; }
     //     /*QBLIBRARY_API int arrow_struct_num_fields(std::shared_ptr<arrow::StructArray> arr);
     //     QBLIBRARY_API std::shared_ptr<arrow::Array> arrow_struct_field(std::shared_ptr<arrow::StructArray> arr, const int i);
@@ -63,7 +63,7 @@ extern "C"
 
 // #endif
 
-SEXP QB_isQuickBLASTLoaded()
+SEXP libQB_isQuickBLASTLoaded()
 {
     std::string ret_str = "C++ - QuickBLAST dependencies Loaded!";
     Rprintf("%s - R print\n", ret_str.c_str());
@@ -295,18 +295,27 @@ std::string getFilenameWithoutExtension(const std::string &filename)
 QuickBLASTHandle GetQuickBLASTInstance(int id)
 {
     QuickBLASTHandle handle;
-    // handle.ptr = obj_list[id].get();
-    handle.ptr = obj_list[id];
+    // handle.ptr = cppObj_list[id].get();
+    handle.ptr = cppObj_list[id];
     assert(handle.ptr != nullptr);
     handle.id = id;
     return handle;
 }
 
-SEXP QB_GetInstanceCount()
+SEXP libQB_GetInstanceCount()
 {
     Rprintf("testing c++ side");
-    Rprintf("\n%s\n", (int)obj_list.size());
-    return Rcpp::wrap((int)obj_list.size());
+    Rprintf("\n%d\n", (int)cppObj_list.size());
+    Rprintf("\n%s\n", (int)cppObj_list.size());
+    if (!cppObj_list.empty())
+    {
+        return Rcpp::wrap(cppObj_list.size());
+    }
+    else
+    {
+        return Rcpp::wrap(0);
+    }
+    // return Rcpp::wrap((int)cppObj_list.size());
 }
 
 int GetInstanceID(QuickBLASTHandle ptr)
@@ -349,7 +358,7 @@ std::string ConvertBLASTOptions2String(SEXP options)
     return options_;
 }
 
-SEXP QB_CreateQuickBLASTInstance(SEXP seq_type, SEXP strand, SEXP program, SEXP options, SEXP save_sequences)
+SEXP libQB_CreateQuickBLASTInstance(SEXP seq_type, SEXP strand, SEXP program, SEXP options, SEXP save_sequences)
 {
     // return std::make_shared<QuickBLAST>(seq_type, strand, program, options, save_sequences);
     //  new QuickBLAST(seq_type, strand, program, options, save_sequences);
@@ -364,29 +373,29 @@ SEXP QB_CreateQuickBLASTInstance(SEXP seq_type, SEXP strand, SEXP program, SEXP 
     // Log::Rcppcout << "dbg1" << std::endl;
     // QuickBLASTHandle handle;
     std::shared_ptr<QuickBLAST> objPtr = std::make_shared<QuickBLAST>(seq_type_, strand_, program_, options_, save_sequences_);
-    unsigned int list_size = obj_list.size();
+    unsigned int list_size = cppObj_list.size();
     // handle.id = list_size;
     // // handle.ptr = objPtr.get();
     // handle.ptr = objPtr;
     // Log::Rcppcout << "dbg2" << std::endl;
-    obj_list.insert(std::make_pair(list_size, objPtr));
+    cppObj_list.insert(std::make_pair(list_size, objPtr));
     // Log::Rcppcout << "dbg3" << std::endl;
     return Rcpp::wrap(list_size);
 }
 
-SEXP QB_DeleteQuickBLASTInstance(SEXP ptr_id)
+SEXP libQB_DeleteQuickBLASTInstance(SEXP ptr_id)
 {
     unsigned int ptr_id_ = as<unsigned int>(ptr_id);
     //// ptr.reset();
     // fetch the object from the map
     GetQuickBLASTInstance(ptr_id_).ptr->~QuickBLAST();
-    obj_list.erase(ptr_id_);
+    cppObj_list.erase(ptr_id_);
     // ptr.ptr->~QuickBLAST();
     //// delete ptr.ptr.get();
     return Rcpp::wrap(true);
 }
 
-SEXP QB_SetQuickBLASTOptions(SEXP ptr_id, SEXP program_name, SEXP options)
+SEXP libQB_SetQuickBLASTOptions(SEXP ptr_id, SEXP program_name, SEXP options)
 {
     unsigned int ptr_id_ = as<unsigned int>(ptr_id);
     std::string program_name_ = as<std::string>(program_name);

@@ -36,3 +36,27 @@ if(file.exists("symbols.rds"))
 
 # require(Rcpp)
 # require(RcppProgress)
+
+# R_dll_paths <- c(
+#   # list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=".dll", full.names = T),
+#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"Riconv.dll"),
+#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"R.dll"),
+#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"Rgraphapp.dll"),
+#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"Rblas.dll"),
+#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"R.dll"),
+#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"Rlapack.dll")
+#   # fs::path_package("Rcpp","libs", Sys.getenv("R_ARCH"),"Rcpp.dll")
+# )
+
+
+# for (dll_path in c(R_dll_paths)) {
+#     if (!file.exists(dll_path)) {
+#       cat("R DLL file not found:", dll_path, "\n")
+#     } else {
+#       dyn.load(dll_path, local=F, now = T)
+#       # if(!invisible(is.loaded(dll_path))){
+#       #   dyn.load(dll_path,now = T)
+#       # }
+#       cat("Loaded R DLL:", dll_path, "\n")
+#     }
+#   }
