@@ -1,6 +1,9 @@
 CSTD = C11
 CXXSTD = CXX17
 
+CC = "/usr/bin/gcc"
+CXX = "/usr/bin/g++"
+
 NPROC=`nproc`
 
 GCC_VER=`/usr/bin/gcc -dumpversion | tr -d '[:space:]'`
@@ -10,13 +13,13 @@ RTOOLS_DIR=`$(R_HOME)/bin/Rscript -e "cat( Sys.getenv(paste('RTOOLS',version[['m
 
 PKG_CFLAGS = $(C_VISIBILITY)
 PKG_CPPFLAGS = -I../BUILD/arrow/cpp/src/ 
-PKG_LIBS = -v -L$(R_HOME)/bin/$(R_ARCH)/ -L../inst/libs/$(R_ARCH) -L/usr/bin/ -L$(R_HOME)/bin/$(R_ARCH)/ -lct_ftds100 -lefetch -llmdb -lncbi_algo -lncbi_align_format -lncbi_core -lncbi_dbapi_driver -lncbi_eutils -lncbi_general -lncbi_misc -lncbi_pub -lncbi_seq -lncbi_seqext -lncbi_trackmgr -lncbi_web -lncbi_xdbapi_ftds -lncbi_xloader_blastdb -lncbi_xloader_blastdb_rmt -lncbi_xloader_genbank -lncbi_xobjsimple -lncbi_xreader -lncbi_xreader_cache -lncbi_xreader_id1 -lncbi_xreader_id2 -lpsg_client -lsqlitewrapp -lutrtprof -lxflatfile -lxxconnect2 -lncbi_blastinput -lQuickBLASTcpp -lR -lmsys-2.0 -lmsys-gcc_s-seh-1 -lmsys-stdc++-6 -lmsys-gomp-1 -l`cd ../BUILD/arrow/cpp/BUILD_MSYS2/release/ && ls -1 *.dll | sed 's/.dll//g'` `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` `$(R_HOME)/bin/Rscript -e "Rcpp:::LdFlags()"` $(SHLIB_OPENMP_CXXFLAGS) -Wl,--demangle -Wl,-fstack-protector-strong -Wl,--no-undefined -Wl,-v
+PKG_LIBS = -v -L$(R_HOME)/bin/$(R_ARCH)/ -L../inst/libs/$(R_ARCH) -L/usr/bin/ -L$(R_HOME)/bin/$(R_ARCH)/ -L`$(R_HOME)/bin/Rscript -e "fs::path_package('Rcpp')"`/libs/$(R_ARCH)/ -lct_ftds100 -lefetch -llmdb -lncbi_algo -lncbi_align_format -lncbi_core -lncbi_dbapi_driver -lncbi_eutils -lncbi_general -lncbi_misc -lncbi_pub -lncbi_seq -lncbi_seqext -lncbi_trackmgr -lncbi_web -lncbi_xdbapi_ftds -lncbi_xloader_blastdb -lncbi_xloader_blastdb_rmt -lncbi_xloader_genbank -lncbi_xobjsimple -lncbi_xreader -lncbi_xreader_cache -lncbi_xreader_id1 -lncbi_xreader_id2 -lpsg_client -lsqlitewrapp -lutrtprof -lxflatfile -lxxconnect2 -lncbi_blastinput -lQuickBLASTcpp -lR -lRcpp -lmsys-2.0 -lmsys-gcc_s-seh-1 -lmsys-stdc++-6 -lmsys-gomp-1 -l`cd ../BUILD/arrow/cpp/BUILD_MSYS2/release/ && ls -1 *.dll | sed 's/.dll//g'` `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` `$(R_HOME)/bin/Rscript -e "Rcpp:::LdFlags()"` $(SHLIB_OPENMP_CXXFLAGS) -Wl,--demangle -Wl,-fstack-protector-strong -Wl,--no-undefined -Wl,-v
 PKG_CXXFLAGS = $(CXX_VISIBILITY) -DQBLIBRARY_IMPORTS -gdwarf-2 -mfpmath=sse -msse2 -mstackrealign -Wall -Wno-format-y2k -O2 -fPIC -Wextra -shared -Ilibsrc `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` $(SHLIB_OPENMP_CXXFLAGS) -DMINGW32=1 -DR_DLL=1 -pthread -fstack-protector-strong -mthreads -mtune=generic -maccumulate-outgoing-args 
 
 .PHONY: all
 
 #rm_build
-all: builddeps ../BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.dll.a ../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/datatool.exe ../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/libQuickBLASTcpp.dll.a install_libs $(SHLIB)
+all: builddeps ../BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.dll.a ncbi_setup ../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/datatool.exe ../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/libQuickBLASTcpp.dll.a install_libs $(SHLIB)
 
 rm_build:
 	(rm -rf ../BUILD/ )
@@ -37,6 +40,8 @@ install_libs:
 	cp -uf /usr/bin/msys-stdc++-6.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
 	cp -uf /usr/bin/msys-gcc_s-seh-1.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
 	cp -uf /usr/bin/msys-2.0.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	cp -uf $(R_HOME)/bin/$(R_ARCH)/*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf `$(R_HOME)/bin/Rscript -e "fs::path_package('Rcpp','libs', Sys.getenv('R_ARCH'),'Rcpp.dll')"` ../../../../../inst/libs/$(R_ARCH)/ ; \
 	)
 
 builddeps:
@@ -85,7 +90,7 @@ ncbi_setup:
 	./cmake-configure GCC $(GCC_VER) --with-projects=QuickBLAST.prj --with-dll --with-composite-dll --without-debug --with-build-root=BUILD ; \
 	RTOOLS_DIR=$(RTOOLS_DIR) ./ncbi_crosscomp_inject_post.sh )
 
-../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/datatool.exe: ncbi_setup
+../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/datatool.exe:
 	(cd ../BUILD/ncbi-cxx-toolkit-public/BUILD/build ; \
 	export PATH=/usr/bin/:$$PATH ; \
 	/usr/bin/make -j $(NPROC) datatool ; \

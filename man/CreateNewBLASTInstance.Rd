@@ -2,10 +2,9 @@
 % Please edit documentation in R/RcppExports.R
 \name{CreateNewBLASTInstance}
 \alias{CreateNewBLASTInstance}
-\alias{QB_CreateNewBLASTInstance}
 \title{Create new BLAST instance with seq_type, strand, program and BLAST options.}
 \usage{
-QB_CreateNewBLASTInstance(seq_info, program, options)
+CreateNewBLASTInstance(seq_info, program, options)
 }
 \arguments{
 \item{seq_info}{(R List) list((int) "seq_type" : 0 - (eNucleotide) (OR) 1 - (eProtein), (int) "strand" = 0 - (ePlus) (OR) 1 - (eMinus), (bool) "save_sequences" = Save Sequences in the arrow::RecordBatch?). Named or unnamed List is accepted but in order.}

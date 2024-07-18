@@ -1,5 +1,11 @@
+#pragma once
+
 #include <string>
 #include <vector>
+
+#include <R_ext/Print.h>
+#include <RcppCommon.h>
+#include <Rcpp.h>
 
 #if defined(_WIN32) || defined(__MINGW32__) || defined(MINGW32) || defined(WIN32)
 // #define _WIN32_WINNT _WIN32_WINNT_WIN7

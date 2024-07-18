@@ -1,23 +1,23 @@
-#' Get an Instance of QuickBLAST class and its exposed methods
-#' @note Check BLAST C++ Call in Help for the list of parameters for the exposed BLAST function. Exposed C++ function only takes BLAST options as string.
-#' @seealso [QuickBLAST::CreateNewBLASTInstance()], [QuickBLAST::GetQuickBLASTEnums()]
-#' @examples
-#' \dontrun{
-#' bw_obj <- QuickBLAST::GetQuickBLASTInstance(list(0, 0, FALSE), "blastn", "-evalue 1e-05")
-#' bw_obj$BLAST("ungrouped.cds", "ungrouped.cds", "out.tmp", 0, 1000, TRUE)
-#' bw_obj$BLAST("AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG", "", 1, 1000, FALSE)
-#' }
-#'
-#' @param seq_info Ordered List of 1) (int) Sequence Type, 2) (int) Strand (bool), 3) Save Sequences in BLAST Hits? : TRUE - BLAST Hits have sequences, FALSE - FASTA sequences are not stored in BLAST Hits. Check QuickBLAST::GetQuickBLASTEnums() for available enums
-#' @param program (string) Name of the BLAST program
-#' @param options (string) String of BLAST options - eg, "-evalue 1e-05 -pident 0.75" - check QuickBLAST::GetAvailableBLASTOptions() for available options
-#' @return A new QuickBLAST Object
-#' @md
-#' @export
-GetQuickBLASTInstance <- function(seq_info, program, options) {
-  mod <- Rcpp::Module("blast_module", inline::getDynLib("QuickBLAST"))
-  return(methods::new(mod$QuickBLAST, seq_info[[1]], seq_info[[2]], program, options, seq_info[[3]]))
-}
+# #' Get an Instance of QuickBLAST class and its exposed methods
+# #' @note Check BLAST C++ Call in Help for the list of parameters for the exposed BLAST function. Exposed C++ function only takes BLAST options as string.
+# #' @seealso [QuickBLAST::CreateNewBLASTInstance()], [QuickBLAST::GetQuickBLASTEnums()]
+# #' @examples
+# #' \dontrun{
+# #' bw_obj <- QuickBLAST::GetQuickBLASTInstance(list(0, 0, FALSE), "blastn", "-evalue 1e-05")
+# #' bw_obj$BLAST("ungrouped.cds", "ungrouped.cds", "out.tmp", 0, 1000, TRUE)
+# #' bw_obj$BLAST("AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG", "", 1, 1000, FALSE)
+# #' }
+# #'
+# #' @param seq_info Ordered List of 1) (int) Sequence Type, 2) (int) Strand (bool), 3) Save Sequences in BLAST Hits? : TRUE - BLAST Hits have sequences, FALSE - FASTA sequences are not stored in BLAST Hits. Check QuickBLAST::GetQuickBLASTEnums() for available enums
+# #' @param program (string) Name of the BLAST program
+# #' @param options (string) String of BLAST options - eg, "-evalue 1e-05 -pident 0.75" - check QuickBLAST::GetAvailableBLASTOptions() for available options
+# #' @return A new QuickBLAST Object
+# #' @md
+# #' @export
+# GetQuickBLASTInstance <- function(seq_info, program, options) {
+#   mod <- Rcpp::Module("blast_module", inline::getDynLib("QuickBLAST"))
+#   return(methods::new(mod$QuickBLAST, seq_info[[1]], seq_info[[2]], program, options, seq_info[[3]]))
+# }
 
 #' Get a list of Enums used by QuickBLAST
 #'
@@ -234,12 +234,21 @@ all2all <- function(first_list, second_list, input_type, seq_info, blast_program
 # #' @md
 # #' @export
 # isQuickBLASTLoaded <- function() {
-#   load_result <- .Call("isQuickBLASTLoaded")
-#   return(load_result)
+#   return(QB_isQuickBLASTLoaded())
 # }
 
 R_dll_paths <- c(
+  # list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=".dll", full.names = T),
+  # # fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"Riconv.dll"),
+  # # fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"R.dll"),
+  # # fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"Rgraphapp.dll"),
+  # # fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"Rblas.dll"),
+  # # fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"R.dll"),
+  # # fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"Rlapack.dll"),
+  # fs::path_package("Rcpp","libs", Sys.getenv("R_ARCH"),"Rcpp.dll")
   list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=".dll", full.names = T)
+  # fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"Rcpp.dll")
+  # fs::path_package("Rcpp","libs", Sys.getenv("R_ARCH"),"Rcpp.dll")
 )
 
 msys_dll_paths <- c(
@@ -292,9 +301,13 @@ dll_paths <- c(
 
 .onLoad <- function(libname, pkgname) {
   # # Load the DLLs when the package is loaded
+  # require(QuickBLAST)
   #require(QuickBLASTdeps)
   # require(arrow)
+  # require(Rcpp)
+  # require(RcppProgress)
   #R_dll_paths, msys_dll_paths
+  library.dynam("Rcpp", "Rcpp", fs::path_package("Rcpp","..",".."))
   for (dll_path in c(dll_paths)) {
     if (!file.exists(dll_path)) {
       cat("DLL file not found:", dll_path, "\n")
@@ -312,7 +325,10 @@ dll_paths <- c(
   # # Load the DLLs when the package is loaded
   #require(QuickBLASTdeps)
   # require(arrow)
+  # require(Rcpp)
+  # require(RcppProgress)
   #R_dll_paths, msys_dll_paths
+  library.dynam("Rcpp", "Rcpp", fs::path_package("Rcpp","..",".."))
   for (dll_path in c(dll_paths)) {
     if (!file.exists(dll_path)) {
       cat("DLL file not found:", dll_path, "\n")
@@ -324,6 +340,7 @@ dll_paths <- c(
       cat("Loaded DLL:", dll_path, "\n")
     }
   }
+  library.dynam.unload("Rcpp", fs::path_package("Rcpp","libs",Sys.getenv("R_ARCH")))
 }
 
 # .onUnload() function
@@ -331,25 +348,25 @@ dll_paths <- c(
   # # Unload the DLLs when the package is unloaded
   # detach("package:QuickBLASTdeps", unload = TRUE)
   #msys_dll_paths
-  for (dll_path in c(dll_paths)) {
-    # if(is.loaded(dll_path)){
+  for (dll_path in c(rev(dll_paths))) {
+    if(is.loaded(dll_path)){
       if (dyn.unload(dll_path)) {
         cat("Unloaded DLL:", dll_path, "\n")
       } else {
         cat("Failed to unload DLL:", dll_path, "\n")
       }
-    # }
+    }
   }
 }
 
 .onDetach <- function(libpath) {
-  for (dll_path in c(dll_paths)) {
-    # if(is.loaded(dll_path)){
+  for (dll_path in c(rev(dll_paths))) {
+    if(is.loaded(dll_path)){
       if (dyn.unload(dll_path)) {
         cat("Unloaded DLL:", dll_path, "\n")
       } else {
         cat("Failed to unload DLL:", dll_path, "\n")
       }
-    # }
+    }
   }
 }

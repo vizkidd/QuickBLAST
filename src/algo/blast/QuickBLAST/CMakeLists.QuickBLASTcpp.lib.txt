@@ -393,6 +393,7 @@ elseif(MINGW32)
 		${ARROW_LIB}
 		# ${PARQUET_LIB}
 		${R_HOME}/bin/${R_ARCH}/R.dll
+		${RCPP_FOLDER}/libs/${R_ARCH}/Rcpp.dll
 		sqlite3
 		) 
 	NCBI_end_lib()

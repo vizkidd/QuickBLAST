@@ -11,7 +11,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // isQuickBLASTLoaded
-RcppExport SEXP isQuickBLASTLoaded();
+SEXP isQuickBLASTLoaded();
 RcppExport SEXP _QuickBLAST_isQuickBLASTLoaded() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -20,46 +20,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// test_QBR
-RcppExport SEXP test_QBR();
-RcppExport SEXP _QuickBLAST_test_QBR() {
+// GetInstanceCount
+SEXP GetInstanceCount();
+RcppExport SEXP _QuickBLAST_GetInstanceCount() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(test_QBR());
+    rcpp_result_gen = Rcpp::wrap(GetInstanceCount());
     return rcpp_result_gen;
 END_RCPP
 }
-// test_QBR_cpp
-RcppExport SEXP test_QBR_cpp();
-RcppExport SEXP _QuickBLAST_test_QBR_cpp() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(test_QBR_cpp());
-    return rcpp_result_gen;
-END_RCPP
-}
-// test_Rnil
-RcppExport SEXP test_Rnil();
-RcppExport SEXP _QuickBLAST_test_Rnil() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(test_Rnil());
-    return rcpp_result_gen;
-END_RCPP
-}
-// QB_CreateNewBLASTInstance
-RcppExport SEXP QB_CreateNewBLASTInstance(SEXP seq_info, SEXP program, SEXP options);
-RcppExport SEXP _QuickBLAST_QB_CreateNewBLASTInstance(SEXP seq_infoSEXP, SEXP programSEXP, SEXP optionsSEXP) {
+// CreateNewBLASTInstance
+SEXP CreateNewBLASTInstance(SEXP seq_info, SEXP program, SEXP options);
+RcppExport SEXP _QuickBLAST_CreateNewBLASTInstance(SEXP seq_infoSEXP, SEXP programSEXP, SEXP optionsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type seq_info(seq_infoSEXP);
     Rcpp::traits::input_parameter< SEXP >::type program(programSEXP);
     Rcpp::traits::input_parameter< SEXP >::type options(optionsSEXP);
-    rcpp_result_gen = Rcpp::wrap(QB_CreateNewBLASTInstance(seq_info, program, options));
+    rcpp_result_gen = Rcpp::wrap(CreateNewBLASTInstance(seq_info, program, options));
     return rcpp_result_gen;
 END_RCPP
 }

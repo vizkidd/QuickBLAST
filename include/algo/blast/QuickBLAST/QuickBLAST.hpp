@@ -29,8 +29,8 @@
 
 // #if defined(linux) || defined(MINGW32)
 
-#include <RcppCommon.h>
-#include <Rcpp.h>
+// #include <RcppCommon.h>
+// #include <Rcpp.h>
 // #include "arrow_wrapper.hpp"
 // #include "arrow_wrapper-functions.hpp"
 // #elif defined(WIN32)

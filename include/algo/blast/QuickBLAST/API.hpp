@@ -9,7 +9,7 @@
 #include <algo/blast/QuickBLAST/ArrowWrapper.hpp>
 #include <algo/blast/QuickBLAST/QuickBLAST.hpp>
 
-std::map<unsigned int, std::shared_ptr<QuickBLAST>> obj_list;
+std::map<unsigned int, std::shared_ptr<QuickBLAST>> obj_list = {} ;
 
 struct QuickBLASTHandle
 {

@@ -1,9 +1,15 @@
-#include <RcppCommon.h>
-#include <Rcpp.h>
 #include <algo/blast/QuickBLAST/commons.hpp>
 // #include <algo/blast/QuickBLAST/ArrowWrapper.hpp>
 // #include <algo/blast/QuickBLAST/QuickBLAST.hpp>
 #include <algo/blast/QuickBLAST/API.hpp>
+
+// namespace Log
+// {
+//     // #ifdef RCPP_USE_GLOBAL_ROSTREAM
+//     Rcpp::Rostream<true> &Rcppcout = Rcpp::Rcpp_cout_get();
+//     Rcpp::Rostream<false> &Rcppcerr = Rcpp::Rcpp_cerr_get();
+//     // #endif
+// } // namespace Log
 
 using namespace Rcpp;
 
@@ -26,14 +32,14 @@ extern "C"
     //     }
 
     QuickBLASTHandle GetQuickBLASTInstance(int id);
-    QBLIBRARY_API int GetInstanceCount();
+    QBLIBRARY_API SEXP QB_GetInstanceCount();
     int GetInstanceID(QuickBLASTHandle ptr);
-    QBLIBRARY_API SEXP CreateQuickBLASTInstance(SEXP seq_type, SEXP strand, SEXP program, SEXP options, SEXP save_sequences);
-    QBLIBRARY_API SEXP DeleteQuickBLASTInstance(SEXP ptr_id);
+    QBLIBRARY_API SEXP QB_CreateQuickBLASTInstance(SEXP seq_type, SEXP strand, SEXP program, SEXP options, SEXP save_sequences);
+    QBLIBRARY_API SEXP QB_DeleteQuickBLASTInstance(SEXP ptr_id);
     //     //QBLIBRARY_API ArrowWrapper* CreateArrowWrapperInstance();
     //     //QBLIBRARY_API std::shared_ptr<arrow::RecordBatch> cpp_BLAST2Seqs(std::shared_ptr<QuickBLAST> ptr, std::string query, std::string subject);
     //     //QBLIBRARY_API std::shared_ptr<arrow::RecordBatchVector> cpp_BLAST2Files(std::shared_ptr<QuickBLAST> ptr, std::string queryFile, std::string subjectFile, std::string outFile, int blast_sequence_limit, int num_threads, const bool show_progress = true, const bool return_values = false, int batch_size = 1024);
-    QBLIBRARY_API SEXP SetQuickBLASTOptions(SEXP ptr_id, SEXP program_name, SEXP options);
+    QBLIBRARY_API SEXP QB_SetQuickBLASTOptions(SEXP ptr_id, SEXP program_name, SEXP options);
     QBLIBRARY_API SEXP BLAST2Seqs(SEXP ptr_id, SEXP query, SEXP subject);
     QBLIBRARY_API SEXP BLAST2Files(SEXP ptr_id, SEXP query, SEXP subject, SEXP out_file, SEXP seq_limit, SEXP num_threads, SEXP show_progress, SEXP return_values, SEXP min_batch_size);
     // QBLIBRARY_API SEXP BLAST2Folders(int ptr_id, std::string query, std::string subject, std::string extension, std::string out_folder, int num_threads, bool reciprocal_hits, int min_batch_size = 1024);
@@ -41,7 +47,7 @@ extern "C"
     // // QBLIBRARY_API std::string getFilenameWithoutExtension(const std::string &filename);
     // // QBLIBRARY_API Rcpp::List rm_null(Rcpp::List x);
     // // QBLIBRARY_API std::vector<std::string> getFilesInDir(const std::string &folderPath, const std::string &extension);
-    QBLIBRARY_API void test_QBcpp();
+    QBLIBRARY_API SEXP QB_isQuickBLASTLoaded();
     //     //QBLIBRARY_API  bool QueryOOBESupport() { return false; }
     //     /*QBLIBRARY_API int arrow_struct_num_fields(std::shared_ptr<arrow::StructArray> arr);
     //     QBLIBRARY_API std::shared_ptr<arrow::Array> arrow_struct_field(std::shared_ptr<arrow::StructArray> arr, const int i);
@@ -57,9 +63,11 @@ extern "C"
 
 // #endif
 
-void test_QBcpp()
+SEXP QB_isQuickBLASTLoaded()
 {
-    Rcpp::Rcout << "Hello from QuickBLASTcpp" << std::endl;
+    std::string ret_str = "C++ - QuickBLAST dependencies Loaded!";
+    Rprintf("%s - R print\n", ret_str.c_str());
+    return Rcpp::wrap(ret_str);
 }
 
 void PrintClock(std::chrono::time_point<std::chrono::high_resolution_clock> start)
@@ -67,7 +75,7 @@ void PrintClock(std::chrono::time_point<std::chrono::high_resolution_clock> star
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed_seconds = end - start;
     // Print the time in seconds
-    std::cout << "Clock : " << elapsed_seconds.count() << " seconds" << std::endl;
+    Rprintf("Clock : %s seconds \n", elapsed_seconds.count());
 }
 
 List rm_null(List x)
@@ -294,9 +302,11 @@ QuickBLASTHandle GetQuickBLASTInstance(int id)
     return handle;
 }
 
-int GetInstanceCount()
+SEXP QB_GetInstanceCount()
 {
-    return (int)obj_list.size();
+    Rprintf("testing c++ side");
+    Rprintf("\n%s\n", (int)obj_list.size());
+    return Rcpp::wrap((int)obj_list.size());
 }
 
 int GetInstanceID(QuickBLASTHandle ptr)
@@ -332,14 +342,14 @@ std::string ConvertBLASTOptions2String(SEXP options)
         break;
     }
     default:
-        Rcpp::Rcerr << "Only named list or string allowed for BLAST options : Check QuickBLAST::GetAvailableBLASTOptions()";
+        REprintf("Only named list or string allowed for BLAST options : Check QuickBLAST::GetAvailableBLASTOptions()\n");
         // return Rcpp::wrap(false);
         break;
     }
     return options_;
 }
 
-SEXP CreateQuickBLASTInstance(SEXP seq_type, SEXP strand, SEXP program, SEXP options, SEXP save_sequences)
+SEXP QB_CreateQuickBLASTInstance(SEXP seq_type, SEXP strand, SEXP program, SEXP options, SEXP save_sequences)
 {
     // return std::make_shared<QuickBLAST>(seq_type, strand, program, options, save_sequences);
     //  new QuickBLAST(seq_type, strand, program, options, save_sequences);
@@ -348,22 +358,23 @@ SEXP CreateQuickBLASTInstance(SEXP seq_type, SEXP strand, SEXP program, SEXP opt
     QuickBLAST::EStrand strand_ = static_cast<QuickBLAST::EStrand>(as<int>(strand));
     std::string program_ = as<std::string>(program);
 
-    std::string options_ = ConvertBLASTOptions2String(options);
-
-    // std::string options_ = as<std::string>(options);
+    // std::string options_ = ConvertBLASTOptions2String(options);
+    std::string options_ = as<std::string>(options);
     bool save_sequences_ = as<bool>(save_sequences);
-
-    QuickBLASTHandle handle;
+    // Log::Rcppcout << "dbg1" << std::endl;
+    // QuickBLASTHandle handle;
     std::shared_ptr<QuickBLAST> objPtr = std::make_shared<QuickBLAST>(seq_type_, strand_, program_, options_, save_sequences_);
     unsigned int list_size = obj_list.size();
     // handle.id = list_size;
     // // handle.ptr = objPtr.get();
     // handle.ptr = objPtr;
+    // Log::Rcppcout << "dbg2" << std::endl;
     obj_list.insert(std::make_pair(list_size, objPtr));
+    // Log::Rcppcout << "dbg3" << std::endl;
     return Rcpp::wrap(list_size);
 }
 
-SEXP DeleteQuickBLASTInstance(SEXP ptr_id)
+SEXP QB_DeleteQuickBLASTInstance(SEXP ptr_id)
 {
     unsigned int ptr_id_ = as<unsigned int>(ptr_id);
     //// ptr.reset();
@@ -375,7 +386,7 @@ SEXP DeleteQuickBLASTInstance(SEXP ptr_id)
     return Rcpp::wrap(true);
 }
 
-SEXP SetQuickBLASTOptions(SEXP ptr_id, SEXP program_name, SEXP options)
+SEXP QB_SetQuickBLASTOptions(SEXP ptr_id, SEXP program_name, SEXP options)
 {
     unsigned int ptr_id_ = as<unsigned int>(ptr_id);
     std::string program_name_ = as<std::string>(program_name);
@@ -407,7 +418,7 @@ SEXP BLAST2Seqs(SEXP ptr_id, SEXP query, SEXP subject)
         arrow::Status rb_sts = ret_rb->ValidateFull();
         if (!rb_sts.ok())
         {
-            std::cerr << "ERR : Invalid RB : " << rb_sts.message() << rb_sts.detail() << std::endl;
+            REprintf("ERR : Invalid RB : %s %s \n", rb_sts.message(), rb_sts.detail());
             // PrintClock(start);
             // ret_val.ptr.clear();
             ret_val.ptr->emplace_back(arrow::RecordBatch::MakeEmpty(ptr.ptr->GetSchema()).ValueOrDie());

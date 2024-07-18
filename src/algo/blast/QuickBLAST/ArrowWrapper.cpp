@@ -127,7 +127,8 @@ ArrowWrapper::~ArrowWrapper()
   omp_destroy_lock(&rec_writerLock);
 #endif
 
-  std::cout << "~ArrowWrapper " << std::endl;
+  // std::cout << "~ArrowWrapper " << std::endl;
+  Rprintf("~ArrowWrapper");
 }
 
 void ArrowWrapper::SetBatchSize(int batch_size)
@@ -292,7 +293,8 @@ std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> ArrowWr
 
   if (!file_ptr)
   {
-    std::cerr << "Error: Failed to open file: " << filename.data() << std::endl;
+    // std::cerr << "Error: Failed to open file: " << filename.data() << std::endl;
+    REprintf("Error: Failed to open file: %s \n", filename.data());
     return nullptr;
   }
 
@@ -308,7 +310,8 @@ std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> ArrowWr
 
   if (fileData_ptr == MAP_FAILED)
   {
-    std::cerr << "Error: Failed to map file " << filename.data() << std::endl;
+    // std::cerr << "Error: Failed to map file " << filename.data() << std::endl;
+    REprintf("Error: Failed to map file : %s \n", filename.data());
     fclose(file_ptr);
     return nullptr;
   }
@@ -397,23 +400,26 @@ arrow::Status ArrowWrapper::WriteBatch2File()
 
           if (!sts.ok())
           {
-            std::cout << "ERROR : Could not write RB" << sts.detail() << std::endl
-                      << sts.message() << std::endl
-                      << rb->schema()->ToString() << std::endl;
+            // std::cout << "ERROR : Could not write RB" << sts.detail() << std::endl
+            //           << sts.message() << std::endl
+            //           << rb->schema()->ToString() << std::endl;
+            Rprintf("ERROR : Could not write RB \n %s \n %s \n %s \n", sts.detail(), sts.message(), rb->schema()->ToString());
             return sts;
           }
         }
         else
         {
-          std::cerr << "Warn : Invalid Alignment RB (Not Writing) : " << rb_sts.detail() << std::endl
-                    << rb_sts.message() << std::endl
-                    << rb->schema()->ToString() << std::endl;
+          // std::cerr << "Warn : Invalid Alignment RB (Not Writing) : " << rb_sts.detail() << std::endl
+          //           << rb_sts.message() << std::endl
+          //           << rb->schema()->ToString() << std::endl;
+          REprintf("Warn : Invalid Alignment RB (Not Writing) : \n %s \n %s \n %s \n", rb_sts.detail(), rb_sts.message(), rb->schema()->ToString());
         }
       }
     }
     else
     {
-      std::cerr << "ERR : Invalid Alignment RB Ptr (Not Writing)..." << std::endl;
+      // std::cerr << "ERR : Invalid Alignment RB Ptr (Not Writing)..." << std::endl;
+      REprintf("ERR : Invalid Alignment RB Ptr (Not Writing)...\n");
     }
   }
 
@@ -427,7 +433,8 @@ void CountCharacter_thread(const std::string &filename, char character, std::ato
   std::ifstream file(filename, std::ios::binary);
   if (!file)
   {
-    std::cerr << "Failed to open the file." << std::endl;
+    // std::cerr << "Failed to open the file." << std::endl;
+    REprintf("Failed to open the file.\n");
     return;
   }
 
@@ -451,7 +458,8 @@ int ArrowWrapper::CountCharacter(std::string filename, char character, int num_t
   std::ifstream file(filename, std::ios::binary);
   if (!file)
   {
-    std::cerr << "Failed to open the file." << std::endl;
+    // std::cerr << "Failed to open the file." << std::endl;
+    REprintf("Failed to open the file.\n");
     return 1;
   }
 
@@ -490,7 +498,8 @@ int ArrowWrapper::GetColumnCount(const std::string_view &filename, char delim)
   std::ifstream file(filename.data());
   if (!file.is_open())
   {
-    std::cerr << "Failed to open file: " << filename << std::endl;
+    // std::cerr << "Failed to open file: " << filename << std::endl;
+    REprintf("Failed to open the file: %s \n", filename);
     return -1;
   }
 
@@ -509,7 +518,8 @@ int ArrowWrapper::GetColumnCount(const std::string_view &filename, char delim)
   else
   {
     // Rcpp::Rcerr << "File is empty: " << filename << std::endl;
-    std::cerr << "File is empty: " << filename << std::endl;
+    // std::cerr << "File is empty: " << filename << std::endl;
+    REprintf("File is empty: %s \n", filename);
     return -1;
   }
 }

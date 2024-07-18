@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algo/blast/QuickBLAST/commons.hpp>
+
 #include <iostream>
 #include <regex>
 #include <string>

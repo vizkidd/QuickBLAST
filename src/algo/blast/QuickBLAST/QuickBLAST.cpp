@@ -1447,8 +1447,8 @@
 
 // #if defined(linux) || defined(MINGW32)
 
-#include <RcppCommon.h>
-#include <Rcpp.h>
+// #include <RcppCommon.h>
+// #include <Rcpp.h>
 #include <chrono>
 #include <iostream>
 #include <string_view>
@@ -1641,7 +1641,8 @@ ncbi::blast::CBlastOptionsHandle *QuickBLAST::SetQuickBLASTOptions(const std::st
 
   if (options_.size() == 0 || options_.isNULL())
   {
-    Rcpp::Rcout << "Using " << program_name << " Defaults..." << std::endl;
+    // Rcpp::Rcout << "Using " << program_name << " Defaults..." << std::endl;
+    Rprintf("Using %s Defaults...\n", program_name);
     return opts;
   }
 
@@ -2348,8 +2349,9 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::str
   {
     /* Rcpp::Rcerr << "ERROR : Could not create output file stream : " << outfile_sts.detail() << std::endl
                 << outfile_sts.message() << std::endl; */
-    cerr << "ERROR : Could not create output file stream : " << outfile_sts.detail() << std::endl
-         << outfile_sts.message() << std::endl;
+    // cerr << "ERROR : Could not create output file stream : " << outfile_sts.detail() << std::endl
+    //      << outfile_sts.message() << std::endl;
+    REprintf("ERROR : Could not create output file stream : %s \n %s \n", outfile_sts.detail(), outfile_sts.message());
     return std::make_shared<arrow::RecordBatchVector>();
   }
 
@@ -2605,7 +2607,8 @@ auto QuickBLAST::BLAST(const std::string &query, const std::string &subject, con
   default:
   {
     // Rcpp::Rcerr << "input_type must be QuickBLAST::EInputType::eFile (0) OR QuickBLAST::EInputType::eSequenceString (1) !";
-    cout << "input_type must be QuickBLAST::EInputType::eFile (0) OR QuickBLAST::EInputType::eSequenceString (1) !";
+    // cout << "input_type must be QuickBLAST::EInputType::eFile (0) OR QuickBLAST::EInputType::eSequenceString (1) !";
+    REprintf("input_type must be QuickBLAST::EInputType::eFile (0) OR QuickBLAST::EInputType::eSequenceString (1) !");
     // return false; //Rcpp::wrap(false);
     return std::make_shared<arrow::RecordBatchVector>();
   }
