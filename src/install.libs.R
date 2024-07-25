@@ -21,8 +21,8 @@ cat(paste("INSTALLING....", R_PACKAGE_NAME, "\n", sep=""))
 # cat(paste0( fs::path_package("QuickBLAST", "libs", Sys.getenv("R_ARCH")), .Platform$file.sep,"*", SHLIB_EXT,"\n"))
 # cat(paste0(Sys.glob(paste0( fs::path_package("QuickBLAST", "libs", Sys.getenv("R_ARCH")), .Platform$file.sep,"*", SHLIB_EXT)),"\n"))
 
-
-files <- c(Sys.glob(paste0(file.path(R_PACKAGE_SOURCE,"inst","libs",Sys.getenv("R_ARCH")), .Platform$file.sep,"*", SHLIB_EXT)),Sys.glob(paste0("*", SHLIB_EXT)))
+#Sys.glob(paste0("*", SHLIB_EXT)
+files <- c(Sys.glob(paste0(file.path(R_PACKAGE_SOURCE,"inst","libs",Sys.getenv("R_ARCH")), .Platform$file.sep,"*", SHLIB_EXT)))
 
 # if(WINDOWS) files <- c(files, list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=SHLIB_EXT, full.names = T))
 

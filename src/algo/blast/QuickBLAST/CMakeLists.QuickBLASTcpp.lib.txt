@@ -303,6 +303,9 @@ elseif(MINGW32)
 
 	message("LMDB INC : " ${NCBI_COMPONENT_LMDB_INCLUDE})
 	
+	cygpath_cmd(MINGW_LIB "/x86_64-w64-mingw32.static.posix/lib/")
+
+	message("MINGW LIB : " ${MINGW_LIB})
 	# if(NOT NCBI_COMPONENT_LMDB_FOUND OR NOT HAVE_LIBLMDB)
 	# if(NCBI_COMPONENT_LMDB_FOUND STREQUAL "LOCAL" OR NOT HAVE_LIBLMDB)
 	# 	message("NCBI INC ROOT : " ${NCBITK_INC_ROOT})
@@ -319,8 +322,8 @@ elseif(MINGW32)
 	NCBI_begin_lib(QuickBLASTcpp SHARED)
 	NCBI_enable_pch()
 	NCBI_sources(
-		QuickBLAST
 		ArrowWrapper
+		QuickBLAST
 		API
 	)
 		# NCBI_optional_components(
@@ -351,6 +354,7 @@ elseif(MINGW32)
 		xncbi
 		xcgi
 		xflatfile 	
+		ncbi_xreader
 		blastinput
 		blast
 		lmdb
@@ -394,6 +398,17 @@ elseif(MINGW32)
 		# ${PARQUET_LIB}
 		${R_HOME}/bin/${R_ARCH}/R.dll
 		${RCPP_FOLDER}/libs/${R_ARCH}/Rcpp.dll
+		# ${MINGW_LIB}/libmingw32.a
+		${MINGW_LIB}/libws2_32.a
+		${MINGW_LIB}/libgdi32.a
+		${MINGW_LIB}/libkernel32.a
+		${MINGW_LIB}/libuser32.a
+		${MINGW_LIB}/libadvapi32.a
+		${MINGW_LIB}/libshell32.a
+		${MINGW_LIB}/libole32.a
+		${MINGW_LIB}/liboleaut32.a
+		${MINGW_LIB}/libmsvcrt.a
+		${MINGW_LIB}/libwsock32.a
 		sqlite3
 		) 
 	NCBI_end_lib()

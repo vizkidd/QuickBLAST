@@ -20,13 +20,16 @@
 ArrowWrapper::ArrowWrapper()
 {
 
-  ok_promise.set_value(arrow::Status::OK());
+  Rprintf("DBG1 AW \n");
 
-  outputStream = std::make_shared<std::ostringstream>();
+  // ok_promise.set_value(arrow::Status::OK());
+
+  // outputStream = std::make_shared<std::ostringstream>();
+  // outputStream = Rcpp::XPtr<std::ostringstream>();
 
   arrow_LFS = arrow::fs::LocalFileSystem();
-  std::string username;
-#if defined(linux) || defined(MINGW32)
+  std::string username = "";
+#if defined(linux) //|| defined(MINGW32)
   username = getlogin();
 // #elif defined(WIN32)
 //   char username_arr[UNLEN + 1];
@@ -41,7 +44,7 @@ ArrowWrapper::ArrowWrapper()
   }
 
   username += "(QuickBLAST)";
-
+  Rprintf("DBG2 AW \n");
   // props_bldr.compression(arrow::Compression::LZ4_FRAME);
   // props_bldr.created_by(username);
   // props_bldr.data_page_version(parquet::ParquetDataPageVersion::V2);
@@ -112,16 +115,18 @@ ArrowWrapper::ArrowWrapper()
 
   blast_schema = arrow::schema({arrow::field("seq_info", seq_info_type),
                                 arrow::field("hsps", hsp_type)});
-#if defined(_OPENMP) || defined(WIN32)
+  Rprintf("DBG3 AW \n");
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
   omp_init_lock(&rec_countLock);
   omp_init_lock(&rbv_batchLock);
   omp_init_lock(&rec_writerLock);
 #endif
+  Rprintf("DBG4 AW \n");
 }
 
 ArrowWrapper::~ArrowWrapper()
 {
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
   omp_destroy_lock(&rec_countLock);
   omp_destroy_lock(&rbv_batchLock);
   omp_destroy_lock(&rec_writerLock);
@@ -145,11 +150,11 @@ void ArrowWrapper::ResetRecordCount()
 }
 void ArrowWrapper::AddRecordCount()
 {
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
   omp_set_lock(&rec_countLock);
 #endif
   rec_count++;
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
   omp_unset_lock(&rec_countLock);
 #endif
 }
@@ -158,16 +163,16 @@ void ArrowWrapper::SetThreadCount(int num_threads)
   if (num_threads > 1)
   {
     ipc_options.use_threads = true;
-#if defined(_OPENMP) || defined(WIN32)
-    omp_set_num_threads(num_threads);
-#endif
+    // #if defined(_OPENMP) || defined(WIN32)
+    //     omp_set_num_threads(num_threads);
+    // #endif
   }
   else
   {
     ipc_options.use_threads = false;
-#if defined(_OPENMP) || defined(WIN32)
-    omp_set_num_threads(1);
-#endif
+    // #if defined(_OPENMP) || defined(WIN32)
+    //     omp_set_num_threads(1);
+    // #endif
   }
   n_threads = num_threads;
 }
@@ -176,12 +181,12 @@ arrow::Result<std::shared_ptr<arrow::RecordBatch>> ArrowWrapper::AddRB2Batch(std
   arrow::Status error_sts(arrow::StatusCode::Invalid, "Error Writing to File!");
   if (rb_)
   {
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
     omp_set_lock(&rbv_batchLock);
 #endif
     rbv_batch->emplace_back(std::move(rb_));
     unsigned int ret_size = rbv_batch->size();
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
     omp_unset_lock(&rbv_batchLock);
 #endif
     if (ret_size >= rb_batch_size)
@@ -206,12 +211,12 @@ arrow::Result<std::shared_ptr<arrow::RecordBatchVector>> ArrowWrapper::AddRBV2Ba
   arrow::Status error_sts(arrow::StatusCode::Invalid, "Error Writing to File!");
   if (rbv_.size() > 0)
   {
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
     omp_set_lock(&rbv_batchLock);
 #endif
     rbv_batch->insert(rbv_batch->end(), rbv_.begin(), rbv_.end());
     unsigned int ret_size = rbv_batch->size();
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
     omp_unset_lock(&rbv_batchLock);
 #endif
     if (ret_size >= rb_batch_size)
@@ -372,12 +377,12 @@ arrow::Status ArrowWrapper::WriteBatch2File()
   std::shared_ptr<arrow::ipc::RecordBatchWriter> rec_writer = writer_.ValueOrDie();
 
   arrow::RecordBatchVector rbv_buffer;
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
   omp_set_lock(&rbv_batchLock);
 #endif
 
   rbv_buffer.swap(*rbv_batch);
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
   omp_unset_lock(&rbv_batchLock);
 #endif
 
@@ -390,11 +395,11 @@ arrow::Status ArrowWrapper::WriteBatch2File()
         arrow::Status rb_sts = rb->ValidateFull();
         if (rb_sts.ok())
         {
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
           omp_set_lock(&rec_writerLock);
 #endif
           arrow::Status sts = rec_writer->WriteRecordBatch(*rb);
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
           omp_unset_lock(&rec_writerLock);
 #endif
 

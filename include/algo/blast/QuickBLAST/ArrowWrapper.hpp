@@ -6,6 +6,7 @@
 #include <regex>
 #include <string>
 #include <future>
+#include <memory>
 #include <arrow/api.h>
 #include <arrow/ipc/options.h>
 // #include <parquet/properties.h>
@@ -13,7 +14,7 @@
 #include <arrow/builder.h>
 #include <arrow/record_batch.h>
 
-#ifdef _OPENMP
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
 #include "omp.h"
 #endif
 
@@ -35,7 +36,7 @@ private:
     std::shared_ptr<arrow::Schema> fasta_schema, blast_schema;
     std::shared_ptr<arrow::DataType> alignment_scores_type, seq_info_type, hsp_type;
     std::shared_ptr<arrow::KeyValueMetadata> blast_metadata;
-    std::promise<arrow::Status> ok_promise;
+    // std::promise<arrow::Status> ok_promise;
     arrow::fs::LocalFileSystem arrow_LFS;
     std::shared_ptr<arrow::io::OutputStream> outFileStream;
     std::shared_ptr<arrow::io::CompressedOutputStream> compressed_outstream;
@@ -45,7 +46,7 @@ private:
 
     unsigned int rb_batch_size = 1024, rec_count = 0, n_threads = 1;
 
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
     omp_lock_t rec_countLock;
     omp_lock_t rec_writerLock;
     omp_lock_t rbv_batchLock;
@@ -56,43 +57,44 @@ private:
     // std::shared_ptr<parquet::ArrowWriterProperties> arrow_writer_props;
     // parquet::WriterProperties::Builder props_bldr;
     // parquet::ArrowWriterProperties::Builder arrow_props_bldr;
-    std::shared_ptr<std::ostringstream> outputStream;
+    // std::shared_ptr<std::ostringstream> outputStream;
+    // Rcpp::XPtr<std::ostringstream> outputStream;
 
     std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> MMapFile(const std::string_view &filename, const char *delim);
     void CloseFilePtrs(std::tuple<FILE *, char *, long, char *> &file_ptrs);
     long GetFileSize(FILE *file_ptr);
 
 public:
-    ~ArrowWrapper();
-    ArrowWrapper();
-    void SetBatchSize(int batch_size);
-    void FinishOutputStream();
-    arrow::Status WriteBatch2File();
-    int GetColumnCount(const std::string_view &filename, char delim = '\t');
-    int CountCharacter(std::string filename, char character, int num_threads);
+    QBLIBRARY_API ~ArrowWrapper();
+    QBLIBRARY_API ArrowWrapper();
+    QBLIBRARY_API void SetBatchSize(int batch_size);
+    QBLIBRARY_API void FinishOutputStream();
+    QBLIBRARY_API arrow::Status WriteBatch2File();
+    QBLIBRARY_API int GetColumnCount(const std::string_view &filename, char delim = '\t');
+    QBLIBRARY_API int CountCharacter(std::string filename, char character, int num_threads);
     template <typename T1>
-    std::shared_ptr<arrow::RecordBatchVector> SplitFilesIntoEntries(const std::string_view &filename, const char *delim, const int &num_threads, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<T1>)> &Entry_callback, bool return_values = false);
+    QBLIBRARY_API std::shared_ptr<arrow::RecordBatchVector> SplitFilesIntoEntries(const std::string_view &filename, const char *delim, const int &num_threads, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<T1>)> &Entry_callback, bool return_values = false);
     template <typename T>
-    T CastToType(const std::string &full_entry);
-    int GetRecordCount();
-    void ResetRecordCount();
-    void AddRecordCount();
-    void SetThreadCount(int num_threads);
-    arrow::Result<std::shared_ptr<arrow::RecordBatch>> AddRB2Batch(std::shared_ptr<arrow::RecordBatch> rb_);
-    arrow::Result<std::shared_ptr<arrow::RecordBatchVector>> AddRBV2Batch(const arrow::RecordBatchVector &rbv_);
-    arrow::Status CreateOutputStream(const std::string &outFile);
+    QBLIBRARY_API T CastToType(const std::string &full_entry);
+    QBLIBRARY_API int GetRecordCount();
+    QBLIBRARY_API void ResetRecordCount();
+    QBLIBRARY_API void AddRecordCount();
+    QBLIBRARY_API void SetThreadCount(int num_threads);
+    QBLIBRARY_API arrow::Result<std::shared_ptr<arrow::RecordBatch>> AddRB2Batch(std::shared_ptr<arrow::RecordBatch> rb_);
+    QBLIBRARY_API arrow::Result<std::shared_ptr<arrow::RecordBatchVector>> AddRBV2Batch(const arrow::RecordBatchVector &rbv_);
+    QBLIBRARY_API arrow::Status CreateOutputStream(const std::string &outFile);
 
-    std::shared_ptr<arrow::DataType> GetSeqInfoType(void);
-    std::shared_ptr<arrow::DataType> GetAlignmentScoresType(void);
-    std::shared_ptr<arrow::DataType> GetHSPType(void);
-    std::shared_ptr<arrow::Schema> GetBLASTSchema(void);
-    std::shared_ptr<arrow::Schema> GetFASTASchema(void);
-    std::shared_ptr<arrow::Schema> GetSchema() { return blast_schema; };
+    QBLIBRARY_API std::shared_ptr<arrow::DataType> GetSeqInfoType(void);
+    QBLIBRARY_API std::shared_ptr<arrow::DataType> GetAlignmentScoresType(void);
+    QBLIBRARY_API std::shared_ptr<arrow::DataType> GetHSPType(void);
+    QBLIBRARY_API std::shared_ptr<arrow::Schema> GetBLASTSchema(void);
+    QBLIBRARY_API std::shared_ptr<arrow::Schema> GetFASTASchema(void);
+    QBLIBRARY_API std::shared_ptr<arrow::Schema> GetSchema() { return blast_schema; };
     // std::shared_ptr<parquet::WriterProperties> GetParquetWriterProps(void);
     // std::shared_ptr<parquet::ArrowWriterProperties> GetArrowWriterProps(void);
-    std::shared_ptr<arrow::KeyValueMetadata> GetBLASTMetadata(void);
-    void AddFASTAMetadata(const std::string &key, const std::string &value);
-    arrow::ipc::IpcWriteOptions GetArrowIPCOptions(void);
+    QBLIBRARY_API std::shared_ptr<arrow::KeyValueMetadata> GetBLASTMetadata(void);
+    QBLIBRARY_API void AddFASTAMetadata(const std::string &key, const std::string &value);
+    QBLIBRARY_API arrow::ipc::IpcWriteOptions GetArrowIPCOptions(void);
 };
 
 template <typename T>
@@ -165,18 +167,18 @@ std::shared_ptr<arrow::RecordBatchVector> ArrowWrapper::SplitFilesIntoEntries(co
 
     arrow::RecordBatchVector ret_results;
 
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
     omp_lock_t pLock;
     omp_lock_t ret_resultsLock;
     omp_init_lock(&pLock);
     omp_init_lock(&ret_resultsLock);
 #endif
 
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
 #pragma omp parallel num_threads(num_threads) shared(end_of_file, start_of_file, delim) // entry_ptr_vec
 #endif
     {
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
 #pragma omp for schedule(dynamic) nowait // schedule(dynamic)
 #endif
         for (int i = 0; i < num_threads; ++i)
@@ -235,12 +237,12 @@ std::shared_ptr<arrow::RecordBatchVector> ArrowWrapper::SplitFilesIntoEntries(co
 
                             if (return_values)
                             {
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
                                 omp_set_lock(&ret_resultsLock);
 #endif
 
                                 ret_results.insert(ret_results.end(), tmp_result->begin(), tmp_result->end());
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
                                 omp_unset_lock(&ret_resultsLock);
 #endif
                             }
@@ -255,11 +257,11 @@ std::shared_ptr<arrow::RecordBatchVector> ArrowWrapper::SplitFilesIntoEntries(co
             }
         }
     }
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
 #pragma omp barrier
 #endif
 
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
     omp_destroy_lock(&pLock);
     omp_destroy_lock(&ret_resultsLock);
 #endif

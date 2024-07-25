@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <thread>
 
 #include <R_ext/Print.h>
 #include <RcppCommon.h>

@@ -1465,7 +1465,6 @@
 #include <filesystem>
 
 #include <algo/blast/QuickBLAST/commons.hpp>
-#include <algo/blast/QuickBLAST/ArrowWrapper.hpp>
 #include <algo/blast/QuickBLAST/QuickBLAST.hpp>
 // #include <ArrowWrapper.cpp>
 // #include <algo/blast/QuickBLAST/quick_blast-functions.hpp>
@@ -1753,50 +1752,66 @@ ncbi::blast::CBlastOptionsHandle *QuickBLAST::SetQuickBLASTOptions(const std::st
   return opts;
 }
 
-QuickBLAST::QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand, std::string program, Rcpp::List options, bool save_sequences)
-{
-#ifdef _OPENMP
-  this->num_threads = omp_get_num_threads();
-#else
-  this->num_threads = 1;
-#endif
-  arrow_wrapper = std::make_shared<ArrowWrapper>();
-  this->save_sequences = save_sequences;
-  this->program = program;
-  this->opts = CRef<ncbi::blast::CBlastOptionsHandle>(SetQuickBLASTOptions<Rcpp::List>(program, options));
-  // this->opts = CRef<ncbi::blast::CBlastOptionsHandle>(SetQuickBLASTOptions(program, options));
-  this->strand = strand;
-  this->seq_type = seq_type;
-  ok_promise.set_value(arrow::Status::OK());
-#ifdef _OPENMP
-  omp_init_lock(&hit_countLock);
-#endif
-}
+// QuickBLAST::QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand, std::string program, Rcpp::List options, bool save_sequences)
+// {
+// #ifdef _OPENMP
+//   this->num_threads = omp_get_num_threads();
+// #else
+//   this->num_threads = 1;
+// #endif
+//   arrow_wrapper = std::make_shared<ArrowWrapper>();
+//   this->save_sequences = save_sequences;
+//   this->program = program;
+//   this->opts = CRef<ncbi::blast::CBlastOptionsHandle>(SetQuickBLASTOptions<Rcpp::List>(program, options));
+//   // this->opts = CRef<ncbi::blast::CBlastOptionsHandle>(SetQuickBLASTOptions(program, options));
+//   this->strand = strand;
+//   this->seq_type = seq_type;
+//   ok_promise.set_value(arrow::Status::OK());
+// #ifdef _OPENMP
+//   omp_init_lock(&hit_countLock);
+// #endif
+// }
 
 QuickBLAST::QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand, std::string program, std::string options, bool save_sequences)
 {
-
-#if defined(_OPENMP) || defined(WIN32)
-  this->num_threads = omp_get_num_threads();
+  try
+  {
+    Rprintf("DBG0.1 QB \n");
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
+    this->num_threads = omp_get_num_threads();
 #else
-  this->num_threads = 1;
+    this->num_threads = 1;
 #endif
-  arrow_wrapper = std::make_shared<ArrowWrapper>();
-  this->save_sequences = save_sequences;
-  this->program = program;
-  this->opts = CRef<ncbi::blast::CBlastOptionsHandle>(SetQuickBLASTOptions<std::string>(program, options));
-  // this->opts = CRef<ncbi::blast::CBlastOptionsHandle>(SetQuickBLASTOptions(program, options));
-  this->strand = strand;
-  this->seq_type = seq_type;
-  ok_promise.set_value(arrow::Status::OK());
-#if defined(_OPENMP) || defined(WIN32)
-  omp_init_lock(&hit_countLock);
+    // SetThreadCount(omp_get_max_threads());
+    // SetThreadCount(std::thread::hardware_concurrency());
+    Rprintf("DBG1 QB \n");
+    arrow_wrapper = std::make_shared<ArrowWrapper>();
+    // arrow_wrapper = ArrowWrapper();
+    // ArrowWrapper *arrow_ptr = new ArrowWrapper();
+    // Rcpp::XPtr<ArrowWrapper> arrow_ptr_(arrow_ptr, true);
+    // arrow_wrapper.reset(new ArrowWrapper(), true);
+    this->save_sequences = save_sequences;
+    this->program = program;
+    Rprintf("DBG2 QB \n");
+    this->opts = CRef<ncbi::blast::CBlastOptionsHandle>(SetQuickBLASTOptions<std::string>(program, options));
+    // this->opts = CRef<ncbi::blast::CBlastOptionsHandle>(SetQuickBLASTOptions(program, options));
+    this->strand = strand;
+    this->seq_type = seq_type;
+    // ok_promise.set_value(arrow::Status::OK());
+    Rprintf("DBG3 QB \n");
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
+    omp_init_lock(&hit_countLock);
 #endif
+  }
+  catch (const std::exception &e)
+  {
+    Rprintf("C++ side Exception: QB : %s\n", e.what());
+  }
 }
 
 QuickBLAST::~QuickBLAST()
 {
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
   omp_destroy_lock(&hit_countLock);
 #endif
 
@@ -1810,20 +1825,20 @@ QuickBLAST::~QuickBLAST()
   cout << "~QuickBLAST " << std::endl;
 }
 
-// Function to process a single FASTA block
-void QuickBLAST::PrintFastaBlock(FastaSequenceData *data, std::shared_ptr<std::ostringstream> outputStream)
-{
-  if (outputStream != nullptr)
-  {
+// // Function to process a single FASTA block
+// void QuickBLAST::PrintFastaBlock(FastaSequenceData *data, std::shared_ptr<std::ostringstream> outputStream)
+// {
+//   if (outputStream != nullptr)
+//   {
 
-    // Print FastaSequenceData object
-    (*outputStream) << "No: " << data->rec_no << std::endl;
-    (*outputStream) << "Header: " << data->header << std::endl;
-    (*outputStream) << "Sequence: " << data->seq << std::endl;
-    (*outputStream) << std::endl;
-    outputStream->flush();
-  }
-}
+//     // Print FastaSequenceData object
+//     (*outputStream) << "No: " << data->rec_no << std::endl;
+//     (*outputStream) << "Header: " << data->header << std::endl;
+//     (*outputStream) << "Sequence: " << data->seq << std::endl;
+//     (*outputStream) << std::endl;
+//     outputStream->flush();
+//   }
+// }
 
 template <>
 SSeqLoc *QuickBLAST::CreateSSeqLocFromType(FastaSequenceData fasta_data, CRef<ncbi::CScope> parent_scope)
@@ -2337,7 +2352,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::str
     this->opts = CRef<ncbi::blast::CBlastOptionsHandle>(SetQuickBLASTOptions(program, this->blast_options));
   } */
 
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
   int n_threads = num_threads > omp_get_num_threads() ? omp_get_num_threads() : num_threads;
 #else
   int n_threads = 1;
@@ -2351,7 +2366,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::str
                 << outfile_sts.message() << std::endl; */
     // cerr << "ERROR : Could not create output file stream : " << outfile_sts.detail() << std::endl
     //      << outfile_sts.message() << std::endl;
-    REprintf("ERROR : Could not create output file stream : %s \n %s \n", outfile_sts.detail(), outfile_sts.message());
+    REprintf("ERROR : Could not create output file stream : %s \n %s \n", outfile_sts.detail()->ToString().c_str(), outfile_sts.message().c_str());
     return std::make_shared<arrow::RecordBatchVector>();
   }
 
@@ -2391,7 +2406,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::str
 
             std::shared_ptr<TSeqLocVector> subjects_loc_vec(new TSeqLocVector());
 
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
             omp_lock_t query_locLock;
             omp_lock_t subjects_loc_vecLock;
             omp_init_lock(&query_locLock);
@@ -2400,7 +2415,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::str
 
             std::shared_ptr<arrow::RecordBatchVector> ret_results = StreamFile<FastaSequenceData>(
                 subjectFile, ">", n_threads, [this, query_loc,
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
                 &query_locLock, &subjects_loc_vecLock,
 #endif
                 & scope, &subjects_loc_vec, blast_sequence_limit, return_values](std::shared_ptr<FastaSequenceData> data_s) // &progress_bar
@@ -2437,11 +2452,11 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::str
                             break;
                             default:
                             {
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
                                 omp_set_lock(&subjects_loc_vecLock);
 #endif
                                 subjects_loc_vec->emplace_back(*subject_loc);
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
                                 omp_unset_lock(&subjects_loc_vecLock);
 #endif
 
@@ -2449,13 +2464,13 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::str
                                 if (subjects_loc_vec->size() >= blast_sequence_limit)
                                 {
                                     TSeqLocVector subjects_buffer_vec;
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
                                     omp_set_lock(&subjects_loc_vecLock);
 
 #endif
                                     subjects_buffer_vec.swap(*subjects_loc_vec);
                                     subjects_loc_vec->clear();
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
                                     omp_unset_lock(&subjects_loc_vecLock);
 #endif
                                     blaster = new CBl2Seq(*query_loc, subjects_buffer_vec, this->GetQuickBLASTOptions(), true);
@@ -2520,7 +2535,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::str
                 }
             }
 
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
             omp_destroy_lock(&query_locLock);
             omp_destroy_lock(&subjects_loc_vecLock);
 #endif
@@ -2534,7 +2549,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::str
             } },
       return_values);
 
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
 #pragma omp barrier
 #endif
 
@@ -2587,7 +2602,7 @@ auto QuickBLAST::BLAST(const std::string &query, const std::string &subject, con
   {
   case QuickBLAST::EInputType::eFile:
   {
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
     int n_threads = omp_get_num_threads();
 #else
     int n_threads = 1;

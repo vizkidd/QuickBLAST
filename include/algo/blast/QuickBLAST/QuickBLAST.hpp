@@ -13,7 +13,7 @@
 // #endif
 //// #define long int int64_t;
 
-#ifdef _OPENMP
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
 #include "omp.h"
 #endif
 
@@ -45,6 +45,7 @@
 // #endif
 
 #include <iostream>
+#include <memory>
 #include <ncbi_pch.hpp>
 #include <algo/blast/api/blast_options_handle.hpp>
 #include <algo/blast/api/blast_types.hpp>
@@ -71,6 +72,8 @@
 #include <algo/blast/api/sseqloc.hpp>
 #include <objmgr/seq_vector.hpp>
 
+#include <algo/blast/QuickBLAST/ArrowWrapper.hpp>
+
 USING_NCBI_SCOPE;
 USING_SCOPE(blast);
 
@@ -93,13 +96,11 @@ class QBLIBRARY_API QuickBLAST
 {
 public:
     // operator SEXP();
-    enum ESeqType
-    {
+    QBLIBRARY_API enum ESeqType {
         eNucleotide = 0,
         eProtein = 1
     };
-    enum EStrand
-    {
+    QBLIBRARY_API enum EStrand {
         ePlus = 0,
         eMinus = 1,
         eBoth = 2,
@@ -107,8 +108,7 @@ public:
         eOther = 4,
         eUnknown = 5
     };
-    enum EInputType
-    {
+    QBLIBRARY_API enum EInputType {
         eFile = 0,
         eSequenceString = 1,
         eFolder = 2
@@ -128,27 +128,29 @@ private:
     ESeqType seq_type;
     EStrand strand;
     std::shared_ptr<ArrowWrapper> arrow_wrapper;
+    // ArrowWrapper arrow_wrapper;
+    // Rcpp::XPtr<ArrowWrapper> arrow_wrapper;
     int hit_count = 0;
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
     omp_lock_t hit_countLock;
 #endif
     bool save_sequences = false;
     int blast_sequence_limit = 1000;
     // bool db_scan_mode = false;
-    std::promise<arrow::Status> ok_promise;
+    // std::promise<arrow::Status> ok_promise;
 
 public:
     // #ifdef linux
-    QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand, std::string program, Rcpp::List options, bool save_sequences = false);
+    // QBLIBRARY_API QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand, std::string program, Rcpp::List options, bool save_sequences = false);
     // #endif
-    QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand, std::string program, std::string options, bool save_sequences = false);
-    ~QuickBLAST();
-    void PrintFastaBlock(FastaSequenceData *data, std::shared_ptr<std::ostringstream> outputStream);
+    QBLIBRARY_API QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand, std::string program, std::string options, bool save_sequences = false);
+    QBLIBRARY_API ~QuickBLAST();
+    // void PrintFastaBlock(FastaSequenceData *data, std::shared_ptr<std::ostringstream> outputStream);
     std::shared_ptr<arrow::Schema> GetSchema() { return arrow_wrapper->GetSchema(); };
     void SetThreadCount(int num_threads)
     {
         this->num_threads = num_threads;
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
         omp_set_num_threads(num_threads);
 #endif
         arrow_wrapper->SetThreadCount(num_threads);
@@ -159,11 +161,11 @@ public:
     }
     void AddHitCount(int val = 1)
     {
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
         omp_set_lock(&hit_countLock);
 #endif
         hit_count += val;
-#if defined(_OPENMP) || defined(WIN32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
         omp_unset_lock(&hit_countLock);
 #endif
     }
@@ -175,13 +177,13 @@ public:
     template <typename T1>
     std::shared_ptr<arrow::RecordBatchVector> StreamFile(const std::string_view &filename, const char *delim = "\n", const int &num_threads = 1, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<T1>)> &Entry_callback = {}, bool return_values = false);
     template <typename OptionsType>
-    ncbi::blast::CBlastOptionsHandle *SetQuickBLASTOptions(const std::string &program_name, const OptionsType &options);
+    QBLIBRARY_API ncbi::blast::CBlastOptionsHandle *SetQuickBLASTOptions(const std::string &program_name, const OptionsType &options);
     // ncbi::blast::CBlastOptionsHandle* SetQuickBLASTOptions(const std::string& program_name, const std::string& options);
 
     // Rcpp::List BLAST(const std::string &query, const std::string &subject, const std::string &outputFile, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress = true);
-    auto BLAST(const std::string &query, const std::string &subject, const std::string &outputFile, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress = true);
-    std::shared_ptr<arrow::RecordBatchVector> BLAST_files(const std::string &queryFile, const std::string &subjectFile, const std::string &outFile, unsigned int blast_sequence_limit, int num_threads, const bool show_progress = true, const bool return_values = false, int batch_size = 1024);
-    std::shared_ptr<arrow::RecordBatch> BLAST_seqs(const std::string &query, const std::string &subject);
+    QBLIBRARY_API auto BLAST(const std::string &query, const std::string &subject, const std::string &outputFile, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress = true);
+    QBLIBRARY_API std::shared_ptr<arrow::RecordBatchVector> BLAST_files(const std::string &queryFile, const std::string &subjectFile, const std::string &outFile, unsigned int blast_sequence_limit, int num_threads, const bool show_progress = true, const bool return_values = false, int batch_size = 1024);
+    QBLIBRARY_API std::shared_ptr<arrow::RecordBatch> BLAST_seqs(const std::string &query, const std::string &subject);
     SEXP Hits2RList(const std::shared_ptr<arrow::RecordBatch> &rb);
     SEXP Hits2RList(const arrow::RecordBatchVector &rb_vector);
 

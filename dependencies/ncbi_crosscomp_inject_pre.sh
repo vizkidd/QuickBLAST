@@ -14,8 +14,11 @@ RTOOLS_DIR=$(cygpath $FOLDER_MODE $RTOOLS_DIR)
 
 OPENMP_LIB_FLAG=""
 if [[ ! -z $SHLIB_OPENMP_CXXFLAGS ]]; then
-    OPENMP_LIB_FLAG="-lgomp.dll -lgomp"
+    OPENMP_LIB_FLAG="-fopenmp -lomp " #-lgomp.dll -lgomp"
     # SHLIB_OPENMP_CXXFLAGS="-D_OPENMP $SHLIB_OPENMP_CXXFLAGS"
+else
+    echo "ERROR: QuickBLAST and ncbi-c++ toolkit requires OpenMP support. Exiting"
+    exit 255
 fi
 
 echo "PRE CONFIGURE INJECT..."
@@ -55,8 +58,8 @@ touch src/build-system/cmake/toolchains/$toolchain_file
 #############GCC
 echo "set(NCBI_PTBCFG_FLAGS_DEFINED YES)" >>src/build-system/cmake/toolchains/$toolchain_file
 echo "include_guard(GLOBAL)" >>src/build-system/cmake/toolchains/$toolchain_file
-echo "set(CMAKE_C_FLAGS_INIT         \"-gdwarf-4 -Wall -Wno-format-y2k\")" >>src/build-system/cmake/toolchains/$toolchain_file
-echo "set(CMAKE_CXX_FLAGS_INIT       \"-gdwarf-4 -Wall -Wno-format-y2k\")" >>src/build-system/cmake/toolchains/$toolchain_file
+echo "set(CMAKE_C_FLAGS_INIT         \"-gdwarf-4 -Wall -Wno-format-y2k $SHLIB_OPENMP_CXXFLAGS -fPIC \")" >>src/build-system/cmake/toolchains/$toolchain_file
+echo "set(CMAKE_CXX_FLAGS_INIT       \"-gdwarf-4 -Wall -Wno-format-y2k $SHLIB_OPENMP_CXXFLAGS -fPIC \")" >>src/build-system/cmake/toolchains/$toolchain_file
 echo "set(NCBI_COMPILER_FLAGS_SSE       \"-msse4.2\")" >>src/build-system/cmake/toolchains/$toolchain_file
 echo "set(NCBI_COMPILER_FLAGS_COVERAGE  \"--coverage\")" >>src/build-system/cmake/toolchains/$toolchain_file
 echo "set(NCBI_LINKER_FLAGS_COVERAGE     \"--coverage\")" >>src/build-system/cmake/toolchains/$toolchain_file
@@ -87,9 +90,9 @@ echo "set(CMAKE_C_COMPILER $CC)" >>src/build-system/cmake/toolchains/$toolchain_
 echo "set(CMAKE_CXX_COMPILER $CXX)" >>src/build-system/cmake/toolchains/$toolchain_file
 
 #############COMPILER - MSYS2 - GCC#################################
-echo "set(CMAKE_C_FLAGS_RELEASE \" -std=gnu11 -O2 -Wformat -Werror=format-security -Wdate-time -U_WIN32 -D_DEBUG -DHAVE_IOSTREAM=1 -DNCBI_OS_OSF1=1 -DHAVE_INTTYPES_H=1 -DHAVE_NETINET_TCP_H=1 -D_FORTIFY_SOURCE=2 -UNDEBUG -Wall -pedantic -fstack-protector-strong -fdiagnostics-color=always -pthread -mthreads -mtune=generic -maccumulate-outgoing-args -Wall -Wno-format-y2k \")" >>src/build-system/cmake/toolchains/$toolchain_file
+echo "set(CMAKE_C_FLAGS_RELEASE \" -g -std=gnu11 -O2 -Wformat -Werror=format-security -Wdate-time -U_WIN32 -D_DEBUG -DHAVE_IOSTREAM=1 -DNCBI_OS_OSF1=1 -DHAVE_INTTYPES_H=1 -DHAVE_NETINET_TCP_H=1 -D_FORTIFY_SOURCE=2 -UNDEBUG -pedantic -fstack-protector-strong -fdiagnostics-color=always $SHLIB_OPENMP_CXXFLAGS -pthread -fPIC -static-libgcc -mtune=generic -maccumulate-outgoing-args -Wall -Wno-format-y2k \")" >>src/build-system/cmake/toolchains/$toolchain_file
 
-echo "set(CMAKE_CXX_FLAGS_RELEASE \" -std=gnu++17 -O2 -Wformat -Werror=format-security -Wdate-time -U_WIN32 -D_DEBUG -DHAVE_IOSTREAM=1 -DNCBI_OS_OSF1=1 -DHAVE_INTTYPES_H=1 -DHAVE_NETINET_TCP_H=1 -D_FORTIFY_SOURCE=2 -UNDEBUG -Wall -pedantic -fstack-protector-strong -fdiagnostics-color=always $SHLIB_OPENMP_CXXFLAGS -pthread -mthreads -mtune=generic -maccumulate-outgoing-args -Wall -Wno-format-y2k \")" >>src/build-system/cmake/toolchains/$toolchain_file
+echo "set(CMAKE_CXX_FLAGS_RELEASE \" -g -std=gnu++17 -O2 -Wformat -Werror=format-security -Wdate-time -U_WIN32 -D_DEBUG -DHAVE_IOSTREAM=1 -DNCBI_OS_OSF1=1 -DHAVE_INTTYPES_H=1 -DHAVE_NETINET_TCP_H=1 -D_FORTIFY_SOURCE=2 -UNDEBUG -pedantic -fstack-protector-strong -fdiagnostics-color=always $SHLIB_OPENMP_CXXFLAGS -pthread -fPIC -static-libstdc++ -mtune=generic -maccumulate-outgoing-args -Wall -Wno-format-y2k \")" >>src/build-system/cmake/toolchains/$toolchain_file
 ###################################################
 
 ##############LINKER - GCC##############
