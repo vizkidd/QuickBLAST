@@ -45,24 +45,24 @@ install_libs:
 	cp -uf libct_ftds100.dll libefetch.dll liblmdb.dll libncbi_algo.dll libncbi_align_format.dll libncbi_core.dll libncbi_dbapi_driver.dll libncbi_eutils.dll libncbi_general.dll libncbi_misc.dll libncbi_pub.dll libncbi_seq.dll libncbi_seqext.dll libncbi_trackmgr.dll libncbi_web.dll libncbi_xdbapi_ftds.dll libncbi_xloader_blastdb.dll libncbi_xloader_blastdb_rmt.dll libncbi_xloader_genbank.dll libncbi_xobjsimple.dll libncbi_xreader.dll libncbi_xreader_cache.dll libncbi_xreader_id1.dll libncbi_xreader_id2.dll libpsg_client.dll libsqlitewrapp.dll libutrtprof.dll libxflatfile.dll libxxconnect2.dll libncbi_blastinput.dll libQuickBLASTcpp.dll ../../../../inst/libs/$(R_ARCH)/ ; \
 	cd ../../../arrow/cpp/BUILD_MSYS2/release/ ; \
 	cp -uf *.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-nghttp2*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-uv-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-bz2-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-lzo2-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-z.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-pcre-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-zstd-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-sqlite3-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-brotlidec-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-brotlienc-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-brotlicommon-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-lz4-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-gomp-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-stdc++-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-gcc_s-seh-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf /usr/bin/msys-2.0.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	cp -uf $(R_HOME)/bin/$(R_ARCH)/*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	#cp -uf `$(R_HOME)/bin/Rscript -e "fs::path_package('Rcpp','libs', Sys.getenv('R_ARCH'),'Rcpp.dll')"` ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-nghttp2*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-uv-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-bz2-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-lzo2-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-z.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-pcre-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-zstd-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-sqlite3-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-brotlidec-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-brotlienc-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-brotlicommon-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-lz4-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-gomp-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-stdc++-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-gcc_s-seh-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf /usr/bin/msys-2.0.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	#cp -uf $(R_HOME)/bin/$(R_ARCH)/*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	##cp -uf `$(R_HOME)/bin/Rscript -e "fs::path_package('Rcpp','libs', Sys.getenv('R_ARCH'),'Rcpp.dll')"` ../../../../../inst/libs/$(R_ARCH)/ ; \
 	)
 
 builddeps:
