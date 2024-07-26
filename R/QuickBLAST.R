@@ -335,14 +335,14 @@ dll_paths <- paste(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")), 
   #msys_dll_paths
   packageStartupMessage("Unloading QuickBLAST...")
   for (dll_path in c(rev(c(dll_paths)))) {
-    if(is.loaded(dll_path)){
+    # if(is.loaded(dll_path)){
       if (dyn.unload(dll_path)) {
         packageStartupMessage(cat("Unloaded DLL:", dll_path, "\n"))
       } else {
         packageStartupMessage(cat("Failed to unload DLL:", dll_path, "\n"))
       }
     }
-  }
+  # }
   # detach("package:QuickBLAST", unload = TRUE)
 }
 
@@ -350,12 +350,12 @@ dll_paths <- paste(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")), 
   packageStartupMessage("Detaching QuickBLAST...")
   # rm(list = ls(envir = .GlobalEnv, pattern = "^QuickBLAST"))
   for (dll_path in c(rev(c(dll_paths)))) {
-    if(is.loaded(dll_path)){
+    # if(is.loaded(dll_path)){
       if (dyn.unload(dll_path)) {
         packageStartupMessage(cat("Unloaded DLL:", dll_path, "\n"))
       } else {
         packageStartupMessage(cat("Failed to unload DLL:", dll_path, "\n"))
       }
-    }
+    # }
   }
 }
