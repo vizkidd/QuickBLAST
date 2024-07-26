@@ -264,6 +264,8 @@ dlls <- c("libncbi_core", "libncbi_general", "libncbi_pub", "libncbi_seq", "libn
 
 dll_paths <- paste(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")), .Platform$file.sep, dlls, .Platform$dynlib.ext,sep="") 
 
+dll_obj_list <-  list()
+
 # dll_paths <- c(             
 #   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_core", .Platform$dynlib.ext,sep="") ),
 #   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_general", .Platform$dynlib.ext,sep="") ),
@@ -311,9 +313,9 @@ dll_paths <- paste(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")), 
     } else {
       # dyn.load(dll_path, local=F, now = T)
       # library.dynam(dll_path, "QuickBLAST", fs::path_package("QuickBLAST",".."))
-      if(!invisible(is.loaded(dll_path))){
-        dyn.load(dll_path,now = T)
-      }
+      # if(!invisible(is.loaded(dll_path))){
+        dll_obj_list <- append(dll_obj_list, list(dyn.load(dll_path,now = T)))
+      # }
       cat("Loaded DLL:", dll_path, "\n")
     }
   }
@@ -334,15 +336,23 @@ dll_paths <- paste(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")), 
   # detach("package:QuickBLASTdeps", unload = TRUE)
   #msys_dll_paths
   packageStartupMessage("Unloading QuickBLAST...")
+
+  loaded_dlls <- getLoadedDLLs()
+  loaded_dlls <- loaded_dlls[na.omit(match(dlls,names(loaded_dlls)))]
+
+  for(dll_info in loaded_dlls){
+    dyn.unload(dll_info[["path"]])
+  }
+
   # for (dll_path in c(rev(c(dll_paths)))) {
-  #   # if(is.loaded(dll_path)){
+  #   if(is.loaded(dll_path)){
   #     if (dyn.unload(dll_path)) {
   #       packageStartupMessage(cat("Unloaded DLL:", dll_path, "\n"))
   #     } else {
   #       packageStartupMessage(cat("Failed to unload DLL:", dll_path, "\n"))
   #     }
   #   }
-  # # }
+  # }
   # detach("package:QuickBLAST", unload = TRUE)
 }
 
@@ -350,12 +360,12 @@ dll_paths <- paste(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")), 
   packageStartupMessage("Detaching QuickBLAST...")
   # rm(list = ls(envir = .GlobalEnv, pattern = "^QuickBLAST"))
   # for (dll_path in c(rev(c(dll_paths)))) {
-  #   # if(is.loaded(dll_path)){
+  #   if(is.loaded(dll_path)){
   #     if (dyn.unload(dll_path)) {
   #       packageStartupMessage(cat("Unloaded DLL:", dll_path, "\n"))
   #     } else {
   #       packageStartupMessage(cat("Failed to unload DLL:", dll_path, "\n"))
   #     }
-  #   # }
+  #   }
   # }
 }
