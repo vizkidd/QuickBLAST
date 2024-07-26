@@ -334,28 +334,28 @@ dll_paths <- paste(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")), 
   # detach("package:QuickBLASTdeps", unload = TRUE)
   #msys_dll_paths
   packageStartupMessage("Unloading QuickBLAST...")
-  for (dll_path in c(rev(c(dll_paths)))) {
-    # if(is.loaded(dll_path)){
-      if (dyn.unload(dll_path)) {
-        packageStartupMessage(cat("Unloaded DLL:", dll_path, "\n"))
-      } else {
-        packageStartupMessage(cat("Failed to unload DLL:", dll_path, "\n"))
-      }
-    }
-  # }
+  # for (dll_path in c(rev(c(dll_paths)))) {
+  #   # if(is.loaded(dll_path)){
+  #     if (dyn.unload(dll_path)) {
+  #       packageStartupMessage(cat("Unloaded DLL:", dll_path, "\n"))
+  #     } else {
+  #       packageStartupMessage(cat("Failed to unload DLL:", dll_path, "\n"))
+  #     }
+  #   }
+  # # }
   # detach("package:QuickBLAST", unload = TRUE)
 }
 
 .onDetach <- function(libpath) {
   packageStartupMessage("Detaching QuickBLAST...")
   # rm(list = ls(envir = .GlobalEnv, pattern = "^QuickBLAST"))
-  for (dll_path in c(rev(c(dll_paths)))) {
-    # if(is.loaded(dll_path)){
-      if (dyn.unload(dll_path)) {
-        packageStartupMessage(cat("Unloaded DLL:", dll_path, "\n"))
-      } else {
-        packageStartupMessage(cat("Failed to unload DLL:", dll_path, "\n"))
-      }
-    # }
-  }
+  # for (dll_path in c(rev(c(dll_paths)))) {
+  #   # if(is.loaded(dll_path)){
+  #     if (dyn.unload(dll_path)) {
+  #       packageStartupMessage(cat("Unloaded DLL:", dll_path, "\n"))
+  #     } else {
+  #       packageStartupMessage(cat("Failed to unload DLL:", dll_path, "\n"))
+  #     }
+  #   # }
+  # }
 }
