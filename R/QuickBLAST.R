@@ -223,20 +223,6 @@ all2all <- function(first_list, second_list, input_type, seq_info, blast_program
   }, mc.cores = n_threads, mc.preschedule = T)
 }
 
-# #' Stub function that always returns true. Only to test the connection of DLLs and C function calls
-# #' @examples
-# #' \dontrun{
-# #' QuickBLAST::isQuickBLASTLoaded()
-# #' }
-# #'
-# #' @return Always TRUE
-# #' @useDynLib QuickBLAST, .registration = TRUE
-# #' @md
-# #' @export
-# isQuickBLASTLoaded <- function() {
-#   return(QB_isQuickBLASTLoaded())
-# }
-
 # R_dll_paths <- c(
 #   # list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=".dll", full.names = T),
 #   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"Riconv.dll"),
@@ -251,9 +237,9 @@ all2all <- function(first_list, second_list, input_type, seq_info, blast_program
 #   # fs::path_package("Rcpp","libs", Sys.getenv("R_ARCH"),"Rcpp.dll")
 # )
 
-msys_dlls <- c("msys-bz2-1", "msys-lzo2-2", "msys-z", "msys-pcre-1", "msys-zstd-1", "msys-sqlite3-0", "msys-gomp-1", "msys-stdc++-6", "msys-gcc_s-seh-1", "msys-2.0")
+# msys_dlls <- c("msys-bz2-1", "msys-lzo2-2", "msys-z", "msys-pcre-1", "msys-zstd-1", "msys-sqlite3-0", "msys-gomp-1", "msys-stdc++-6", "msys-gcc_s-seh-1", "msys-2.0")
 
-msys_dll_paths <- c( fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste(msys_dlls, .Platform$dynlib.ext,sep="")) )
+# msys_dll_paths <- c( fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste(msys_dlls, .Platform$dynlib.ext,sep="")) )
 
 # cat(list.files(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")),pattern = "*arrow.*dll", full.names = F))
 #"Riconv","R","Rgraphapp","Rblas","R","Rlapack"
@@ -265,37 +251,6 @@ dlls <- c("libncbi_core", "libncbi_general", "libncbi_pub", "libncbi_seq", "libn
 dll_paths <- paste(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")), .Platform$file.sep, dlls, .Platform$dynlib.ext,sep="") 
 
 dll_obj_list <-  list()
-
-# dll_paths <- c(             
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_core", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_general", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_pub", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_seq", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_trackmgr", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_eutils", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_misc", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libsqlitewrapp", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("liblmdb", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libefetch", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_seqext", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_xreader", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_xreader_id1", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_xreader_id2", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_xreader_cache", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libxxconnect2", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libpsg_client", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_xloader_genbank", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_web", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_align_format", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libutrtprof", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_algo", .Platform$dynlib.ext,sep="") ),
-#   #"inst/libs", Sys.getenv("R_ARCH"),"libarrow_msys2.dll.a",
-#   #"inst/libs", Sys.getenv("R_ARCH"),"msys-arrow-1601.dll",
-#   list.files(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")),pattern = "*arrow.*dll", full.names = T),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),paste("libQuickBLASTcpp", .Platform$dynlib.ext,sep="") )
-#   # fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),paste("QuickBLAST", .Platform$dynlib.ext,sep="") )
-#   #"inst/libs", Sys.getenv("R_ARCH"),"QuickBLAST.dll"
-# )
 
 .onLoad <- function(libname, pkgname) {
   # # Load the DLLs when the package is loaded
