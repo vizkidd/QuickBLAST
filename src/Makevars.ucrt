@@ -61,7 +61,7 @@ install_libs:
 	cp -uf /usr/bin/msys-stdc++-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
 	cp -uf /usr/bin/msys-gcc_s-seh-*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
 	cp -uf /usr/bin/msys-2.0.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
-	#cp -uf $(R_HOME)/bin/$(R_ARCH)/*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
+	cp -uf $(R_HOME)/bin/$(R_ARCH)/*.dll ../../../../../inst/libs/$(R_ARCH)/ ; \
 	##cp -uf `$(R_HOME)/bin/Rscript -e "fs::path_package('Rcpp','libs', Sys.getenv('R_ARCH'),'Rcpp.dll')"` ../../../../../inst/libs/$(R_ARCH)/ ; \
 	)
 
