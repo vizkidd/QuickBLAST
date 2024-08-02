@@ -1,4 +1,4 @@
-#if defined(WIN32) || defined(MINGW32)
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
 #include "omp.h"
 #endif
 
@@ -13,11 +13,12 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <regex>
+#include <mutex>
 
 #include <algo/blast/QuickBLAST/commons.hpp>
 #include <algo/blast/QuickBLAST/ArrowWrapper.hpp>
 
-ArrowWrapper::ArrowWrapper()
+ArrowWrapper::Impl::Impl()
 {
 
   Rprintf("DBG1 AW \n");
@@ -124,7 +125,7 @@ ArrowWrapper::ArrowWrapper()
   Rprintf("DBG4 AW \n");
 }
 
-ArrowWrapper::~ArrowWrapper()
+ArrowWrapper::Impl::~Impl()
 {
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
   omp_destroy_lock(&rec_countLock);
@@ -133,22 +134,38 @@ ArrowWrapper::~ArrowWrapper()
 #endif
 
   // std::cout << "~ArrowWrapper " << std::endl;
-  Rprintf("~ArrowWrapper");
+  Rprintf("~ArrowWrapper::Impl");
 }
 
-void ArrowWrapper::SetBatchSize(int batch_size)
+ArrowWrapper::ArrowWrapper()
+    : pImpl(std::make_unique<Impl>()) {}
+
+// Destructor: default implementation (pImpl will automatically clean up)
+ArrowWrapper::~ArrowWrapper() = default;
+
+void ArrowWrapper::Impl::SetBatchSize(int batch_size)
 {
   assert(batch_size > 0);
   this->rb_batch_size = batch_size;
 }
+void ArrowWrapper::SetBatchSize(int batch_size)
+{
+  pImpl->SetBatchSize(batch_size);
+}
 
-int ArrowWrapper::GetRecordCount() { return rec_count; }
+int ArrowWrapper::Impl::GetRecordCount() { return rec_count; }
+int ArrowWrapper::GetRecordCount() { return pImpl->GetRecordCount(); }
 
-void ArrowWrapper::ResetRecordCount()
+void ArrowWrapper::Impl::ResetRecordCount()
 {
   rec_count = 0;
 }
-void ArrowWrapper::AddRecordCount()
+void ArrowWrapper::ResetRecordCount()
+{
+  pImpl->ResetRecordCount();
+}
+
+void ArrowWrapper::Impl::AddRecordCount()
 {
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
   omp_set_lock(&rec_countLock);
@@ -158,7 +175,12 @@ void ArrowWrapper::AddRecordCount()
   omp_unset_lock(&rec_countLock);
 #endif
 }
-void ArrowWrapper::SetThreadCount(int num_threads)
+void ArrowWrapper::AddRecordCount()
+{
+  pImpl->AddRecordCount();
+}
+
+void ArrowWrapper::Impl::SetThreadCount(int num_threads)
 {
   if (num_threads > 1)
   {
@@ -176,7 +198,49 @@ void ArrowWrapper::SetThreadCount(int num_threads)
   }
   n_threads = num_threads;
 }
-arrow::Result<std::shared_ptr<arrow::RecordBatch>> ArrowWrapper::AddRB2Batch(std::shared_ptr<arrow::RecordBatch> rb_)
+void ArrowWrapper::SetThreadCount(int num_threads)
+{
+  pImpl->SetThreadCount(num_threads);
+}
+
+// std::string ArrowWrapper::Impl::CastToType(const std::string &full_entry)
+// {
+//   return full_entry;
+// }
+// std::string ArrowWrapper::CastToType(const std::string &full_entry)
+// {
+//   return full_entry;
+// }
+
+FastaSequenceData ArrowWrapper::Impl::CastToType(const std::string &full_entry)
+{
+  std::regex pattern("^>(\\w+)[\\r\\n]+([\\w\\W]+)$");
+  std::regex punct_pattern("[[:punct:][:space:]\\n\\t]");
+  std::smatch match;
+
+  std::string full_entry_str(static_cast<std::string>(full_entry));
+  FastaSequenceData fasta_data;
+  fasta_data.rec_no = GetRecordCount();
+  if (std::regex_match(full_entry, match, pattern))
+  {
+    fasta_data.header = match[1].str();
+    fasta_data.seq = std::regex_replace(match[2].str(), punct_pattern, "");
+  }
+  else
+  {
+
+    fasta_data.seq = std::regex_replace(full_entry, punct_pattern, "");
+  }
+  fasta_data.header = fasta_data.header.empty() ? std::to_string(fasta_data.rec_no) : fasta_data.header;
+  AddRecordCount();
+  return fasta_data;
+}
+FastaSequenceData ArrowWrapper::CastToType(const std::string &full_entry)
+{
+  return pImpl->CastToType(full_entry);
+}
+
+arrow::Result<std::shared_ptr<arrow::RecordBatch>> ArrowWrapper::Impl::AddRB2Batch(std::shared_ptr<arrow::RecordBatch> rb_)
 {
   arrow::Status error_sts(arrow::StatusCode::Invalid, "Error Writing to File!");
   if (rb_)
@@ -205,7 +269,12 @@ arrow::Result<std::shared_ptr<arrow::RecordBatch>> ArrowWrapper::AddRB2Batch(std
   }
   return arrow::Result<std::shared_ptr<arrow::RecordBatch>>(error_sts);
 }
-arrow::Result<std::shared_ptr<arrow::RecordBatchVector>> ArrowWrapper::AddRBV2Batch(const arrow::RecordBatchVector &rbv_)
+arrow::Result<std::shared_ptr<arrow::RecordBatch>> ArrowWrapper::AddRB2Batch(std::shared_ptr<arrow::RecordBatch> rb_)
+{
+  return pImpl->AddRB2Batch(rb_);
+}
+
+arrow::Result<std::shared_ptr<arrow::RecordBatchVector>> ArrowWrapper::Impl::AddRBV2Batch(const arrow::RecordBatchVector &rbv_)
 {
 
   arrow::Status error_sts(arrow::StatusCode::Invalid, "Error Writing to File!");
@@ -236,7 +305,12 @@ arrow::Result<std::shared_ptr<arrow::RecordBatchVector>> ArrowWrapper::AddRBV2Ba
   //}
   return arrow::Result<std::shared_ptr<arrow::RecordBatchVector>>(error_sts);
 }
-arrow::Status ArrowWrapper::CreateOutputStream(const std::string &outFile)
+arrow::Result<std::shared_ptr<arrow::RecordBatchVector>> ArrowWrapper::AddRBV2Batch(const arrow::RecordBatchVector &rbv_)
+{
+  return pImpl->AddRBV2Batch(rbv_);
+}
+
+arrow::Status ArrowWrapper::Impl::CreateOutputStream(const std::string &outFile)
 {
   outFileStream = arrow_LFS.OpenAppendStream(outFile, GetBLASTMetadata()).ValueOrDie();
   auto codec = arrow::util::Codec::Create(arrow::Compression::GZIP).ValueOrDie();
@@ -245,27 +319,65 @@ arrow::Status ArrowWrapper::CreateOutputStream(const std::string &outFile)
 
   return arrow::Status::OK();
 }
+arrow::Status ArrowWrapper::CreateOutputStream(const std::string &outFile)
+{
+  return pImpl->CreateOutputStream(outFile);
+}
 
-std::shared_ptr<arrow::DataType> ArrowWrapper::GetSeqInfoType(void)
+std::shared_ptr<arrow::DataType> ArrowWrapper::Impl::GetSeqInfoType(void)
 {
   return seq_info_type;
 }
-std::shared_ptr<arrow::DataType> ArrowWrapper::GetAlignmentScoresType(void)
+std::shared_ptr<arrow::DataType> ArrowWrapper::GetSeqInfoType(void)
+{
+  return pImpl->GetSeqInfoType();
+}
+
+std::shared_ptr<arrow::DataType> ArrowWrapper::Impl::GetAlignmentScoresType(void)
 {
   return alignment_scores_type;
 }
-std::shared_ptr<arrow::DataType> ArrowWrapper::GetHSPType(void)
+std::shared_ptr<arrow::DataType> ArrowWrapper::GetAlignmentScoresType(void)
+{
+  return pImpl->GetAlignmentScoresType();
+}
+
+std::shared_ptr<arrow::DataType> ArrowWrapper::Impl::GetHSPType(void)
 {
   return hsp_type;
 }
-std::shared_ptr<arrow::Schema> ArrowWrapper::GetBLASTSchema(void)
+std::shared_ptr<arrow::DataType> ArrowWrapper::GetHSPType(void)
+{
+  return pImpl->GetHSPType();
+}
+
+std::shared_ptr<arrow::Schema> ArrowWrapper::Impl::GetBLASTSchema(void)
 {
   return blast_schema;
 }
-std::shared_ptr<arrow::Schema> ArrowWrapper::GetFASTASchema(void)
+std::shared_ptr<arrow::Schema> ArrowWrapper::GetBLASTSchema(void)
+{
+  return pImpl->GetBLASTSchema();
+}
+
+std::shared_ptr<arrow::Schema> ArrowWrapper::Impl::GetFASTASchema(void)
 {
   return fasta_schema;
 }
+std::shared_ptr<arrow::Schema> ArrowWrapper::GetFASTASchema(void)
+{
+  return pImpl->GetFASTASchema();
+}
+
+std::shared_ptr<arrow::Schema> ArrowWrapper::Impl::GetSchema(void)
+{
+  return blast_schema;
+}
+std::shared_ptr<arrow::Schema> ArrowWrapper::GetSchema(void)
+{
+  return pImpl->GetSchema();
+}
+
 /*std::shared_ptr<parquet::WriterProperties> ArrowWrapper::GetParquetWriterProps(void)
 {
     return parquet_writer_props;
@@ -274,20 +386,34 @@ std::shared_ptr<arrow::Schema> ArrowWrapper::GetFASTASchema(void)
 {
     return arrow_writer_props;
 }*/
-std::shared_ptr<arrow::KeyValueMetadata> ArrowWrapper::GetBLASTMetadata(void)
+std::shared_ptr<arrow::KeyValueMetadata> ArrowWrapper::Impl::GetBLASTMetadata(void)
 {
   return blast_metadata;
 }
-void ArrowWrapper::AddFASTAMetadata(const std::string &key, const std::string &value)
+std::shared_ptr<arrow::KeyValueMetadata> ArrowWrapper::GetBLASTMetadata(void)
+{
+  return pImpl->GetBLASTMetadata();
+}
+
+void ArrowWrapper::Impl::AddFASTAMetadata(const std::string &key, const std::string &value)
 {
   blast_metadata->Append(key, value);
 }
-arrow::ipc::IpcWriteOptions ArrowWrapper::GetArrowIPCOptions(void)
+void ArrowWrapper::AddFASTAMetadata(const std::string &key, const std::string &value)
+{
+  pImpl->AddFASTAMetadata(key, value);
+}
+
+arrow::ipc::IpcWriteOptions ArrowWrapper::Impl::GetArrowIPCOptions(void)
 {
   return ipc_options;
 }
+arrow::ipc::IpcWriteOptions ArrowWrapper::GetArrowIPCOptions(void)
+{
+  return pImpl->GetArrowIPCOptions();
+}
 
-std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> ArrowWrapper::MMapFile(const std::string_view &filename, const char *delim)
+std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> ArrowWrapper::Impl::MMapFile(const std::string_view &filename, const char *delim)
 {
   FILE *file_ptr;
   long fileSize;
@@ -329,8 +455,12 @@ std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> ArrowWr
     fclose(file_ptr); }),
                                                                                                    fileSize, end_of_file_ptr));
 }
+// std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> ArrowWrapper::MMapFile(const std::string_view &filename, const char *delim)
+// {
+//   return pImpl->MMapFile(filename, delim);
+// }
 
-long ArrowWrapper::GetFileSize(FILE *file_ptr)
+long ArrowWrapper::Impl::GetFileSize(FILE *file_ptr)
 {
   fseek(file_ptr, 0, SEEK_END);
   long fileSize = ftell(file_ptr);
@@ -338,7 +468,7 @@ long ArrowWrapper::GetFileSize(FILE *file_ptr)
   return fileSize;
 }
 
-void ArrowWrapper::FinishOutputStream()
+void ArrowWrapper::Impl::FinishOutputStream()
 {
   if (rbv_batch->size() > 0)
   {
@@ -364,8 +494,12 @@ void ArrowWrapper::FinishOutputStream()
 
   fin_thread.detach();
 }
+void ArrowWrapper::FinishOutputStream()
+{
+  pImpl->FinishOutputStream();
+}
 
-arrow::Status ArrowWrapper::WriteBatch2File()
+arrow::Status ArrowWrapper::Impl::WriteBatch2File()
 {
   assert(compressed_outstream);
 
@@ -458,7 +592,7 @@ void CountCharacter_thread(const std::string &filename, char character, std::ato
   }
 }
 
-int ArrowWrapper::CountCharacter(std::string filename, char character, int num_threads)
+int ArrowWrapper::Impl::CountCharacter(std::string filename, char character, int num_threads)
 {
   std::ifstream file(filename, std::ios::binary);
   if (!file)
@@ -497,8 +631,12 @@ int ArrowWrapper::CountCharacter(std::string filename, char character, int num_t
 
   return totalCount;
 }
+int ArrowWrapper::CountCharacter(std::string filename, char character, int num_threads)
+{
+  return pImpl->CountCharacter(filename, character, num_threads);
+}
 
-int ArrowWrapper::GetColumnCount(const std::string_view &filename, char delim)
+int ArrowWrapper::Impl::GetColumnCount(const std::string_view &filename, char delim)
 {
   std::ifstream file(filename.data());
   if (!file.is_open())
@@ -527,4 +665,124 @@ int ArrowWrapper::GetColumnCount(const std::string_view &filename, char delim)
     REprintf("File is empty: %s \n", filename.data());
     return -1;
   }
+}
+
+std::shared_ptr<arrow::RecordBatchVector> ArrowWrapper::Impl::SplitFilesIntoEntries(const std::string_view &filename, const char *delim, const int &num_threads, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<FastaSequenceData>)> &Entry_callback, bool return_values)
+{
+
+  std::string delim_str(delim);
+
+  std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> file_ptrs = MMapFile(filename, delim);
+
+  char *start_of_file = std::get<1>(*file_ptrs).get();
+  char *end_of_file = std::get<3>(*file_ptrs);
+
+  char *p = start_of_file;
+
+  arrow::RecordBatchVector ret_results;
+
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
+  omp_lock_t pLock;
+  omp_lock_t ret_resultsLock;
+  omp_init_lock(&pLock);
+  omp_init_lock(&ret_resultsLock);
+#endif
+
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
+#pragma omp parallel num_threads(num_threads) shared(end_of_file, start_of_file, delim) // entry_ptr_vec
+#endif
+  {
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
+#pragma omp for schedule(dynamic) nowait // schedule(dynamic)
+#endif
+    for (int i = 0; i < num_threads; ++i)
+    {
+
+      // assert(!Progress::check_abort());
+      // Rcpp::checkUserInterrupt();
+      //  Get the thread-specific range to process
+      size_t chunk_size = (end_of_file - start_of_file) / num_threads;
+      char *thread_start = start_of_file + i * chunk_size;
+      char *thread_end = (i == num_threads - 1) ? end_of_file : (thread_start + chunk_size);
+
+      if (thread_start != start_of_file)
+      {
+        while (strncmp(thread_start, delim, strlen(delim)) != 0)
+        {
+          --thread_start;
+        }
+      }
+      if (thread_end != end_of_file)
+      {
+        while (strncmp(thread_end, delim, strlen(delim)) != 0)
+        {
+          ++thread_end;
+        }
+        thread_end = thread_end - 1;
+      }
+      // Process the entries within the thread's range
+      char *entryStart = nullptr;
+      char *entryEnd = nullptr;
+
+      for (char *p = thread_start; p < thread_end; ++p)
+      {
+        // assert(!Progress::check_abort());
+
+        if (strncmp(p, delim, strlen(delim)) == 0)
+        {
+          entryStart = strstr(p, delim);
+          entryEnd = strstr(p + 1, delim);
+
+          if (entryEnd == nullptr)
+          {
+            // Handle the case where the delimiter is not found within the thread's range
+            entryEnd = end_of_file - 1;
+          }
+
+          // Process the entry from entryStart to entryEnd
+          std::string full_entry(entryStart, entryEnd - entryStart - 1);
+          if (!full_entry.empty())
+          {
+            AddRecordCount();
+            const FastaSequenceData conv_entry = CastToType(full_entry);
+            if (Entry_callback != nullptr)
+            {
+              std::shared_ptr<arrow::RecordBatchVector> tmp_result = Entry_callback(std::make_shared<FastaSequenceData>(conv_entry));
+
+              if (return_values)
+              {
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
+                omp_set_lock(&ret_resultsLock);
+#endif
+
+                ret_results.insert(ret_results.end(), tmp_result->begin(), tmp_result->end());
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
+                omp_unset_lock(&ret_resultsLock);
+#endif
+              }
+              else
+              {
+                tmp_result->clear();
+              }
+            }
+          }
+          p = entryEnd - 1; // Move to the next position after the delimiter
+        }
+      }
+    }
+  }
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
+#pragma omp barrier
+#endif
+
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
+  omp_destroy_lock(&pLock);
+  omp_destroy_lock(&ret_resultsLock);
+#endif
+
+  return std::make_shared<arrow::RecordBatchVector>(ret_results);
+}
+std::shared_ptr<arrow::RecordBatchVector> ArrowWrapper::SplitFilesIntoEntries(const std::string_view &filename, const char *delim, const int &num_threads, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<FastaSequenceData>)> &Entry_callback, bool return_values)
+{
+  return pImpl->SplitFilesIntoEntries(filename, delim, num_threads, Entry_callback, return_values);
 }

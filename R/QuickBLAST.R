@@ -223,20 +223,6 @@ all2all <- function(first_list, second_list, input_type, seq_info, blast_program
   }, mc.cores = n_threads, mc.preschedule = T)
 }
 
-# #' Stub function that always returns true. Only to test the connection of DLLs and C function calls
-# #' @examples
-# #' \dontrun{
-# #' QuickBLAST::isQuickBLASTLoaded()
-# #' }
-# #'
-# #' @return Always TRUE
-# #' @useDynLib QuickBLAST, .registration = TRUE
-# #' @md
-# #' @export
-# isQuickBLASTLoaded <- function() {
-#   return(QB_isQuickBLASTLoaded())
-# }
-
 # R_dll_paths <- c(
 #   # list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=".dll", full.names = T),
 #   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"Riconv.dll"),
@@ -251,49 +237,23 @@ all2all <- function(first_list, second_list, input_type, seq_info, blast_program
 #   # fs::path_package("Rcpp","libs", Sys.getenv("R_ARCH"),"Rcpp.dll")
 # )
 
-msys_dlls <- c("msys-bz2-1", "msys-lzo2-2", "msys-z", "msys-pcre-1", "msys-zstd-1", "msys-sqlite3-0", "msys-gomp-1", "msys-stdc++-6", "msys-gcc_s-seh-1", "msys-2.0")
+# msys_dlls <- c("msys-bz2-1", "msys-lzo2-2", "msys-z", "msys-pcre-1", "msys-zstd-1", "msys-sqlite3-0", "msys-gomp-1", "msys-stdc++-6", "msys-gcc_s-seh-1", "msys-2.0")
 
-msys_dll_paths <- c( fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste(msys_dlls, .Platform$dynlib.ext,sep="")) )
+# msys_dll_paths <- c( fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste(msys_dlls, .Platform$dynlib.ext,sep="")) )
 
 # cat(list.files(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")),pattern = "*arrow.*dll", full.names = F))
 #"Riconv","R","Rgraphapp","Rblas","R","Rlapack"
 #"Riconv", "R", "Rgraphapp", "Rblas", "R", "Rlapack", 
-dlls <- c("libncbi_core", "libncbi_general", "libncbi_pub", "libncbi_seq", "libncbi_trackmgr", "libncbi_eutils", "libncbi_misc", "libsqlitewrapp", "liblmdb", "libefetch", "libncbi_seqext", "libncbi_xreader", "libncbi_xreader_id1", "libncbi_xreader_id2", "libncbi_xreader_cache", "libxxconnect2", "libpsg_client", "libncbi_xloader_genbank", "libncbi_xloader_blastdb", "libncbi_xloader_blastdb_rmt", "libncbi_general", "libncbi_web", "libncbi_align_format", "libutrtprof", "libncbi_algo", tools::file_path_sans_ext(list.files(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")),pattern = "*arrow.*dll", full.names = F)), "libQuickBLASTcpp")
+R_dlls <- c("Riconv", "R", "Rgraphapp", "Rblas", "R", "Rlapack")
+R_dll_paths <- paste0(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),.Platform$file.sep, R_dlls, .Platform$dynlib.ext)
+
+dlls <- c("libncbi_core", "libncbi_general", "libncbi_pub", "libncbi_seq", "libncbi_trackmgr", "libncbi_eutils", "libncbi_misc", "libsqlitewrapp", "liblmdb", "libefetch", "libncbi_seqext", "libncbi_xreader", "libncbi_xreader_id1", "libncbi_xreader_id2", "libncbi_xreader_cache", "libxxconnect2", "libpsg_client", "libncbi_xloader_genbank", "libncbi_xloader_blastdb", "libncbi_xloader_blastdb_rmt", "libncbi_general", "libncbi_web", "libncbi_align_format", "libutrtprof", "libncbi_algo", tools::file_path_sans_ext(list.files(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")),pattern = "*arrow.*dll", full.names = F)), "libncbi_blastinput", "libQuickBLASTcpp")
 # dlls <- c("libncbi_core", "libncbi_general", "libncbi_pub", "libncbi_seq", "libncbi_trackmgr", "libncbi_eutils", "libncbi_misc", "libsqlitewrapp", "liblmdb", "libefetch", "libncbi_seqext", "libncbi_xreader", "libncbi_xreader_id1", "libncbi_xreader_id2", "libncbi_xreader_cache", "libxxconnect2", "libpsg_client", "libncbi_xloader_genbank", "libncbi_web", "libncbi_align_format", "libutrtprof", "libncbi_algo", "libQuickBLASTcpp")
 
 
 dll_paths <- paste(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")), .Platform$file.sep, dlls, .Platform$dynlib.ext,sep="") 
 
-# dll_paths <- c(             
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_core", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_general", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_pub", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_seq", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_trackmgr", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_eutils", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_misc", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libsqlitewrapp", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("liblmdb", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libefetch", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_seqext", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_xreader", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_xreader_id1", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_xreader_id2", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_xreader_cache", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libxxconnect2", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libpsg_client", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_xloader_genbank", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_web", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_align_format", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libutrtprof", .Platform$dynlib.ext,sep="") ),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste("libncbi_algo", .Platform$dynlib.ext,sep="") ),
-#   #"inst/libs", Sys.getenv("R_ARCH"),"libarrow_msys2.dll.a",
-#   #"inst/libs", Sys.getenv("R_ARCH"),"msys-arrow-1601.dll",
-#   list.files(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")),pattern = "*arrow.*dll", full.names = T),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),paste("libQuickBLASTcpp", .Platform$dynlib.ext,sep="") )
-#   # fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),paste("QuickBLAST", .Platform$dynlib.ext,sep="") )
-#   #"inst/libs", Sys.getenv("R_ARCH"),"QuickBLAST.dll"
-# )
+dll_obj_list <-  list()
 
 .onLoad <- function(libname, pkgname) {
   # # Load the DLLs when the package is loaded
@@ -304,6 +264,9 @@ dll_paths <- paste(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")), 
   # require(RcppProgress)
   #R_dll_paths, msys_dll_paths
   # library.dynam("Rcpp", "Rcpp", fs::path_package("Rcpp","..",".."))
+  for (dll_path in c(R_dll_paths)) {
+    dyn.load(dll_path,now = T)
+  }
   for (dll_path in c(dll_paths)) {
   # for (dll_path in c(dlls)) {
     if (!file.exists(dll_path)) {
@@ -311,17 +274,19 @@ dll_paths <- paste(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")), 
     } else {
       # dyn.load(dll_path, local=F, now = T)
       # library.dynam(dll_path, "QuickBLAST", fs::path_package("QuickBLAST",".."))
-      if(!invisible(is.loaded(dll_path))){
-        dyn.load(dll_path,now = T)
-      }
+      # if(!invisible(is.loaded(dll_path))){
+        dll_obj_list <- append(dll_obj_list, list(dyn.load(dll_path,now = T)))
+      # }
       cat("Loaded DLL:", dll_path, "\n")
     }
   }
 }
 
 .onAttach <- function(libname, pkgname) {
+  Sys.setenv("ARROW_DEFAULT_MEMORY_POOL"="system")
+  Sys.setenv("ARROW_DEBUG_MEMORY_POOL"="warn")
   Sys.setenv("OMP_NUM_THREADS"=parallel::detectCores(all.tests = T, logical = T))
-  Sys.setenv("OMP_DYNAMIC"="FALSE")
+  Sys.setenv("OMP_DYNAMIC"="TRUE")
   Sys.setenv("OMP_WAIT_POLICY"="PASSIVE")
   Sys.setenv("OMP_DISPLAY_ENV"="VERBOSE")
   packageStartupMessage("QuickBLAST Loaded!")
@@ -334,28 +299,36 @@ dll_paths <- paste(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")), 
   # detach("package:QuickBLASTdeps", unload = TRUE)
   #msys_dll_paths
   packageStartupMessage("Unloading QuickBLAST...")
-  for (dll_path in c(rev(c(dll_paths)))) {
-    if(is.loaded(dll_path)){
-      if (dyn.unload(dll_path)) {
-        packageStartupMessage(cat("Unloaded DLL:", dll_path, "\n"))
-      } else {
-        packageStartupMessage(cat("Failed to unload DLL:", dll_path, "\n"))
-      }
-    }
+
+  loaded_dlls <- getLoadedDLLs()
+  loaded_dlls <- loaded_dlls[na.omit(match(dlls,names(loaded_dlls)))]
+
+  for(dll_info in loaded_dlls){
+    dyn.unload(dll_info[["path"]])
   }
+
+  # for (dll_path in c(rev(c(dll_paths)))) {
+  #   if(is.loaded(dll_path)){
+  #     if (dyn.unload(dll_path)) {
+  #       packageStartupMessage(cat("Unloaded DLL:", dll_path, "\n"))
+  #     } else {
+  #       packageStartupMessage(cat("Failed to unload DLL:", dll_path, "\n"))
+  #     }
+  #   }
+  # }
   # detach("package:QuickBLAST", unload = TRUE)
 }
 
 .onDetach <- function(libpath) {
   packageStartupMessage("Detaching QuickBLAST...")
   # rm(list = ls(envir = .GlobalEnv, pattern = "^QuickBLAST"))
-  for (dll_path in c(rev(c(dll_paths)))) {
-    if(is.loaded(dll_path)){
-      if (dyn.unload(dll_path)) {
-        packageStartupMessage(cat("Unloaded DLL:", dll_path, "\n"))
-      } else {
-        packageStartupMessage(cat("Failed to unload DLL:", dll_path, "\n"))
-      }
-    }
-  }
+  # for (dll_path in c(rev(c(dll_paths)))) {
+  #   if(is.loaded(dll_path)){
+  #     if (dyn.unload(dll_path)) {
+  #       packageStartupMessage(cat("Unloaded DLL:", dll_path, "\n"))
+  #     } else {
+  #       packageStartupMessage(cat("Failed to unload DLL:", dll_path, "\n"))
+  #     }
+  #   }
+  # }
 }

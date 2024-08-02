@@ -4,7 +4,8 @@
 #include <vector>
 #include <thread>
 
-#include <R_ext/Print.h>
+// #include <R_ext/Print.h>
+#include <R.h>
 #include <RcppCommon.h>
 #include <Rcpp.h>
 

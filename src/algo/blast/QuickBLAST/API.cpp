@@ -1,6 +1,6 @@
 #include <algo/blast/QuickBLAST/commons.hpp>
 // #include <algo/blast/QuickBLAST/ArrowWrapper.hpp>
-// #include <algo/blast/QuickBLAST/QuickBLAST.hpp>
+#include <algo/blast/QuickBLAST/QuickBLAST.hpp>
 #include <algo/blast/QuickBLAST/API.hpp>
 
 // namespace Log
@@ -33,7 +33,7 @@ extern "C"
 
     // QuickBLASTHandle GetQuickBLASTInstance(unsigned int id);
     QBLIBRARY_API unsigned int libQB_GetInstanceCount();
-    int GetInstanceID(QuickBLASTHandle ptr);
+    unsigned int GetInstanceID(QuickBLASTHandle ptr);
     // QBLIBRARY_API unsigned int libQB_CreateQuickBLASTInstance(const int seq_type, const int strand, const char *program, const char *options, int save_sequences);
     QBLIBRARY_API SEXP libQB_CreateQuickBLASTInstance(const int seq_type, const int strand, const char *program, const char *options, int save_sequences, const unsigned int num_threads);
 
@@ -69,7 +69,8 @@ SEXP libQB_isQuickBLASTLoaded()
 {
     std::string ret_str = "C++ - QuickBLAST dependencies Loaded!";
     Rprintf("%s - R print\n", ret_str.c_str());
-    ArrowWrapper testwrap = ArrowWrapper();
+    ArrowWrapper *testwrap = new ArrowWrapper();
+    std::shared_ptr<ArrowWrapper> testwrap_ = std::make_shared<ArrowWrapper>();
     return Rcpp::wrap(ret_str);
 }
 
@@ -322,9 +323,10 @@ unsigned int libQB_GetInstanceCount()
     // return Rcpp::wrap((int)cppObj_list.size());
 }
 
-int GetInstanceID(QuickBLASTHandle ptr)
+unsigned int GetInstanceID(QuickBLASTHandle ptr)
 {
-    return ptr.ptr->obj_id;
+    // return ptr.ptr->obj_id;
+    return ptr.ptr->GetObjectID();
 }
 
 std::string ConvertBLASTOptions2String(SEXP options)

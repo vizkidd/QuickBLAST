@@ -372,6 +372,7 @@ elseif(MINGW32)
 	)
 	NCBI_add_definitions(
 		QBLIBRARY_EXPORTS
+		STRICT_R_HEADERS
 		# # "_DEBUG_ARG(arg) arg"
 		# NCBI_CORE_EXPORTS
 		MINGW32
@@ -397,18 +398,18 @@ elseif(MINGW32)
 		${ARROW_LIB}
 		# ${PARQUET_LIB}
 		${R_HOME}/bin/${R_ARCH}/R.dll
-		${RCPP_FOLDER}/libs/${R_ARCH}/Rcpp.dll
+		#${RCPP_FOLDER}/libs/${R_ARCH}/Rcpp.dll
 		# ${MINGW_LIB}/libmingw32.a
-		${MINGW_LIB}/libws2_32.a
-		${MINGW_LIB}/libgdi32.a
-		${MINGW_LIB}/libkernel32.a
-		${MINGW_LIB}/libuser32.a
-		${MINGW_LIB}/libadvapi32.a
-		${MINGW_LIB}/libshell32.a
-		${MINGW_LIB}/libole32.a
-		${MINGW_LIB}/liboleaut32.a
-		${MINGW_LIB}/libmsvcrt.a
-		${MINGW_LIB}/libwsock32.a
+		#${MINGW_LIB}/libws2_32.a
+		#${MINGW_LIB}/libgdi32.a
+		#${MINGW_LIB}/libkernel32.a
+		#${MINGW_LIB}/libuser32.a
+		#${MINGW_LIB}/libadvapi32.a
+		#${MINGW_LIB}/libshell32.a
+		#${MINGW_LIB}/libole32.a
+		#${MINGW_LIB}/liboleaut32.a
+		#${MINGW_LIB}/libmsvcrt.a
+		#${MINGW_LIB}/libwsock32.a
 		sqlite3
 		) 
 	NCBI_end_lib()
