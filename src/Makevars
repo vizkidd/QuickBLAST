@@ -1,14 +1,22 @@
 CXXSTD = CXX17
-PKG_LIBS = -LBUILD/arrow/cpp/BUILD/release/ -LBUILD/ncbi-cxx-toolkit-public/BUILD/lib/ -L/usr/local/lib/ -L/usr/lib/ -larrow -lparquet -lrt -lxncbi -lxobjsimple -lxobjmgr -lblastinput -lblast -lblastdb -lblastdb_format -lxblast -lpthread -lseq -lxser -lgeneral -lseqset -lxutil -lalign_format `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` `$(R_HOME)/bin/Rscript -e "Rcpp:::LdFlags()"` $(SHLIB_OPENMP_CXXFLAGS)
-PKG_CXXFLAGS = -O3 -fPIC -fopenmp -Wextra -shared -Ilibsrc `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` $(SHLIB_OPENMP_CXXFLAGS) -pthread -I/usr/local/src/ -I/usr/include/ -IBUILD/arrow/cpp/src/ -IBUILD/ncbi-cxx-toolkit-public/src/ -IBUILD/ncbi-cxx-toolkit-public/BUILD/inc/
+PKG_LIBS = -Wl,-rpath='$$ORIGIN' -L../BUILD/arrow/cpp/BUILD/release/ -L../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ -L../BUILD/arrow/cpp/BUILD/release/ -L/usr/local/lib/ -L/usr/lib/ -larrow -lparquet -lrt -lxncbi -lgeneral -lseqcode -lseq -lseqset -lseqsplit -lseqedit -lgenome_collection -lxobjmgr -lsequtil -lxutil -lxser -lscoremat -lxnetblast -lxconnect -lxobjutil -lbiblio -lmedline -lpub -lxlogging -lsubmit -lxobjread -lsqlitewrapp -llmdb -lseqdb -ltables -lconnect -lcomposition_adjustment -lutrtprof -lxnetblastcli -lblastdb -lseqmasks_io -lxalgowinmask -lxalgodustmask -lblast -lxalgoblastdbindex -lxblast -lQuickBLASTcpp `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` `$(R_HOME)/bin/Rscript -e "Rcpp:::LdFlags()"` $(SHLIB_OPENMP_CXXFLAGS)
+PKG_CXXFLAGS = -O3 -fPIC -fopenmp -Wextra -shared -Ilibsrc `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` $(SHLIB_OPENMP_CXXFLAGS) -pthread -I/usr/local/src/ -I/usr/include/ -I../include/ -I../BUILD/arrow/cpp/src/ -I../BUILD/arrow/cpp/BUILD/src/ -I../BUILD/ncbi-cxx-toolkit-public/include/ -I../BUILD/ncbi-cxx-toolkit-public/src/ -I../BUILD/ncbi-cxx-toolkit-public/BUILD/inc/
 
 #-I/usr/local/include/ncbi-tools++/ -I/usr/include/arrow/ -I/usr/include/parquet/ 
 
-$(SHLIB): builddeps
+
+PATCHELF ?= BUILD/patchelf/src/patchelf   # fallback if patchelf in PATH
+
+all: builddeps build_patchelf $(SHLIB) copy_lib fix-rpath
+$(SHLIB): install_libs
+#install_libs
 
 builddeps:
-	(mkdir ../BUILD; \
-	cd ../BUILD; \
+	(rm -f *.o *.so ; \
+	mkdir ../BUILD; \
+	cd ../ ; \
+	Rscript -e "Rcpp::compileAttributes(verbose=T)" ; \
+	cd BUILD; \
 	CC="$(CC)" CFLAGS="$(CFLAGS)" \
 	CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)" RTOOLS_DIR="" \
 	cmake .. \
@@ -18,3 +26,39 @@ builddeps:
 	-DR_SHELL=1 \
 	-DRTOOLS_DIR=""; \
 	$(MAKE))
+	
+build_patchelf:
+	(cd ../BUILD/patchelf ; \
+	./bootstrap.sh ; \
+	./configure ; \
+	$(MAKE) ; \
+	$(MAKE) check ; \
+	)
+	
+install_libs:
+	(mkdir -p ../inst/libs/$(R_ARCH) ; \
+	cd ../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ ; \
+	ls -ltrh ; \
+	pwd ; \
+	cp -uf *.so ../../../../inst/libs/$(R_ARCH)/ ; \
+	cd ../../../arrow/cpp/BUILD/release/ ; \
+	cp -uf *.so* ../../../../../inst/libs/$(R_ARCH)/ ; \
+	cd ../../../../../src; \
+	echo $(R_ARCH) ; \
+	)
+
+copy_lib:
+		cp -uf *.so ../inst/libs/$(R_ARCH) ; 
+	
+fix-rpath:
+	@cd ../ ; command -v $(PATCHELF) >/dev/null 2>&1 || { echo "patchelf not found; install it or set PATCHELF variable"; exit 1; }
+	@echo "Patching rpath to '\$$ORIGIN' for .so files under inst/libs"
+	@cd ../ ; \
+	find "inst/libs" -type f -name '*.so*' -print0 | \
+		while IFS= read -r -d $$'\0' f; do \
+			echo "patching $$f"; \
+			$(PATCHELF) --set-rpath '$$ORIGIN' "$$f"; \
+		done
+		
+#Rscript install.libs.R; \
+#cp -uf libct_ftds100.so libefetch.so liblmdb.so libncbi_algo.so libncbi_align_format.so libncbi_core.so libncbi_dbapi_driver.so libncbi_eutils.so libncbi_general.so libncbi_misc.so libncbi_pub.so libncbi_seq.so libncbi_seqext.so libncbi_trackmgr.so libncbi_web.so libncbi_xdbapi_ftds.so libncbi_xloader_blastdb.so libncbi_xloader_blastdb_rmt.so libncbi_xloader_genbank.so libncbi_xobjsimple.so libncbi_xreader.so libncbi_xreader_cache.so libncbi_xreader_id1.so libncbi_xreader_id2.so libpsg_client.so libsqlitewrapp.so libutrtprof.so libxflatfile.so libxxconnect2.so libncbi_blastinput.so libQuickBLASTcpp.so ../../../../inst/libs/$(R_ARCH)/ ; \

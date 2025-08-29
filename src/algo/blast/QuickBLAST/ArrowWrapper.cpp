@@ -15,13 +15,51 @@
 #include <regex>
 #include <mutex>
 
+#include <string>
+#include <pwd.h>      // getpwuid, struct passwd
+#include <sys/types.h>
+#include <cstdlib>    // getenv
+#include <limits.h> 
+
 #include <algo/blast/QuickBLAST/commons.hpp>
 #include <algo/blast/QuickBLAST/ArrowWrapper.hpp>
+
+static std::string get_username_safe() {
+  // 1) try getlogin_r (thread-safe)
+#if defined(_POSIX_LOGIN_NAME_MAX)
+  size_t bufsize = _POSIX_LOGIN_NAME_MAX + 1;
+#else
+  size_t bufsize = 256;
+#endif
+  std::string name;
+  std::vector<char> buf(bufsize);
+  if (getlogin_r(buf.data(), buf.size()) == 0) {
+    if (buf[0] != '\0') {
+      return std::string(buf.data());
+    }
+  }
+  
+  // 2) fallback to passwd entry for the effective UID
+  struct passwd *pw = getpwuid(geteuid());
+  if (pw && pw->pw_name) {
+    return std::string(pw->pw_name);
+  }
+  
+  // 3) fallback to environment variable
+  const char* envu = std::getenv("USER");
+  if (envu && envu[0] != '\0') {
+    return std::string(envu);
+  }
+  
+  // 4) last resort
+  return std::string("unknown");
+}
 
 ArrowWrapper::Impl::Impl()
 {
 
-  Rprintf("DBG1 AW \n");
+  // Rprintf("DBG1 AW \n");
+  Rcpp::Rcout <<"DBG1 AW " << std::endl;
 
   // ok_promise.set_value(arrow::Status::OK());
 
@@ -29,9 +67,12 @@ ArrowWrapper::Impl::Impl()
   // outputStream = Rcpp::XPtr<std::ostringstream>();
 
   arrow_LFS = arrow::fs::LocalFileSystem();
+  Rcpp::Rcout <<"here1" << std::endl;
   std::string username = "";
 #if defined(linux) //|| defined(MINGW32)
-  username = getlogin();
+  Rcpp::Rcout <<"here1.1" << std::endl;
+  username = get_username_safe(); //getlogin();
+  Rcpp::Rcout <<"here2" << username << std::endl;
 // #elif defined(WIN32)
 //   char username_arr[UNLEN + 1];
 //   DWORD username_len = UNLEN + 1;
@@ -45,7 +86,8 @@ ArrowWrapper::Impl::Impl()
   }
 
   username += "(QuickBLAST)";
-  Rprintf("DBG2 AW \n");
+  // Rprintf("DBG2 AW \n");
+  Rcpp::Rcout <<"DBG2 AW " << std::endl;
   // props_bldr.compression(arrow::Compression::LZ4_FRAME);
   // props_bldr.created_by(username);
   // props_bldr.data_page_version(parquet::ParquetDataPageVersion::V2);
@@ -116,13 +158,16 @@ ArrowWrapper::Impl::Impl()
 
   blast_schema = arrow::schema({arrow::field("seq_info", seq_info_type),
                                 arrow::field("hsps", hsp_type)});
-  Rprintf("DBG3 AW \n");
+  // Rprintf("DBG3 AW \n");
+  Rcpp::Rcout <<"DBG3 AW " << std::endl;
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
   omp_init_lock(&rec_countLock);
   omp_init_lock(&rbv_batchLock);
   omp_init_lock(&rec_writerLock);
 #endif
-  Rprintf("DBG4 AW \n");
+  // Rprintf("DBG4 AW \n");
+  Rcpp::Rcout <<"DBG4 AW " << std::endl;
+  Rcpp::Rcout << std::flush;
 }
 
 ArrowWrapper::Impl::~Impl()

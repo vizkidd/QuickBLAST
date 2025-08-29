@@ -19,9 +19,12 @@
 #   return(methods::new(mod$QuickBLAST, seq_info[[1]], seq_info[[2]], program, options, seq_info[[3]]))
 # }
 
+
 #' Get a list of Enums used by QuickBLAST
 #'
 #' @return A List of Enums used by QuickBLAST
+#' @importFrom Rcpp evalCpp
+#' @useDynLib QuickBLAST, .registration=TRUE
 #' @export
 GetQuickBLASTEnums <- function() {
   return(list("ESeqType" = list(eNucleotide = 0, eProtein = 1), "EStrand" = list(
@@ -223,6 +226,10 @@ all2all <- function(first_list, second_list, input_type, seq_info, blast_program
   }, mc.cores = n_threads, mc.preschedule = T)
 }
 
+# isQuickBLASTLoaded <- function() {
+#   .Call(QuickBLAST:::"libQB_isQuickBLASTLoaded")
+# }
+
 # R_dll_paths <- c(
 #   # list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=".dll", full.names = T),
 #   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"Riconv.dll"),
@@ -247,7 +254,11 @@ all2all <- function(first_list, second_list, input_type, seq_info, blast_program
 R_dlls <- c("Riconv", "R", "Rgraphapp", "Rblas", "R", "Rlapack")
 R_dll_paths <- paste0(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),.Platform$file.sep, R_dlls, .Platform$dynlib.ext)
 
-dlls <- c("libncbi_core", "libncbi_general", "libncbi_pub", "libncbi_seq", "libncbi_trackmgr", "libncbi_eutils", "libncbi_misc", "libsqlitewrapp", "liblmdb", "libefetch", "libncbi_seqext", "libncbi_xreader", "libncbi_xreader_id1", "libncbi_xreader_id2", "libncbi_xreader_cache", "libxxconnect2", "libpsg_client", "libncbi_xloader_genbank", "libncbi_xloader_blastdb", "libncbi_xloader_blastdb_rmt", "libncbi_general", "libncbi_web", "libncbi_align_format", "libutrtprof", "libncbi_algo", tools::file_path_sans_ext(list.files(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")),pattern = "*arrow.*dll", full.names = F)), "libncbi_blastinput", "libQuickBLASTcpp")
+# dlls <- c("libncbi_core", "libncbi_general", "libncbi_pub", "libncbi_seq", "libncbi_trackmgr", "libncbi_eutils", "libncbi_misc", "libsqlitewrapp", "liblmdb", "libefetch", "libncbi_seqext", "libncbi_xreader", "libncbi_xreader_id1", "libncbi_xreader_id2", "libncbi_xreader_cache", "libxxconnect2", "libpsg_client", "libncbi_xloader_genbank", "libncbi_xloader_blastdb", "libncbi_xloader_blastdb_rmt", "libncbi_general", "libncbi_web", "libncbi_align_format", "libutrtprof", "libncbi_algo", tools::file_path_sans_ext(list.files(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")),pattern = "*arrow.*dll", full.names = F)), "libncbi_blastinput", "libQuickBLASTcpp")
+
+##Generate the DLL dependencies
+#lddtree libQuickBLASTcpp.so | awk '{ print $1 }' | grep -f <(ls -1)
+dlls <- c("libxncbi", "libxutil","libxser", "libgeneral", "libseqcode", "libbiblio", "libmedline", "libpub", "libsequtil", "libseq", "libseqset", "libseqsplit", "libseqedit", "libgenome_collection", "libsubmit", "libxobjmgr", "libscoremat", "libxnetblast", "libxconnect", "libxobjutil", "libxlogging", "libxobjread", "libsqlitewrapp", "liblmdb", "libblastdb", "libseqdb", "libtables", "libconnect", "libcomposition_adjustment", "libutrtprof", "libxconnect", "libxnetblastcli", "libseqmasks_io", "libxalgowinmask", "libxalgodustmask", "libblast", "libxalgoblastdbindex", "libxblast", "libarrow", "libQuickBLASTcpp")
 # dlls <- c("libncbi_core", "libncbi_general", "libncbi_pub", "libncbi_seq", "libncbi_trackmgr", "libncbi_eutils", "libncbi_misc", "libsqlitewrapp", "liblmdb", "libefetch", "libncbi_seqext", "libncbi_xreader", "libncbi_xreader_id1", "libncbi_xreader_id2", "libncbi_xreader_cache", "libxxconnect2", "libpsg_client", "libncbi_xloader_genbank", "libncbi_web", "libncbi_align_format", "libutrtprof", "libncbi_algo", "libQuickBLASTcpp")
 
 
@@ -256,30 +267,32 @@ dll_paths <- paste(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")), 
 dll_obj_list <-  list()
 
 .onLoad <- function(libname, pkgname) {
-  # # Load the DLLs when the package is loaded
-  # require(QuickBLAST)
-  #require(QuickBLASTdeps)
-  # require(arrow)
-  # require(Rcpp)
-  # require(RcppProgress)
-  #R_dll_paths, msys_dll_paths
-  # library.dynam("Rcpp", "Rcpp", fs::path_package("Rcpp","..",".."))
-  for (dll_path in c(R_dll_paths)) {
-    dyn.load(dll_path,now = T)
-  }
-  for (dll_path in c(dll_paths)) {
-  # for (dll_path in c(dlls)) {
-    if (!file.exists(dll_path)) {
-      cat("DLL file not found:", dll_path, "\n")
-    } else {
-      # dyn.load(dll_path, local=F, now = T)
-      # library.dynam(dll_path, "QuickBLAST", fs::path_package("QuickBLAST",".."))
-      # if(!invisible(is.loaded(dll_path))){
-        dll_obj_list <- append(dll_obj_list, list(dyn.load(dll_path,now = T)))
-      # }
-      cat("Loaded DLL:", dll_path, "\n")
-    }
-  }
+  # # # Load the DLLs when the package is loaded
+  # # require(QuickBLAST)
+  # #require(QuickBLASTdeps)
+  # # require(arrow)
+  # # require(Rcpp)
+  # # require(RcppProgress)
+  # #R_dll_paths, msys_dll_paths
+  # # library.dynam("Rcpp", "Rcpp", fs::path_package("Rcpp","..",".."))
+  # if(Sys.info()['sysname'] != "Linux"){
+  #   for (dll_path in c(R_dll_paths)) {
+  #     dyn.load(dll_path,now = T)
+  #   }
+  # }
+  # for (dll_path in c(dll_paths)) {
+  # # for (dll_path in c(dlls)) {
+  #   if (!file.exists(dll_path)) {
+  #     cat("DLL file not found:", dll_path, "\n")
+  #   } else {
+  #     # dyn.load(dll_path, local=F, now = T)
+  #     # library.dynam(dll_path, "QuickBLAST", fs::path_package("QuickBLAST",".."))
+  #     # if(!invisible(is.loaded(dll_path))){
+  #       dll_obj_list <- append(dll_obj_list, list(dyn.load(dll_path,now = T)))
+  #     # }
+  #     cat("Loaded DLL:", dll_path, "\n")
+  #   }
+  # }
 }
 
 .onAttach <- function(libname, pkgname) {
@@ -302,9 +315,9 @@ dll_obj_list <-  list()
 
   loaded_dlls <- getLoadedDLLs()
   loaded_dlls <- loaded_dlls[na.omit(match(dlls,names(loaded_dlls)))]
-
+  
   for(dll_info in loaded_dlls){
-    dyn.unload(dll_info[["path"]])
+    try(dyn.unload(dll_info[["path"]]), silent = T)
   }
 
   # for (dll_path in c(rev(c(dll_paths)))) {

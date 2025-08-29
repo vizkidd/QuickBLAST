@@ -1,4 +1,8 @@
-dest <- file.path(R_PACKAGE_DIR, paste0('libs', R_ARCH))
+if(grepl(Sys.getenv("R_PLATFORM"), pattern ="linux", ignore.case = T)){
+  dest <- file.path(R_PACKAGE_DIR, paste0('libs'))
+}else{
+  dest <- file.path(R_PACKAGE_DIR, paste0('libs', R_ARCH)) 
+}
 dir.create(dest, recursive = TRUE, showWarnings = FALSE)
 
 # staged_dest <- file.path(R_PACKAGE_DIR,"..","..","..","QuickBLAST", paste0('libs', R_ARCH))
@@ -7,7 +11,7 @@ dir.create(dest, recursive = TRUE, showWarnings = FALSE)
 #C:/Users/vishv/AppData/Local/Temp/RtmpOSDZyI/temp_libpath1bacef43ec2/00LOCK-QuickBLAST_cmake_test/00new/QuickBLAST
 #  C:/Users/vishv/AppData/Local/Temp/RtmpO6DZ4p/temp_libpath2fb068301991/QuickBLAST/ 
 
-cat(paste("INSTALLING....", R_PACKAGE_NAME, "\n", sep=""))
+cat(paste("INSTALLING....", R_PACKAGE_NAME, " FOR R - ", R_ARCH, "\n", sep=""))
 # cat(paste0(dest, "\n"))
 # cat(paste0(staged_dest, "\n"))
 # cat(paste0(R_PACKAGE_DIR, "\n"))
@@ -22,12 +26,15 @@ cat(paste("INSTALLING....", R_PACKAGE_NAME, "\n", sep=""))
 # cat(paste0(Sys.glob(paste0( fs::path_package("QuickBLAST", "libs", Sys.getenv("R_ARCH")), .Platform$file.sep,"*", SHLIB_EXT)),"\n"))
 
 #Sys.glob(paste0("*", SHLIB_EXT)
-files <- c(Sys.glob(paste0(file.path(R_PACKAGE_SOURCE,"inst","libs",Sys.getenv("R_ARCH")), .Platform$file.sep,"*", SHLIB_EXT)))
-
+if(grepl(Sys.getenv("R_PLATFORM"), pattern ="linux", ignore.case = T)){
+  files <- c(Sys.glob(paste0(file.path(R_PACKAGE_SOURCE,"inst","libs"), .Platform$file.sep,"*", SHLIB_EXT)))
+}else{
+  files <- c(Sys.glob(paste0(file.path(R_PACKAGE_SOURCE,"inst","libs",Sys.getenv("R_ARCH")), .Platform$file.sep,"*", SHLIB_EXT)))
+}
 # if(WINDOWS) files <- c(files, list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=SHLIB_EXT, full.names = T))
 
 # cat(files)
-
+# cat(dest)
 file.copy(files, dest, overwrite = TRUE)
 # file.copy(files, staged_dest, overwrite = TRUE)
 # file.copy(files, fs::path_package("QuickBLAST", "libs", Sys.getenv("R_ARCH")), overwrite = FALSE)

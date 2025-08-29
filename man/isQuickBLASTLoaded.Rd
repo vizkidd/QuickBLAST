@@ -2,19 +2,13 @@
 % Please edit documentation in R/RcppExports.R
 \name{isQuickBLASTLoaded}
 \alias{isQuickBLASTLoaded}
-\title{Stub function that always returns true. Only to test the connection of DLLs and C function calls}
+\title{Check R <-> C++ (FFI) connection}
 \usage{
 isQuickBLASTLoaded()
 }
 \value{
-Always TRUE
+String that successfully confirms when the package is loaded properly
 }
 \description{
-Stub function that always returns true. Only to test the connection of DLLs and C function calls
-}
-\examples{
-\dontrun{
-QuickBLAST::isQuickBLASTLoaded()
-}
-
+This function does nothing than check the connection between the R package and C++ libraries
 }

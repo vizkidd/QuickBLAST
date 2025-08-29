@@ -8,6 +8,10 @@
 #include <R.h>
 #include <RcppCommon.h>
 #include <Rcpp.h>
+#include <R_ext/Rdynload.h>
+
+// [[Rcpp::plugins(openmp)]]
+// [[Rcpp::depends(RcppProgress)]]
 
 #if defined(_WIN32) || defined(__MINGW32__) || defined(MINGW32) || defined(WIN32)
 // #define _WIN32_WINNT _WIN32_WINNT_WIN7

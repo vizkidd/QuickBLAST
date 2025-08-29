@@ -4,6 +4,10 @@
 # option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 # option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
+SET(CMAKE_SKIP_BUILD_RPATH FALSE)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+SET(CMAKE_INSTALL_RPATH "$ORIGIN") # Or CMAKE_INSTALL_RPATH "$ORIGIN/../lib" for relative paths
+
 if(NOT WIN32 AND NOT MINGW32)
 	execute_process(
 	COMMAND Rscript -e "install.packages(setdiff(c('Rcpp','RcppProgress'), rownames(installed.packages())), repos = \"http://cran.us.r-project.org\", quiet=T)" ;
@@ -22,16 +26,18 @@ if(NOT WIN32 AND NOT MINGW32)
 	message("R flags:" ${R_FLAGS})
 	execute_process(
     #COMMAND bash -c "pkg-config --cflags-only-I arrow | sed s/-I//g -";
-	COMMAND bash -c "realpath ../../../arrow/cpp/BUILD/release" ;
+	  #COMMAND bash -c "realpath ../../../arrow/cpp/BUILD/release" ;
+	  COMMAND bash -c "realpath ../../../arrow/cpp/" ;
     OUTPUT_VARIABLE ARROW_DIR
     OUTPUT_STRIP_TRAILING_WHITESPACE
 	)
 	#set(ARROW_DIR "../../../arrow/cpp/")
 	message("Arrow DIR:" ${ARROW_DIR})
 
+  #set(CMAKE_FIND_DEBUG_MODE TRUE)
 	find_library(ARROW_LIB
-    NAMES libarrow.a arrow libarrow
-    PATHS  ${ARROW_DIR}/BUILD/release /x86_64-w64-mingw32.static.posix/lib/ /mingw64/lib /ucrt64/lib /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu/
+    NAMES libarrow arrow libarrow.a
+    PATHS  ${ARROW_DIR} ${ARROW_DIR}/BUILD/release /x86_64-w64-mingw32.static.posix/lib/ /mingw64/lib /ucrt64/lib /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu/
 	REQUIRED
 	NO_DEFAULT_PATH
     )
@@ -78,16 +84,20 @@ if(NOT WIN32 AND NOT MINGW32)
 
 	NCBI_begin_lib(QuickBLASTcpp SHARED)
 	NCBI_enable_pch()
-	NCBI_sources(QuickBLAST)
+#NCBI_sources(ArrowWrapper QuickBLAST API)
+  NCBI_sources(ArrowWrapper QuickBLAST)
 	NCBI_headers(
 		*.h
 		*.hpp
 	)
 #   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
 #   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
 	NCBI_add_include_directories(
 		"${RCPP_FOLDER}/include"
 		"${RCPPPROG_FOLDER}/include"
+		"${ARROW_DIR}/BUILD/src"
 		"${ARROW_DIR}/src"
 		"${R_INC}"
 	)
@@ -321,10 +331,14 @@ elseif(MINGW32)
 	# NCBI_begin_lib(QuickBLASTcpp STATIC)
 	NCBI_begin_lib(QuickBLASTcpp SHARED)
 	NCBI_enable_pch()
-	NCBI_sources(
+#NCBI_sources(
+#	ArrowWrapper
+#	QuickBLAST
+#	API
+#)
+  NCBI_sources(
 		ArrowWrapper
 		QuickBLAST
-		API
 	)
 		# NCBI_optional_components(
 	# 	LMDB
@@ -338,6 +352,8 @@ elseif(MINGW32)
 	)
 #   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
 #   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
 	NCBI_add_include_directories(
 		"${R_INC_UNIX}"
 		"${R_INC}"

@@ -3,69 +3,78 @@
 #include <algo/blast/QuickBLAST/QuickBLAST.hpp>
 #include <algo/blast/QuickBLAST/API.hpp>
 
-namespace Log
-{
-    // #ifdef RCPP_USE_GLOBAL_ROSTREAM
-    Rcpp::Rostream<true> &Rcppcout = Rcpp::Rcpp_cout_get();
-    Rcpp::Rostream<false> &Rcppcerr = Rcpp::Rcpp_cerr_get();
-    // #endif
-} // namespace Log
+// namespace Log
+// {
+//     // #ifdef RCPP_USE_GLOBAL_ROSTREAM
+//     Rcpp::Rostream<true> &Rcppcout = Rcpp::Rcpp_cout_get();
+//     Rcpp::Rostream<false> &Rcppcerr = Rcpp::Rcpp_cerr_get();
+//     // #endif
+// } // namespace Log
 
 using namespace Rcpp;
 
-// #if defined(MINGW32) || defined(WIN32)
-extern "C"
-{
-    //     QBLIBRARY_API BOOL QuickBLASTcpp_main(std::string dllPath){
-    //         //std::string dllPath = "inst/x64/QuickBLASTcpp.dll";
+// // #if defined(MINGW32) || defined(WIN32)
+// extern "C"
+// {
+//     //     QBLIBRARY_API BOOL QuickBLASTcpp_main(std::string dllPath){
+//     //         //std::string dllPath = "inst/x64/QuickBLASTcpp.dll";
+// 
+//     //         // Load the DLL using LoadLibraryEx
+//     //         HMODULE hDLL = LoadLibraryExA(dllPath.data(), NULL, 0);
+// 
+//     //         if (hDLL == NULL) {
+//     //             std::cout << "Failed to load the DLL: " << dllPath<< std::endl;  // Handle DLL loading failure
+//     //             return FALSE;
+//     //         }
+// 
+//     //         //FreeLibrary(hDLL);
+//     //         return TRUE;
+//     //     }
+// 
+//     // QuickBLASTHandle GetQuickBLASTInstance(unsigned int id);
+//     QBLIBRARY_API unsigned int libQB_GetInstanceCount();
+//     unsigned int GetInstanceID(QuickBLASTHandle ptr);
+//     // QBLIBRARY_API unsigned int libQB_CreateQuickBLASTInstance(const int seq_type, const int strand, const char *program, const char *options, int save_sequences);
+//     QBLIBRARY_API SEXP libQB_CreateQuickBLASTInstance(const int seq_type, const int strand, const char *program, const char *options, int save_sequences, const unsigned int num_threads);
+// 
+//     QBLIBRARY_API SEXP libQB_DeleteQuickBLASTInstance(SEXP ptr_id);
+//     //     //QBLIBRARY_API ArrowWrapper* CreateArrowWrapperInstance();
+//     //     //QBLIBRARY_API std::shared_ptr<arrow::RecordBatch> cpp_BLAST2Seqs(std::shared_ptr<QuickBLAST> ptr, std::string query, std::string subject);
+//     //     //QBLIBRARY_API std::shared_ptr<arrow::RecordBatchVector> cpp_BLAST2Files(std::shared_ptr<QuickBLAST> ptr, std::string queryFile, std::string subjectFile, std::string outFile, int blast_sequence_limit, int num_threads, const bool show_progress = true, const bool return_values = false, int batch_size = 1024);
+//     QBLIBRARY_API bool libQB_SetQuickBLASTOptions(SEXP ptr_id, SEXP program_name, SEXP options);
+//     QBLIBRARY_API SEXP BLAST2Seqs(SEXP ptr_id, SEXP query, SEXP subject);
+//     QBLIBRARY_API SEXP BLAST2Files(SEXP ptr_id, SEXP query, SEXP subject, SEXP out_file, SEXP seq_limit, SEXP num_threads, SEXP show_progress, SEXP return_values, SEXP min_batch_size);
+//     // QBLIBRARY_API SEXP BLAST2Folders(int ptr_id, std::string query, std::string subject, std::string extension, std::string out_folder, int num_threads, bool reciprocal_hits, int min_batch_size = 1024);
+//     // QBLIBRARY_API SEXP BLAST1Folder(int ptr_id, std::string input_folder, std::string extension, std::string out_folder, int num_threads, bool reciprocal_hits, int min_batch_size = 1024);
+//     // // QBLIBRARY_API std::string getFilenameWithoutExtension(const std::string &filename);
+//     // // QBLIBRARY_API Rcpp::List rm_null(Rcpp::List x);
+//     // // QBLIBRARY_API std::vector<std::string> getFilesInDir(const std::string &folderPath, const std::string &extension);
+//     // QBLIBRARY_API SEXP libQB_isQuickBLASTLoaded();
+//     QBLIBRARY_API std::string libQB_isQuickBLASTLoaded();
+//     //     //QBLIBRARY_API  bool QueryOOBESupport() { return false; }
+//     //     /*QBLIBRARY_API int arrow_struct_num_fields(std::shared_ptr<arrow::StructArray> arr);
+//     //     QBLIBRARY_API std::shared_ptr<arrow::Array> arrow_struct_field(std::shared_ptr<arrow::StructArray> arr, const int i);
+//     //     QBLIBRARY_API std::shared_ptr<arrow::Array> arrow_array_slice(std::shared_ptr<arrow::Array> arr, const int offset, const int length);
+//     //     QBLIBRARY_API int arrow_schema_num_fields(std::shared_ptr<arrow::Schema> sch);
+//     //     QBLIBRARY_API std::shared_ptr<arrow::Field> arrow_schema_field(std::shared_ptr<arrow::Schema> sch, const int i);
+//     //     QBLIBRARY_API std::shared_ptr<arrow::DataType> arrow_schema_field_type(std::shared_ptr<arrow::Schema> sch, const int i);
+//     //     QBLIBRARY_API std::string arrow_schema_field_name(std::shared_ptr<arrow::Schema> sch, const int i);
+//     //     QBLIBRARY_API bool arrow_int8array_isvalid(std::shared_ptr<arrow::Int8Array> arr, int i);
+//     //     QBLIBRARY_API bool arrow_strarray_isvalid(std::shared_ptr<arrow::StringArray> arr, int i);
+//     //     QBLIBRARY_API bool arrow_dblarray_isvalid(std::shared_ptr<arrow::DoubleArray> arr, int i);*/
+// } // extern "C"
+// 
+// // #endif
 
-    //         // Load the DLL using LoadLibraryEx
-    //         HMODULE hDLL = LoadLibraryExA(dllPath.data(), NULL, 0);
-
-    //         if (hDLL == NULL) {
-    //             std::cout << "Failed to load the DLL: " << dllPath<< std::endl;  // Handle DLL loading failure
-    //             return FALSE;
-    //         }
-
-    //         //FreeLibrary(hDLL);
-    //         return TRUE;
-    //     }
-
-    // QuickBLASTHandle GetQuickBLASTInstance(unsigned int id);
-    QBLIBRARY_API unsigned int libQB_GetInstanceCount();
-    unsigned int GetInstanceID(QuickBLASTHandle ptr);
-    // QBLIBRARY_API unsigned int libQB_CreateQuickBLASTInstance(const int seq_type, const int strand, const char *program, const char *options, int save_sequences);
-    QBLIBRARY_API SEXP libQB_CreateQuickBLASTInstance(const int seq_type, const int strand, const char *program, const char *options, int save_sequences, const unsigned int num_threads);
-
-    QBLIBRARY_API SEXP libQB_DeleteQuickBLASTInstance(SEXP ptr_id);
-    //     //QBLIBRARY_API ArrowWrapper* CreateArrowWrapperInstance();
-    //     //QBLIBRARY_API std::shared_ptr<arrow::RecordBatch> cpp_BLAST2Seqs(std::shared_ptr<QuickBLAST> ptr, std::string query, std::string subject);
-    //     //QBLIBRARY_API std::shared_ptr<arrow::RecordBatchVector> cpp_BLAST2Files(std::shared_ptr<QuickBLAST> ptr, std::string queryFile, std::string subjectFile, std::string outFile, int blast_sequence_limit, int num_threads, const bool show_progress = true, const bool return_values = false, int batch_size = 1024);
-    QBLIBRARY_API bool libQB_SetQuickBLASTOptions(SEXP ptr_id, SEXP program_name, SEXP options);
-    QBLIBRARY_API SEXP BLAST2Seqs(SEXP ptr_id, SEXP query, SEXP subject);
-    QBLIBRARY_API SEXP BLAST2Files(SEXP ptr_id, SEXP query, SEXP subject, SEXP out_file, SEXP seq_limit, SEXP num_threads, SEXP show_progress, SEXP return_values, SEXP min_batch_size);
-    // QBLIBRARY_API SEXP BLAST2Folders(int ptr_id, std::string query, std::string subject, std::string extension, std::string out_folder, int num_threads, bool reciprocal_hits, int min_batch_size = 1024);
-    // QBLIBRARY_API SEXP BLAST1Folder(int ptr_id, std::string input_folder, std::string extension, std::string out_folder, int num_threads, bool reciprocal_hits, int min_batch_size = 1024);
-    // // QBLIBRARY_API std::string getFilenameWithoutExtension(const std::string &filename);
-    // // QBLIBRARY_API Rcpp::List rm_null(Rcpp::List x);
-    // // QBLIBRARY_API std::vector<std::string> getFilesInDir(const std::string &folderPath, const std::string &extension);
-    QBLIBRARY_API SEXP libQB_isQuickBLASTLoaded();
-    //     //QBLIBRARY_API  bool QueryOOBESupport() { return false; }
-    //     /*QBLIBRARY_API int arrow_struct_num_fields(std::shared_ptr<arrow::StructArray> arr);
-    //     QBLIBRARY_API std::shared_ptr<arrow::Array> arrow_struct_field(std::shared_ptr<arrow::StructArray> arr, const int i);
-    //     QBLIBRARY_API std::shared_ptr<arrow::Array> arrow_array_slice(std::shared_ptr<arrow::Array> arr, const int offset, const int length);
-    //     QBLIBRARY_API int arrow_schema_num_fields(std::shared_ptr<arrow::Schema> sch);
-    //     QBLIBRARY_API std::shared_ptr<arrow::Field> arrow_schema_field(std::shared_ptr<arrow::Schema> sch, const int i);
-    //     QBLIBRARY_API std::shared_ptr<arrow::DataType> arrow_schema_field_type(std::shared_ptr<arrow::Schema> sch, const int i);
-    //     QBLIBRARY_API std::string arrow_schema_field_name(std::shared_ptr<arrow::Schema> sch, const int i);
-    //     QBLIBRARY_API bool arrow_int8array_isvalid(std::shared_ptr<arrow::Int8Array> arr, int i);
-    //     QBLIBRARY_API bool arrow_strarray_isvalid(std::shared_ptr<arrow::StringArray> arr, int i);
-    //     QBLIBRARY_API bool arrow_dblarray_isvalid(std::shared_ptr<arrow::DoubleArray> arr, int i);*/
-} // extern "C"
-
-// #endif
-
-SEXP libQB_isQuickBLASTLoaded()
+//' @name isQuickBLASTLoaded
+//' @title Check R <-> C++ (FFI) connection
+//'
+//' @description This function does nothing than check the connection between the R package and C++ libraries
+//'
+//' @return String that successfully confirms when the package is loaded properly
+//' @export
+// [[Rcpp::export]]
+RcppExport std::string isQuickBLASTLoaded() //SEXP libQB_isQuickBLASTLoaded()
 {
     std::string ret_str = "C++ - QuickBLAST dependencies Loaded!";
     // Rprintf("%s - R print\n", ret_str.c_str());
@@ -73,7 +82,8 @@ SEXP libQB_isQuickBLASTLoaded()
      Rcpp::Rcout << std::flush;
     ArrowWrapper *testwrap = new ArrowWrapper();
     std::shared_ptr<ArrowWrapper> testwrap_ = std::make_shared<ArrowWrapper>();
-    return Rcpp::wrap(ret_str);
+    // return Rcpp::wrap(ret_str);
+    return ret_str;
 }
 
 void PrintClock(std::chrono::time_point<std::chrono::high_resolution_clock> start)
@@ -704,23 +714,23 @@ SEXP BLAST2Files(SEXP ptr_id, SEXP query, SEXP subject, SEXP out_file, SEXP seq_
     return rm_null(ret_vals_);
 }
 
-static const R_CallMethodDef CallEntries[] = {
-  {"libQB_isQuickBLASTLoaded", (DL_FUNC) &libQB_isQuickBLASTLoaded, 0},
-  {NULL, NULL, 0}
-};
-
-void R_init_libQuickBLASTcpp(DllInfo *dll)
-{
-  // R_registerRoutines(dll, cMethods, NULL, NULL, NULL);
-  // R_registerRoutines(dll, NULL, callMethods, NULL, NULL);
-  // DllInfo *info = R_getEmbeddingDllInfo();
-//   R_registerRoutines(dll, NULL, callMethods, NULL, NULL);
-  R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
-  // R_useDynamicSymbols(dll, static_cast<Rboolean>(1)); //Rcpp::TRUE is 1
-  R_useDynamicSymbols(dll, static_cast<Rboolean>(0)); //Rcpp::TRUE is 1
-  // R_forceSymbols(dll, static_cast<Rboolean>(0)); //Rcpp::FALSE is 0
-  R_forceSymbols(dll, static_cast<Rboolean>(1)); //Rcpp::FALSE is 0
-}
+// static const R_CallMethodDef CallEntries[] = {
+//   {"libQB_isQuickBLASTLoaded", (DL_FUNC) &libQB_isQuickBLASTLoaded, 0},
+//   {NULL, NULL, 0}
+// };
+// 
+// void R_init_libQuickBLASTcpp(DllInfo *dll)
+// {
+//   // R_registerRoutines(dll, cMethods, NULL, NULL, NULL);
+//   // R_registerRoutines(dll, NULL, callMethods, NULL, NULL);
+//   // DllInfo *info = R_getEmbeddingDllInfo();
+// //   R_registerRoutines(dll, NULL, callMethods, NULL, NULL);
+//   R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+//   // R_useDynamicSymbols(dll, static_cast<Rboolean>(1)); //Rcpp::TRUE is 1
+//   R_useDynamicSymbols(dll, static_cast<Rboolean>(0)); //Rcpp::TRUE is 1
+//   // R_forceSymbols(dll, static_cast<Rboolean>(0)); //Rcpp::FALSE is 0
+//   R_forceSymbols(dll, static_cast<Rboolean>(1)); //Rcpp::FALSE is 0
+// }
 
 
 // #ifdef RCPP_USE_GLOBAL_ROSTREAM
