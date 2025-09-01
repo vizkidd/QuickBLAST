@@ -27,3 +27,7 @@ StagedInstall: no
 UseLTO: yes
 RoxygenNote: 7.3.2
 Language: en-US
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

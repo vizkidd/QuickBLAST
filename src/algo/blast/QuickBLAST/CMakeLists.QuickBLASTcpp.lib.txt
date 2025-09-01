@@ -85,15 +85,13 @@ if(NOT WIN32 AND NOT MINGW32)
 	NCBI_begin_lib(QuickBLASTcpp SHARED)
 	NCBI_enable_pch()
 #NCBI_sources(ArrowWrapper QuickBLAST API)
-  NCBI_sources(ArrowWrapper QuickBLAST)
+  NCBI_sources(ArrowWrapper QuickBLAST QuickBLASTRemote)
 	NCBI_headers(
 		*.h
 		*.hpp
 	)
 #   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
 #   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
 	NCBI_add_include_directories(
 		"${RCPP_FOLDER}/include"
 		"${RCPPPROG_FOLDER}/include"
@@ -339,6 +337,7 @@ elseif(MINGW32)
   NCBI_sources(
 		ArrowWrapper
 		QuickBLAST
+		QuickBLASTRemote
 	)
 		# NCBI_optional_components(
 	# 	LMDB

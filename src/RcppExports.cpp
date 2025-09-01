@@ -11,7 +11,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // isQuickBLASTLoaded
-RcppExport std::string isQuickBLASTLoaded();
+RcppExport bool isQuickBLASTLoaded();
 RcppExport SEXP _QuickBLAST_isQuickBLASTLoaded() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -20,9 +20,158 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// GetInstanceCount
+RcppExport unsigned int GetInstanceCount();
+RcppExport SEXP _QuickBLAST_GetInstanceCount() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(GetInstanceCount());
+    return rcpp_result_gen;
+END_RCPP
+}
+// GetInstanceID
+RcppExport SEXP GetInstanceID(SEXP ptr);
+RcppExport SEXP _QuickBLAST_GetInstanceID(SEXP ptrSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type ptr(ptrSEXP);
+    rcpp_result_gen = Rcpp::wrap(GetInstanceID(ptr));
+    return rcpp_result_gen;
+END_RCPP
+}
+// GetQuickBLASTInstance
+RcppExport SEXP GetQuickBLASTInstance(unsigned int ptr_id);
+RcppExport SEXP _QuickBLAST_GetQuickBLASTInstance(SEXP ptr_idSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< unsigned int >::type ptr_id(ptr_idSEXP);
+    rcpp_result_gen = Rcpp::wrap(GetQuickBLASTInstance(ptr_id));
+    return rcpp_result_gen;
+END_RCPP
+}
+// CreateQuickBLASTInstance
+RcppExport SEXP CreateQuickBLASTInstance(const int seq_type, const int strand, SEXP program, SEXP options, const bool save_sequences, const unsigned int num_threads);
+RcppExport SEXP _QuickBLAST_CreateQuickBLASTInstance(SEXP seq_typeSEXP, SEXP strandSEXP, SEXP programSEXP, SEXP optionsSEXP, SEXP save_sequencesSEXP, SEXP num_threadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const int >::type seq_type(seq_typeSEXP);
+    Rcpp::traits::input_parameter< const int >::type strand(strandSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type program(programSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type options(optionsSEXP);
+    Rcpp::traits::input_parameter< const bool >::type save_sequences(save_sequencesSEXP);
+    Rcpp::traits::input_parameter< const unsigned int >::type num_threads(num_threadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(CreateQuickBLASTInstance(seq_type, strand, program, options, save_sequences, num_threads));
+    return rcpp_result_gen;
+END_RCPP
+}
+// DeleteQuickBLASTInstance
+RcppExport bool DeleteQuickBLASTInstance(const unsigned int ptr_id);
+RcppExport SEXP _QuickBLAST_DeleteQuickBLASTInstance(SEXP ptr_idSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const unsigned int >::type ptr_id(ptr_idSEXP);
+    rcpp_result_gen = Rcpp::wrap(DeleteQuickBLASTInstance(ptr_id));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SetQuickBLASTOptions
+RcppExport bool SetQuickBLASTOptions(SEXP ptr, SEXP program_name, SEXP options);
+RcppExport SEXP _QuickBLAST_SetQuickBLASTOptions(SEXP ptrSEXP, SEXP program_nameSEXP, SEXP optionsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type program_name(program_nameSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type options(optionsSEXP);
+    rcpp_result_gen = Rcpp::wrap(SetQuickBLASTOptions(ptr, program_name, options));
+    return rcpp_result_gen;
+END_RCPP
+}
+// BLAST2Seqs
+RcppExport SEXP BLAST2Seqs(SEXP ptr, SEXP query, SEXP subject);
+RcppExport SEXP _QuickBLAST_BLAST2Seqs(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type query(querySEXP);
+    Rcpp::traits::input_parameter< SEXP >::type subject(subjectSEXP);
+    rcpp_result_gen = Rcpp::wrap(BLAST2Seqs(ptr, query, subject));
+    return rcpp_result_gen;
+END_RCPP
+}
+// BLAST2Folders
+RcppExport bool BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension, SEXP out_folder, unsigned int num_threads, bool reciprocal_hits, unsigned int min_batch_size);
+RcppExport SEXP _QuickBLAST_BLAST2Folders(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP, SEXP extensionSEXP, SEXP out_folderSEXP, SEXP num_threadsSEXP, SEXP reciprocal_hitsSEXP, SEXP min_batch_sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type query(querySEXP);
+    Rcpp::traits::input_parameter< SEXP >::type subject(subjectSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type extension(extensionSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type out_folder(out_folderSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type num_threads(num_threadsSEXP);
+    Rcpp::traits::input_parameter< bool >::type reciprocal_hits(reciprocal_hitsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type min_batch_size(min_batch_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(BLAST2Folders(ptr, query, subject, extension, out_folder, num_threads, reciprocal_hits, min_batch_size));
+    return rcpp_result_gen;
+END_RCPP
+}
+// BLAST1Folder
+RcppExport bool BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP out_folder, unsigned int num_threads, bool reciprocal_hits, unsigned int min_batch_size);
+RcppExport SEXP _QuickBLAST_BLAST1Folder(SEXP ptrSEXP, SEXP input_folderSEXP, SEXP extensionSEXP, SEXP out_folderSEXP, SEXP num_threadsSEXP, SEXP reciprocal_hitsSEXP, SEXP min_batch_sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type input_folder(input_folderSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type extension(extensionSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type out_folder(out_folderSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type num_threads(num_threadsSEXP);
+    Rcpp::traits::input_parameter< bool >::type reciprocal_hits(reciprocal_hitsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type min_batch_size(min_batch_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(BLAST1Folder(ptr, input_folder, extension, out_folder, num_threads, reciprocal_hits, min_batch_size));
+    return rcpp_result_gen;
+END_RCPP
+}
+// BLAST2Files
+RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, int seq_limit, unsigned int num_threads, bool show_progress, bool return_values, unsigned int min_batch_size);
+RcppExport SEXP _QuickBLAST_BLAST2Files(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP, SEXP out_fileSEXP, SEXP seq_limitSEXP, SEXP num_threadsSEXP, SEXP show_progressSEXP, SEXP return_valuesSEXP, SEXP min_batch_sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type query(querySEXP);
+    Rcpp::traits::input_parameter< SEXP >::type subject(subjectSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type out_file(out_fileSEXP);
+    Rcpp::traits::input_parameter< int >::type seq_limit(seq_limitSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type num_threads(num_threadsSEXP);
+    Rcpp::traits::input_parameter< bool >::type show_progress(show_progressSEXP);
+    Rcpp::traits::input_parameter< bool >::type return_values(return_valuesSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type min_batch_size(min_batch_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(BLAST2Files(ptr, query, subject, out_file, seq_limit, num_threads, show_progress, return_values, min_batch_size));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_QuickBLAST_isQuickBLASTLoaded", (DL_FUNC) &_QuickBLAST_isQuickBLASTLoaded, 0},
+    {"_QuickBLAST_GetInstanceCount", (DL_FUNC) &_QuickBLAST_GetInstanceCount, 0},
+    {"_QuickBLAST_GetInstanceID", (DL_FUNC) &_QuickBLAST_GetInstanceID, 1},
+    {"_QuickBLAST_GetQuickBLASTInstance", (DL_FUNC) &_QuickBLAST_GetQuickBLASTInstance, 1},
+    {"_QuickBLAST_CreateQuickBLASTInstance", (DL_FUNC) &_QuickBLAST_CreateQuickBLASTInstance, 6},
+    {"_QuickBLAST_DeleteQuickBLASTInstance", (DL_FUNC) &_QuickBLAST_DeleteQuickBLASTInstance, 1},
+    {"_QuickBLAST_SetQuickBLASTOptions", (DL_FUNC) &_QuickBLAST_SetQuickBLASTOptions, 3},
+    {"_QuickBLAST_BLAST2Seqs", (DL_FUNC) &_QuickBLAST_BLAST2Seqs, 3},
+    {"_QuickBLAST_BLAST2Folders", (DL_FUNC) &_QuickBLAST_BLAST2Folders, 8},
+    {"_QuickBLAST_BLAST1Folder", (DL_FUNC) &_QuickBLAST_BLAST1Folder, 7},
+    {"_QuickBLAST_BLAST2Files", (DL_FUNC) &_QuickBLAST_BLAST2Files, 9},
     {NULL, NULL, 0}
 };
 

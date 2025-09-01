@@ -12,3 +12,167 @@ isQuickBLASTLoaded <- function() {
     .Call(`_QuickBLAST_isQuickBLASTLoaded`)
 }
 
+#' @name GetInstanceCount
+#' @title Get count of QuickBLAST instances stored in C++ side
+#'
+#' @description This function gives the size of the list of QuickBLAST C++ object list
+#'
+#' @return Count of QuickBLAST instances
+#' @export
+GetInstanceCount <- function() {
+    .Call(`_QuickBLAST_GetInstanceCount`)
+}
+
+#' @name GetInstanceID
+#' @title Get ID/Index of a QuickBLAST instance stored in C++ side
+#'
+#' @description This function fetches the ID/Index of a QuickBLAST instance of a Rcpp::XPtr<QuickBLAST> stored in C++ side.
+#'
+#' @param ptr (Rcpp::XPtr<QuickBLAST>) Pointer of QuickBLAST instance from the R side.
+#'
+#' @return (unsigned int) ID/Index of the QuickBLAST instance pointer, FALSE otherwise
+#' @export
+GetInstanceID <- function(ptr) {
+    .Call(`_QuickBLAST_GetInstanceID`, ptr)
+}
+
+#' @name GetQuickBLASTInstance
+#' @title Get QuickBLAST instance stored in C++ side at ID/Index
+#'
+#' @description This function fetches the QuickBLAST instance of a Rcpp::XPtr<QuickBLAST> at ID/Index stored in C++ side.
+#'
+#' @param ptr_id (unsigned int) ID/Index of Pointer to a QuickBLAST instance (in C++ side).
+#'
+#' @return (Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST instance, FALSE otherwise
+#' @export
+GetQuickBLASTInstance <- function(ptr_id) {
+    .Call(`_QuickBLAST_GetQuickBLASTInstance`, ptr_id)
+}
+
+#' @name CreateQuickBLASTInstance
+#'
+#' @title Create new QuickBLAST instance with seq_type, strand, program and BLAST options.
+#'
+#' @description Create a new QuickBLAST C++ object with seq_type, strand, program and BLAST options, which can be used in QuickBLAST::BLAST2Files() and QuickBLAST::BLAST2Seqs()
+#'
+#' @seealso [QuickBLAST::GetAvailableBLASTOptions()], [QuickBLAST::GetQuickBLASTEnums()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()]
+#' @param seq_type (int) 0 - (eNucleotide) (OR) 1 - (eProtein)
+#' @param strand (int) 0 - (ePlus) (OR) 1 - (eMinus)
+#' @param program (string) Name of the BLAST program
+#' @param options (string (or) Named List) List of BLAST options - check QuickBLAST::GetAvailableBLASTOptions(). String should be of the format "-option1 value1 -option2 value2". If empty, default values (per program) are used.
+#' @param save_sequences (bool) Save Sequences in the arrow::RecordBatch?.
+#' @param num_threads (int) Number of threads.
+#' @return (Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST Instance (Cannot be used in R)
+#' @export
+CreateQuickBLASTInstance <- function(seq_type, strand, program, options = NULL, save_sequences = FALSE, num_threads = 0L) {
+    .Call(`_QuickBLAST_CreateQuickBLASTInstance`, seq_type, strand, program, options, save_sequences, num_threads)
+}
+
+#' @name DeleteQuickBLASTInstance
+#' @title Delete a QuickBLAST instance stored in C++ side
+#'
+#' @description This function deletes a QuickBLAST instance based on the instance ID
+#'
+#' @param ptr_id (unsigned int) ID/Index of stored QuickBLAST instance.
+#'
+#' @return TRUE - if the instance is deleted successfully, FALSE otherwise
+#' @export
+DeleteQuickBLASTInstance <- function(ptr_id) {
+    .Call(`_QuickBLAST_DeleteQuickBLASTInstance`, ptr_id)
+}
+
+#' @name SetQuickBLASTOptions
+#'
+#' @title Set BLAST options for a QuickBLAST instance.
+#'
+#' @description Set/Modify the BLAST options for a QuickBLAST instance.
+#'
+#' @seealso [QuickBLAST::GetAvailableBLASTOptions()], [QuickBLAST::GetQuickBLASTEnums()]
+#' @param ptr (Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST Instance
+#' @param program_name (string) Name of the BLAST program
+#' @param options (string (or) Named List) List of BLAST options - check QuickBLAST::GetAvailableBLASTOptions(). String should be of the format "-option1 value1 -option2 value2"
+#' @return (bool) TRUE - if options set for the QuickBLAST instance, FALSE otherwise
+#' @export
+SetQuickBLASTOptions <- function(ptr, program_name, options) {
+    .Call(`_QuickBLAST_SetQuickBLASTOptions`, ptr, program_name, options)
+}
+
+#' @name BLAST2Seqs
+#'
+#' @title BLAST 2 Sequence strings
+#'
+#' @description BLAST 2 nucleotide or protein strings with a QuickBLAST instance.
+#'
+#' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()]
+#' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+#' @param query (string) Query sequence
+#' @param subject (string) Subject sequence.
+#' @return (Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST Instance (Cannot be used in R)
+#' @export
+BLAST2Seqs <- function(ptr, query, subject) {
+    .Call(`_QuickBLAST_BLAST2Seqs`, ptr, query, subject)
+}
+
+#' @name BLAST2Folders
+#'
+#' @title BLAST 2 Folders
+#'
+#' @description BLAST 2 Folders with FASTA files containing nucleotide or protein sequences with a QuickBLAST instance. The files from query and subject folders are selected with the extension parameter
+#'
+#' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()]
+#' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+#' @param query (string) Query folder
+#' @param subject (string) Subject folder.
+#' @param extension (string) Extension of files in folder.
+#' @param out_folder (string) Ouput Folder (Must be empty).
+#' @param num_threads (unsigned int) Number of threads. (Optional)
+#' @param reciprocal_hits (bool) Perform Bi-directional (Reciprocal => query <-> subject) BLAST? (Default: FALSE) (Optional)
+#' @param min_batch_size (unsigned int) Minimum batch size (Optional).
+#' @return (bool) TRUE - on success, FALSE - Otherwise. (Results are not returned as R Lists to reduce overhead)
+#' @export
+BLAST2Folders <- function(ptr, query, subject, extension, out_folder, num_threads = 0L, reciprocal_hits = FALSE, min_batch_size = 0L) {
+    .Call(`_QuickBLAST_BLAST2Folders`, ptr, query, subject, extension, out_folder, num_threads, reciprocal_hits, min_batch_size)
+}
+
+#' @name BLAST1Folder
+#'
+#' @title BLAST Files within a Folder
+#'
+#' @description BLAST FASTA files containing nucleotide or protein sequences, within a folder with a QuickBLAST instance. The files from the folder are selected with the extension parameter and BLAST'd against each other.
+#'
+#' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()]
+#' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+#' @param input_folder (string) Input folder
+#' @param extension (string) Extension of files in folder.
+#' @param out_folder (string) Ouput Folder (Must be empty).
+#' @param num_threads (unsigned int) Number of threads. (Optional)
+#' @param reciprocal_hits (bool) Perform Bi-directional (Reciprocal => query <-> subject) BLAST? (Default: FALSE) (Optional)
+#' @param min_batch_size (unsigned int) Minimum batch size (Optional).
+#' @return (bool) TRUE - on success, FALSE - Otherwise. (Results are not returned as R Lists to reduce overhead)
+#' @export
+BLAST1Folder <- function(ptr, input_folder, extension, out_folder, num_threads = 0L, reciprocal_hits = FALSE, min_batch_size = 0L) {
+    .Call(`_QuickBLAST_BLAST1Folder`, ptr, input_folder, extension, out_folder, num_threads, reciprocal_hits, min_batch_size)
+}
+
+#' @name BLAST2Files
+#'
+#' @title BLAST 2 Files
+#'
+#' @description BLAST 2 FASTA files containing nucleotide or protein sequences with a QuickBLAST instance.
+#'
+#' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()]
+#' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+#' @param query (string) Query file
+#' @param subject (string) Subject file
+#' @param out_file (string) Ouput file
+#' @param seq_limit (int) Batch Size to BLAST at a time. { -1 = Whole File, 0 - One sequence at a time or > 0 } (Optional)
+#' @param num_threads (unsigned int) Number of threads. (Optional)
+#' @param show_progress (bool) Show progress (Default: TRUE) (Optional)
+#' @param return_values (bool) Return BLAST Hits as Rcpp::List (Default: TRUE) (Optional)
+#' @param min_batch_size (unsigned int) Minimum batch size (Optional).
+#' @return (SEXP) Rcpp::List - if return_values == TRUE, out_file - Otherwise.
+#' @export
+BLAST2Files <- function(ptr, query, subject, out_file, seq_limit = -1L, num_threads = 0L, show_progress = TRUE, return_values = TRUE, min_batch_size = 0L) {
+    .Call(`_QuickBLAST_BLAST2Files`, ptr, query, subject, out_file, seq_limit, num_threads, show_progress, return_values, min_batch_size)
+}
+

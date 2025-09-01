@@ -1,0 +1,51 @@
+---
+title: "QuickBLAST"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{QuickBLAST}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, echo=TRUE,include=T, tidy=TRUE}
+library(QuickBLAST)
+QuickBLAST::isQuickBLASTLoaded()
+blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp")
+blastn_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 0, strand = 0, program = "blastn")
+tblastx_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 0, strand = 0, program = "tblastx")
+blastp_inst
+blastn_inst
+tblastx_inst
+```
+
+```{r inst_man, echo=TRUE,include=T, tidy=TRUE}
+QuickBLAST::GetInstanceCount()
+QuickBLAST::GetInstanceID(blastp_inst)
+QuickBLAST::GetInstanceID(blastn_inst)
+QuickBLAST::GetInstanceID(tblastx_inst)
+QuickBLAST::GetQuickBLASTInstance(0)
+QuickBLAST::GetQuickBLASTInstance(1)
+QuickBLAST::GetQuickBLASTInstance(2)
+identical(QuickBLAST::GetQuickBLASTInstance(0), blastp_inst)
+identical(QuickBLAST::GetQuickBLASTInstance(1), blastn_inst)
+identical(QuickBLAST::GetQuickBLASTInstance(2), tblastx_inst)
+identical(QuickBLAST::GetQuickBLASTInstance(0), tblastx_inst)
+QuickBLAST::DeleteQuickBLASTInstance(ptr_id = 1)
+QuickBLAST::GetInstanceCount()
+QuickBLAST::GetQuickBLASTInstance(1)
+identical(QuickBLAST::GetQuickBLASTInstance(1), blastn_inst)
+blastn_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 0, strand = 0, program = "blastn")
+```
+
+
+```{r test}
+QuickBLAST::BLAST2Seqs(tblastx_inst, "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG")
+QuickBLAST::BLAST2Seqs(blastn_inst, "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG")
+```

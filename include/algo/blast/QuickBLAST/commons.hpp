@@ -3,11 +3,13 @@
 #include <string>
 #include <vector>
 #include <thread>
+#include <algorithm>   // std::max
 
 // #include <R_ext/Print.h>
 #include <R.h>
 #include <RcppCommon.h>
 #include <Rcpp.h>
+#include <progress.hpp> //RcppProgress
 #include <R_ext/Rdynload.h>
 
 // [[Rcpp::plugins(openmp)]]

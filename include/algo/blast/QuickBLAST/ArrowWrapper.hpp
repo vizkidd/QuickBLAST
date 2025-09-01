@@ -60,7 +60,7 @@ public:
     void SetThreadCount(int num_threads);
     arrow::Result<std::shared_ptr<arrow::RecordBatch>> AddRB2Batch(std::shared_ptr<arrow::RecordBatch> rb_);
     arrow::Result<std::shared_ptr<arrow::RecordBatchVector>> AddRBV2Batch(const arrow::RecordBatchVector &rbv_);
-    arrow::Status CreateOutputStream(const std::string &outFile);
+    arrow::Status CreateOutputStream(std::string &outFile);
 
     std::shared_ptr<arrow::DataType> GetSeqInfoType(void);
     std::shared_ptr<arrow::DataType> GetAlignmentScoresType(void);
@@ -130,7 +130,7 @@ struct ArrowWrapper::Impl
     void SetThreadCount(int num_threads);
     arrow::Result<std::shared_ptr<arrow::RecordBatch>> AddRB2Batch(std::shared_ptr<arrow::RecordBatch> rb_);
     arrow::Result<std::shared_ptr<arrow::RecordBatchVector>> AddRBV2Batch(const arrow::RecordBatchVector &rbv_);
-    arrow::Status CreateOutputStream(const std::string &outFile);
+    arrow::Status CreateOutputStream(std::string &outFile);
 
     std::shared_ptr<arrow::DataType> GetSeqInfoType(void);
     std::shared_ptr<arrow::DataType> GetAlignmentScoresType(void);

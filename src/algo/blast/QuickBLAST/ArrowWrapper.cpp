@@ -14,6 +14,7 @@
 #include <sys/mman.h>
 #include <regex>
 #include <mutex>
+#include <cstdio> //tmpfile
 
 #include <string>
 #include <pwd.h>      // getpwuid, struct passwd
@@ -58,8 +59,8 @@ static std::string get_username_safe() {
 ArrowWrapper::Impl::Impl()
 {
 
-  // Rprintf("DBG1 AW \n");
-  Rcpp::Rcout <<"DBG1 AW " << std::endl;
+  // // Rprintf("DBG1 AW \n");
+  // Rcpp::Rcout <<"DBG1 AW " << std::endl;
 
   // ok_promise.set_value(arrow::Status::OK());
 
@@ -67,12 +68,10 @@ ArrowWrapper::Impl::Impl()
   // outputStream = Rcpp::XPtr<std::ostringstream>();
 
   arrow_LFS = arrow::fs::LocalFileSystem();
-  Rcpp::Rcout <<"here1" << std::endl;
   std::string username = "";
 #if defined(linux) //|| defined(MINGW32)
-  Rcpp::Rcout <<"here1.1" << std::endl;
   username = get_username_safe(); //getlogin();
-  Rcpp::Rcout <<"here2" << username << std::endl;
+  // Rcpp::Rcout <<"here2" << username << std::endl;
 // #elif defined(WIN32)
 //   char username_arr[UNLEN + 1];
 //   DWORD username_len = UNLEN + 1;
@@ -86,8 +85,8 @@ ArrowWrapper::Impl::Impl()
   }
 
   username += "(QuickBLAST)";
-  // Rprintf("DBG2 AW \n");
-  Rcpp::Rcout <<"DBG2 AW " << std::endl;
+  // // Rprintf("DBG2 AW \n");
+  // Rcpp::Rcout <<"DBG2 AW " << std::endl;
   // props_bldr.compression(arrow::Compression::LZ4_FRAME);
   // props_bldr.created_by(username);
   // props_bldr.data_page_version(parquet::ParquetDataPageVersion::V2);
@@ -158,15 +157,15 @@ ArrowWrapper::Impl::Impl()
 
   blast_schema = arrow::schema({arrow::field("seq_info", seq_info_type),
                                 arrow::field("hsps", hsp_type)});
-  // Rprintf("DBG3 AW \n");
-  Rcpp::Rcout <<"DBG3 AW " << std::endl;
+  // // Rprintf("DBG3 AW \n");
+  // Rcpp::Rcout <<"DBG3 AW " << std::endl;
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
   omp_init_lock(&rec_countLock);
   omp_init_lock(&rbv_batchLock);
   omp_init_lock(&rec_writerLock);
 #endif
-  // Rprintf("DBG4 AW \n");
-  Rcpp::Rcout <<"DBG4 AW " << std::endl;
+  // // Rprintf("DBG4 AW \n");
+  // Rcpp::Rcout <<"DBG4 AW " << std::endl;
   Rcpp::Rcout << std::flush;
 }
 
@@ -179,7 +178,7 @@ ArrowWrapper::Impl::~Impl()
 #endif
 
   // std::cout << "~ArrowWrapper " << std::endl;
-  Rprintf("~ArrowWrapper::Impl");
+  // Rprintf("~ArrowWrapper::Impl");
 }
 
 ArrowWrapper::ArrowWrapper()
@@ -355,8 +354,11 @@ arrow::Result<std::shared_ptr<arrow::RecordBatchVector>> ArrowWrapper::AddRBV2Ba
   return pImpl->AddRBV2Batch(rbv_);
 }
 
-arrow::Status ArrowWrapper::Impl::CreateOutputStream(const std::string &outFile)
+arrow::Status ArrowWrapper::Impl::CreateOutputStream(std::string &outFile)
 {
+  if(outFile.empty()){
+    outFile = std::tmpnam(nullptr); 
+  }
   outFileStream = arrow_LFS.OpenAppendStream(outFile, GetBLASTMetadata()).ValueOrDie();
   auto codec = arrow::util::Codec::Create(arrow::Compression::GZIP).ValueOrDie();
 
@@ -364,7 +366,7 @@ arrow::Status ArrowWrapper::Impl::CreateOutputStream(const std::string &outFile)
 
   return arrow::Status::OK();
 }
-arrow::Status ArrowWrapper::CreateOutputStream(const std::string &outFile)
+arrow::Status ArrowWrapper::CreateOutputStream(std::string &outFile)
 {
   return pImpl->CreateOutputStream(outFile);
 }
@@ -416,8 +418,13 @@ std::shared_ptr<arrow::Schema> ArrowWrapper::GetFASTASchema(void)
 
 std::shared_ptr<arrow::Schema> ArrowWrapper::Impl::GetSchema(void)
 {
+  if (!blast_schema) {
+    // initialize default options or throw helpful error
+    Rcpp::stop("ArrowWrapper::GetSchema(): blast_schema is not initialised");
+  }
   return blast_schema;
 }
+
 std::shared_ptr<arrow::Schema> ArrowWrapper::GetSchema(void)
 {
   return pImpl->GetSchema();
@@ -744,7 +751,7 @@ std::shared_ptr<arrow::RecordBatchVector> ArrowWrapper::Impl::SplitFilesIntoEntr
     {
 
       // assert(!Progress::check_abort());
-      // Rcpp::checkUserInterrupt();
+      Rcpp::checkUserInterrupt();
       //  Get the thread-specific range to process
       size_t chunk_size = (end_of_file - start_of_file) / num_threads;
       char *thread_start = start_of_file + i * chunk_size;

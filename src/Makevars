@@ -11,12 +11,13 @@ all: builddeps build_patchelf $(SHLIB) copy_lib fix-rpath
 $(SHLIB): install_libs
 #install_libs
 
+#cd ../ ; \
+#Rscript -e "Rcpp::compileAttributes(verbose=T)" ; 
+
 builddeps:
 	(rm -f *.o *.so ; \
 	mkdir ../BUILD; \
-	cd ../ ; \
-	Rscript -e "Rcpp::compileAttributes(verbose=T)" ; \
-	cd BUILD; \
+	cd ../BUILD; \
 	CC="$(CC)" CFLAGS="$(CFLAGS)" \
 	CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)" RTOOLS_DIR="" \
 	cmake .. \
@@ -38,8 +39,6 @@ build_patchelf:
 install_libs:
 	(mkdir -p ../inst/libs/$(R_ARCH) ; \
 	cd ../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ ; \
-	ls -ltrh ; \
-	pwd ; \
 	cp -uf *.so ../../../../inst/libs/$(R_ARCH)/ ; \
 	cd ../../../arrow/cpp/BUILD/release/ ; \
 	cp -uf *.so* ../../../../../inst/libs/$(R_ARCH)/ ; \

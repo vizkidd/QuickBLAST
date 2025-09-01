@@ -27,6 +27,7 @@
 #' @useDynLib QuickBLAST, .registration=TRUE
 #' @export
 GetQuickBLASTEnums <- function() {
+  warning("Check https://www.ncbi.nlm.nih.gov/IEB/ToolBox/CPP_DOC/lxr/ident to search/lookup all the enums.")
   return(list("ESeqType" = list(eNucleotide = 0, eProtein = 1), "EStrand" = list(
     ePlus = 0,
     eMinus = 1,
@@ -313,23 +314,23 @@ dll_obj_list <-  list()
   #msys_dll_paths
   packageStartupMessage("Unloading QuickBLAST...")
 
-  loaded_dlls <- getLoadedDLLs()
-  loaded_dlls <- loaded_dlls[na.omit(match(dlls,names(loaded_dlls)))]
-  
-  for(dll_info in loaded_dlls){
-    try(dyn.unload(dll_info[["path"]]), silent = T)
-  }
-
-  # for (dll_path in c(rev(c(dll_paths)))) {
-  #   if(is.loaded(dll_path)){
-  #     if (dyn.unload(dll_path)) {
-  #       packageStartupMessage(cat("Unloaded DLL:", dll_path, "\n"))
-  #     } else {
-  #       packageStartupMessage(cat("Failed to unload DLL:", dll_path, "\n"))
-  #     }
-  #   }
+  # loaded_dlls <- getLoadedDLLs()
+  # loaded_dlls <- loaded_dlls[na.omit(match(dlls,names(loaded_dlls)))]
+  # 
+  # for(dll_info in loaded_dlls){
+  #   try(dyn.unload(dll_info[["path"]]), silent = T)
   # }
-  # detach("package:QuickBLAST", unload = TRUE)
+  # 
+  # # for (dll_path in c(rev(c(dll_paths)))) {
+  # #   if(is.loaded(dll_path)){
+  # #     if (dyn.unload(dll_path)) {
+  # #       packageStartupMessage(cat("Unloaded DLL:", dll_path, "\n"))
+  # #     } else {
+  # #       packageStartupMessage(cat("Failed to unload DLL:", dll_path, "\n"))
+  # #     }
+  # #   }
+  # # }
+  # # detach("package:QuickBLAST", unload = TRUE)
 }
 
 .onDetach <- function(libpath) {

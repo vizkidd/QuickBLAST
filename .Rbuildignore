@@ -2,9 +2,13 @@
 ^\.Rproj\.user$
 ^\.Rhistory$
 ^\.RData$
+^\.git/$
+^\.gitignore$
 ^BUILD/*
 ^old/*
 ^.vscode/*
 ^.*\.old$
 ^.*\.dll$
 ^.*\.o$
+^.*\.so$
+^preflight_setup.sh$
