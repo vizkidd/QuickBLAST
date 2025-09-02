@@ -159,6 +159,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// RemoteBLAST
+RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input_type, SEXP outFile, bool return_values);
+RcppExport SEXP _QuickBLAST_RemoteBLAST(SEXP ptrSEXP, SEXP databaseSEXP, SEXP query_inputSEXP, SEXP input_typeSEXP, SEXP outFileSEXP, SEXP return_valuesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type ptr(ptrSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type database(databaseSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type query_input(query_inputSEXP);
+    Rcpp::traits::input_parameter< int >::type input_type(input_typeSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type outFile(outFileSEXP);
+    Rcpp::traits::input_parameter< bool >::type return_values(return_valuesSEXP);
+    rcpp_result_gen = Rcpp::wrap(RemoteBLAST(ptr, database, query_input, input_type, outFile, return_values));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_QuickBLAST_isQuickBLASTLoaded", (DL_FUNC) &_QuickBLAST_isQuickBLASTLoaded, 0},
@@ -172,6 +188,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_QuickBLAST_BLAST2Folders", (DL_FUNC) &_QuickBLAST_BLAST2Folders, 8},
     {"_QuickBLAST_BLAST1Folder", (DL_FUNC) &_QuickBLAST_BLAST1Folder, 7},
     {"_QuickBLAST_BLAST2Files", (DL_FUNC) &_QuickBLAST_BLAST2Files, 9},
+    {"_QuickBLAST_RemoteBLAST", (DL_FUNC) &_QuickBLAST_RemoteBLAST, 6},
     {NULL, NULL, 0}
 };
 

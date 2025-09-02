@@ -12,11 +12,11 @@ Rscript -e "devtools::document(quiet = T)" #roxygen2::roxygenize(clean = T)
 
 rm -rf BUILD/ inst/
 
+Rscript -e "devtools::build_vignettes()"
+
 Rscript -e "devtools::build(binary = T,vignettes = T)"
 
 rm -rf BUILD/ inst/
-
-Rscript -e "devtools::build_vignettes()"
 
 Rscript -e "devtools::install(force = T)"
 

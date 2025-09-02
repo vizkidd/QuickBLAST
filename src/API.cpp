@@ -1019,43 +1019,52 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
  //'
  //' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]
  //' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
- //' @param query (string) Query file
- //' @param subject (string) Subject file
- //' @param out_file (string) Ouput file (Optional - Intermediate temporary file is created if this option is not provided. Make sure tempdir has enough space)
- //' @param seq_limit (int) Batch Size to BLAST at a time. { -1 = Whole File, 0 - One sequence at a time or > 0 } (Optional)
+ //' @param database (string) Name of the remote NCBI DB
+ //' @param query_input (Rcpp::List) (Named) List of input queries (Sequences, Files, Folders - type is determined by input_type parameter)
+ //' @param input_type (QuickBLAST::EInputType) Input type (Check [QuickBLAST::GetQuickBLASTEnums()])
+ //' @param outFile (string) Output file name (Optional)
  //' @param num_threads (unsigned int) Number of threads. (Optional)
- //' @param show_progress (bool) Show progress (Default: TRUE) (Optional)
  //' @param return_values (bool) Return BLAST Hits as Rcpp::List (Default: TRUE) (Optional)
- //' @param min_batch_size (unsigned int) Minimum batch size (Optional).
- //' @return (SEXP) Rcpp::List - if return_values == TRUE, out_file - Otherwise.
+ //' @return (SEXP) Rcpp::List - if return_values == TRUE, outFile - Otherwise.
  //' @export
  // [[Rcpp::export]]
- RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, SEXP input_type, SEXP outFile = R_NilValue, bool return_values = true, SEXP APIKey = R_NilValue, unsigned int max_results = 0)
+ RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input_type, SEXP outFile = R_NilValue, bool return_values = true)
  {
       auto start = std::chrono::high_resolution_clock::now();
       
-      Rcpp::XPtr<QuickBLAST> ptr_ = ResolveQuickBLASTInstance(ptr);
       assert(outFile == R_NilValue || return_values == true);
       assert(outFile != R_NilValue || return_values == false);
       assert(TYPEOF(outFile) == CHARSXP || outFile == R_NilValue);
       assert(TYPEOF(query_input) == CHARSXP);
-     
-      std::string program_ = ptr_->GetProgram();
+      // assert(TYPEOF(program) == CHARSXP);
+      
+      Rcpp::XPtr<QuickBLAST> ptr_ = ResolveQuickBLASTInstance(ptr);
+      std::string program_ = ptr_->GetProgram();//Rcpp::as<std::string>(program);
       std::string database_ = Rcpp::as<std::string>(database);
-      std::string query_input_ = Rcpp::as<std::string>(query_input);
-      std::string input_type_ = Rcpp::as<QuickBLAST::EInputType>(input_type);
+      Rcpp::List query_input_ = Rcpp::as<Rcpp::List>(query_input);
+      QuickBLAST::EInputType input_type_ = static_cast<QuickBLAST::EInputType>(input_type); //Rcpp::as<int>(input_type);
       std::string outFile_ = outFile == R_NilValue ? std::tmpnam(nullptr) : Rcpp::as<std::string>(outFile);
-      std::string APIKey_ = APIKey == R_NilValue ? "" : Rcpp::as<std::string>(APIKey);
       
       std::shared_ptr<arrow::RecordBatchVector> ret_val = std::make_shared<arrow::RecordBatchVector>();
       
       switch(input_type_){
-      case QuickBLAST::EInputType::eFile:
+      case QuickBLAST::EInputType::eFile: {
         break;
-      case QuickBLAST::EInputType::eSequenceString:
-        std::shared_ptr<arrow::RecordBatch> ret_rb = ptr_->BLAST_remote(program_, database_, query_input_, outFile_, return_values, APIKey, max_results, 120, 4000);
+      }
+      case QuickBLAST::EInputType::eSequenceString:{
+        std::shared_ptr<arrow::RecordBatchVector> ret_rb = ptr_->BLAST_remote(program_, database_, query_input_, input_type_, outFile_, return_values, 120, 4000);
+        // ret_val->emplace_back(ret_rb);
         break;
-      case QuickBLAST::EInputType::eFolder:
+      }
+      case QuickBLAST::EInputType::eFolder:{
         break;
+      }
+      }
+      
+      Rcpp::List ret_vals_ = Rcpp::as<List>(Hits2RList(*ret_val));
+      
+      PrintClock(start);
+      if(return_values){
+        return rm_null(ret_vals_);
       }
  }

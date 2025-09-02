@@ -1488,8 +1488,21 @@ SSeqLoc *QuickBLAST::Impl::CreateSSeqLocFromType(FastaSequenceData fasta_data, C
   CRef<CSeq_inst> seq_inst(new CSeq_inst());
   seq_inst->SetSeq_data(*seq_data);
   seq_inst->SetLength(fastaSequence.length());
-  // seq_inst->SetTopology(CSeq_inst::eTopology_linear);
-  // seq_inst->SetStrand(CSeq_inst_Base::TStrand::eStrand_ss);
+  seq_inst->SetRepr(CSeq_inst::eRepr_raw);
+  // other useful defaults:
+  seq_inst->SetTopology(CSeq_inst::eTopology_linear);
+  
+  if (seq_type == ESeqType::eProtein)
+  {
+    // seq_inst->SetStrand(CSeq_inst_Base::TStrand::eStrand_ss);
+    seq_inst->SetMol(CSeq_inst_Base::EMol::eMol_aa);
+  }
+  else
+  {
+    // seq_inst->SetStrand(CSeq_inst_Base::TStrand::eStrand_ss);
+    seq_inst->SetMol(CSeq_inst_Base::EMol::eMol_na);
+  }
+  
   // 
   // // enum EStrand {
   // //   eStrand_not_set =   0,
@@ -1501,7 +1514,7 @@ SSeqLoc *QuickBLAST::Impl::CreateSSeqLocFromType(FastaSequenceData fasta_data, C
   // 
   // seq_inst->SetRepr(CSeq_inst_Base::ERepr::eRepr_raw);
   // seq_inst->SetTopology(CSeq_inst_Base::ETopology::eTopology_linear);
-  // seq_inst->SetLength(seqlen);
+  seq_inst->SetLength(seqlen);
   // seq_inst->SetMol(CSeq_inst_Base::EMol::eMol_dna);
   // 
   // // { CSeq_inst::eMol_not_set, " " } ,

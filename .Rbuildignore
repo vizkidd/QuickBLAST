@@ -11,4 +11,4 @@
 ^.*\.dll$
 ^.*\.o$
 ^.*\.so$
-^preflight_setup.sh$
+^build_package.sh$

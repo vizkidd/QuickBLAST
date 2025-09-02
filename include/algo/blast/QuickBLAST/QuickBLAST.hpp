@@ -208,13 +208,13 @@ public:
     auto BLAST(const std::string &query, const std::string &subject, std::string &outputFile, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress = true);
     std::shared_ptr<arrow::RecordBatchVector> BLAST_files(const std::string &queryFile, const std::string &subjectFile, std::string &outFile, unsigned int blast_sequence_limit, int num_threads, const bool show_progress = true, const bool return_values = false, int batch_size = 1024);
     std::shared_ptr<arrow::RecordBatch> BLAST_seqs(const std::string &query, const std::string &subject);
+    std::shared_ptr<arrow::RecordBatchVector> BLAST_remote(const std::string &program, const std::string &database, const Rcpp::List &query_input, const QuickBLAST::EInputType input_type, std::string outFile, const bool return_values, const unsigned int max_poll_seconds, const unsigned int poll_interval_ms); //const unsigned int max_results
     SEXP Hits2RList(const std::shared_ptr<arrow::RecordBatch> &rb);
     SEXP Hits2RList(const arrow::RecordBatchVector &rb_vector);
-    std::shared_ptr<arrow::RecordBatch> BLAST_remote(const std::string &program, const std::string &database, const std::string &query_input, std::string &outFile, const bool return_values, const std::string &APIKey, const unsigned int max_results, const unsigned int max_poll_seconds, const unsigned int poll_interval_ms);
       
     template <typename T>
     std::conditional_t<std::is_same_v<T, TSeqLocVector>, std::shared_ptr<arrow::RecordBatchVector>, std::shared_ptr<arrow::RecordBatch>> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const T &sloc, const CScope &scope);
-    std::shared_ptr<arrow::RecordBatch> ExtractHitsRemote(const TSeqAlignVector &alignments);
+    std::shared_ptr<arrow::RecordBatchVector> ExtractHitsRemote(const TSeqAlignVector &alignments);
     // private:
     // std::vector<std::pair<std::string, std::string>> BLASTOptionsFromString(const std::string &input);
     // int CountCharacter(std::string filename, char character, int num_threads);
@@ -303,17 +303,15 @@ struct QuickBLAST::Impl
 
     // std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::string &queryFile, const std::string &subjectFile, const std::string &outFile, unsigned int blast_sequence_limit, int num_threads, const bool show_progress, const bool return_values, int batch_size)
     std::shared_ptr<arrow::RecordBatchVector> BLAST_files(const std::string &queryFile, const std::string &subjectFile, std::string &outFile, unsigned int blast_sequence_limit, int num_threads, const bool show_progress, const bool return_values, int batch_size);
-
     std::shared_ptr<arrow::RecordBatch> BLAST_seqs(const std::string &query, const std::string &subject);
-
+    std::shared_ptr<arrow::RecordBatchVector> BLAST_remote(const std::string &program, const std::string &database, const Rcpp::List &query_input, const QuickBLAST::EInputType input_type, std::string outFile, const bool return_values,  const unsigned int max_poll_seconds, const unsigned int poll_interval_ms); //const unsigned int max_results
     // auto QuickBLAST::BLAST(const std::string &query, const std::string &subject, const std::string &outputFile, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress)
     auto BLAST(const std::string &query, const std::string &subject, std::string &outputFile, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress);
-    std::shared_ptr<arrow::RecordBatch> BLAST_remote(const std::string &program, const std::string &database, const std::string &query_input, std::string &outFile, const bool return_values, const std::string &APIKey, const unsigned int max_results, const unsigned int max_poll_seconds, const unsigned int poll_interval_ms);
   
     
     std::shared_ptr<arrow::RecordBatchVector> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const TSeqLocVector &sloc, const CScope &scope);
     std::shared_ptr<arrow::RecordBatch> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const SSeqLoc &sloc, const CScope &scope);
-    std::shared_ptr<arrow::RecordBatch> ExtractHitsRemote(const TSeqAlignVector &alignments);
+    std::shared_ptr<arrow::RecordBatchVector> ExtractHitsRemote(const TSeqAlignVector &alignments);
 
     SSeqLoc *CreateSSeqLocFromType(FastaSequenceData fasta_data, CRef<ncbi::CScope> parent_scope);
 };

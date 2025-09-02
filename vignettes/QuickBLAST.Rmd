@@ -1,10 +1,29 @@
 ---
 title: "QuickBLAST"
-output: rmarkdown::html_vignette
+#output: rmarkdown::html_vignette
+author: "Vishvesh Karthik"
+date: "`r Sys.Date()`"
+urlcolor: blue
+output:
+  rmarkdown::html_vignette:
+    highlight: espresso
+    self_contained: true
+#theme: flatly
+    wrap: 60
+    columns: 60
+    toc: true
+    toc_depth: 4
+    toc_float:
+      collapsed: true
+    number_sections: true
 vignette: >
   %\VignetteIndexEntry{QuickBLAST}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+---
+
+---
+title: "Earth-IITH Comprehensive Knowledge Transfer Manuscript"
 ---
 
 ```{r, include = FALSE}
@@ -48,4 +67,5 @@ blastn_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 0, strand = 0, pr
 ```{r test}
 QuickBLAST::BLAST2Seqs(tblastx_inst, "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG")
 QuickBLAST::BLAST2Seqs(blastn_inst, "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG")
+QuickBLAST::BLAST2Seqs(blastp_inst, "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG")
 ```
