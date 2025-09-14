@@ -85,6 +85,7 @@ if(NOT WIN32 AND NOT MINGW32)
 	NCBI_begin_lib(QuickBLASTcpp SHARED)
 	NCBI_enable_pch()
 #NCBI_sources(ArrowWrapper QuickBLAST API)
+#NCBI_sources(ArrowWrapper QuickBLAST QuickBLASTRemote DebugHelper)
   NCBI_sources(ArrowWrapper QuickBLAST QuickBLASTRemote)
 	NCBI_headers(
 		*.h
@@ -100,22 +101,26 @@ if(NOT WIN32 AND NOT MINGW32)
 		"${R_INC}"
 	)
 	NCBI_uses_toolkit_libraries(
-		# corelib
+		#corelib
 		xcgi
 		xflatfile 	
 		blastinput
 		seqdb
 		blastdb
 		blast
+		scoremat
 		blastdb_format
 		xblast
 		xncbi
 		xser
 		general
+		xobjread
 		xobjsimple
 		xobjmgr
 		xutil
 		align_format
+		xalgoalignutil
+		xalnmgr
 		seq
 		seqset
 	)
@@ -333,6 +338,7 @@ elseif(MINGW32)
 #	ArrowWrapper
 #	QuickBLAST
 #	API
+#DebugHelper
 #)
   NCBI_sources(
 		ArrowWrapper
@@ -372,16 +378,20 @@ elseif(MINGW32)
 		ncbi_xreader
 		blastinput
 		blast
+		scoremat
 		lmdb
 		blastdb
 		blastdb_format
 		xblast
 		xser
 		general
+		xobjread
 		xobjsimple
 		xobjmgr
 		xutil
 		align_format
+		xalgoalignutil
+		xalnmgr
 		seq
 		seqset
 	)

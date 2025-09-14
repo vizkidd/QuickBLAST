@@ -23,7 +23,7 @@ using namespace Rcpp;
 //     //         HMODULE hDLL = LoadLibraryExA(dllPath.data(), NULL, 0);
 // 
 //     //         if (hDLL == NULL) {
-//     //             std::cout << "Failed to load the DLL: " << dllPath<< std::endl;  // Handle DLL loading failure
+//     //             Rcpp::Rcout << "Failed to load the DLL: " << dllPath<< std::endl;  // Handle DLL loading failure
 //     //             return FALSE;
 //     //         }
 // 
@@ -180,9 +180,9 @@ SEXP Hits2RList_internal(std::shared_ptr<arrow::Array> array, std::shared_ptr<ar
 
         return strings;
     }
-    else if (type->id() == arrow::Type::INT8)
+    else if (type->id() == arrow::Type::INT32)
     {
-        auto int_array = std::static_pointer_cast<arrow::Int8Array>(array);
+        auto int_array = std::static_pointer_cast<arrow::Int32Array>(array);
 
         Rcpp::IntegerVector ints(int_array->length());
 
@@ -200,6 +200,27 @@ SEXP Hits2RList_internal(std::shared_ptr<arrow::Array> array, std::shared_ptr<ar
         }
 
         return ints;
+    }
+    else if (type->id() == arrow::Type::INT64)
+    {
+      auto int_array = std::static_pointer_cast<arrow::Int64Array>(array);
+      
+      Rcpp::IntegerVector ints(int_array->length());
+      
+      for (int i = 0; i < int_array->length(); ++i)
+      {
+        // if (arrow_int8array_isvalid(int_array, i))
+        if (int_array->IsValid(i))
+        {
+          ints[i] = int_array->Value(i);
+        }
+        // else
+        // {
+        //   ints[i] = NA_INTEGER;
+        // }
+      }
+      
+      return ints;
     }
     else if (type->id() == arrow::Type::DOUBLE)
     { // Use arrow::Type::DOUBLE instead of FLOAT64
@@ -231,6 +252,7 @@ SEXP Hits2RList_internal(std::shared_ptr<arrow::Array> array, std::shared_ptr<ar
 
 SEXP Hits2RList(const std::shared_ptr<arrow::RecordBatch> &rb)
 {
+    
     // Assuming the schema of the RecordBatch is accessible here
     auto rb_schema = rb->schema();
 
@@ -262,6 +284,458 @@ SEXP Hits2RList(const arrow::RecordBatchVector &rb_vector)
     }
 
     return result_list;
+}
+
+// Helpers: string join for column name components
+static std::string join_col(const std::string &a, const std::string &b) {
+  if (a.empty()) return b;
+  return a + "_" + b;
+}
+
+// Forward declarations
+static void CollectFlattenedColumns(const std::shared_ptr<arrow::Array>& array,
+                                    const std::shared_ptr<arrow::DataType>& type,
+                                    const std::string& prefix,
+                                    std::vector<std::string>& col_order,
+                                    std::unordered_map<std::string, Rcpp::RObject>& cols);
+
+static Rcpp::RObject ConvertPrimitiveValueToR(const std::shared_ptr<arrow::Array>& arr,
+                                              const std::shared_ptr<arrow::DataType>& dtype,
+                                              int64_t idx);
+
+// Convert an Arrow array of primitive/scalar type (length == nrows) to an R vector
+static Rcpp::RObject ArrayPrimitivesToR(const std::shared_ptr<arrow::Array>& array,
+                                        const std::shared_ptr<arrow::DataType>& type)
+{
+  using arrow::Int8Array; using arrow::Int16Array; using arrow::Int32Array;
+  using arrow::Int64Array; using arrow::DoubleArray; using arrow::FloatArray;
+  using arrow::StringArray; using arrow::BooleanArray;
+  
+  int64_t n = array->length();
+  switch (type->id()) {
+  case arrow::Type::STRING:{
+    auto sarr = std::static_pointer_cast<arrow::StringArray>(array);
+    // get actual length from the array (int64_t)
+    int64_t n_local = sarr->length();
+    Rcpp::Rcout << "here 3.1.1" << std::endl << std::flush; //DEBUG
+    // Safety: Rcpp::StringVector constructor expects an 'int' (32-bit) on many builds.
+    if (n_local > static_cast<int64_t>(std::numeric_limits<int>::max())) {
+      Rcpp::stop("Arrow string array has too many elements to convert to an R character vector.");
+    }
+    int n_int = static_cast<int>(n_local);
+    Rcpp::Rcout << "converting Arrow StringArray of length " << n_local << std::endl << std::flush;
+    Rcpp::StringVector out(n_int);
+    // If you expect extremely large individual strings, you might check sarr->value(i).size() here
+    for (int64_t i = 0; i < n_local; ++i) {
+      int idx = static_cast<int>(i);
+      if (sarr->IsValid(i)) {
+        // Prefer GetView() to avoid an extra allocation if possible.
+        std::string_view sv = sarr->GetView(i);
+        Rcpp::Rcout << "Row : " << idx << std::endl << std::flush; //DEBUG
+        Rcpp::Rcout << "Row Size: " << sv.size() << std::endl << std::flush; //DEBUG
+        Rcpp::Rcout << "Row Data: " << sv.data() << std::endl << std::flush; //DEBUG
+        // Construct Rcpp::String from the view (this makes a copy once)
+        out[idx] = Rcpp::String(std::string(sv.data(), sv.size()));
+      } else {
+        out[idx] = NA_STRING;
+      }
+    }
+    for( int i = 0; i < out.size(); i++ ){
+      Rcpp::Rcout << "Element " << i << ": " << out(i) << std::endl << std::flush; //DEBUG
+    }
+    Rcpp::Rcout << "here 3.1.4" << std::endl << std::flush; //DEBUG
+    return out;
+  }
+  case arrow::Type::LARGE_STRING: {
+    auto sarr = std::static_pointer_cast<arrow::LargeStringArray>(array);
+    // get actual length from the array (int64_t)
+    int64_t n_local = sarr->length();
+    Rcpp::Rcout << "here 3.0.1" << std::endl << std::flush; //DEBUG
+    // Safety: Rcpp::StringVector constructor expects an 'int' (32-bit) on many builds.
+    if (n_local > static_cast<int64_t>(std::numeric_limits<int>::max())) {
+      Rcpp::stop("Arrow string array has too many elements to convert to an R character vector.");
+    }
+    int n_int = static_cast<int>(n_local);
+    Rcpp::Rcout << "converting Arrow StringArray of length " << n_local << std::endl << std::flush;
+    Rcpp::StringVector out(n_int);
+    // If you expect extremely large individual strings, you might check sarr->value(i).size() here
+    for (int64_t i = 0; i < n_local; ++i) {
+      int idx = static_cast<int>(i);
+      if (sarr->IsValid(i)) {
+        // Prefer GetView() to avoid an extra allocation if possible.
+        std::string_view sv = sarr->GetView(i);
+        Rcpp::Rcout << "Row : " << idx << std::endl << std::flush; //DEBUG
+        Rcpp::Rcout << "Row Size: " << sv.size() << std::endl << std::flush; //DEBUG
+        Rcpp::Rcout << "Row Data: " << sv.data() << std::endl << std::flush; //DEBUG
+        // Construct Rcpp::String from the view (this makes a copy once)
+        out[idx] = Rcpp::String(std::string(sv.data(), sv.size()));
+      } else {
+        out[idx] = NA_STRING;
+      }
+    }
+    for( int i = 0; i < out.size(); i++ ){
+      Rcpp::Rcout << "Element " << i << ": " << out(i) << std::endl << std::flush; //DEBUG
+    }
+    Rcpp::Rcout << "here 3.0.4" << std::endl << std::flush; //DEBUG
+    return out;
+  }
+  case arrow::Type::BOOL: {
+    auto barr = std::static_pointer_cast<BooleanArray>(array);
+    Rcpp::LogicalVector out(n);
+    for (int64_t i = 0; i < n; ++i) out[i] = barr->IsValid(i) ? static_cast<int>(barr->Value(i)) : NA_LOGICAL;
+    return out;
+  }
+  case arrow::Type::INT8: {
+    auto iarr = std::static_pointer_cast<Int8Array>(array);
+    Rcpp::IntegerVector out(n);
+    for (int64_t i = 0; i < n; ++i) out[i] = iarr->IsValid(i) ? static_cast<int>(iarr->Value(i)) : NA_INTEGER;
+    return out;
+  }
+  case arrow::Type::INT16: {
+    auto iarr = std::static_pointer_cast<arrow::Int16Array>(array);
+    Rcpp::IntegerVector out(n);
+    for (int64_t i = 0; i < n; ++i) out[i] = iarr->IsValid(i) ? static_cast<int>(iarr->Value(i)) : NA_INTEGER;
+    return out;
+  }
+  case arrow::Type::INT32: {
+    auto iarr = std::static_pointer_cast<Int32Array>(array);
+    Rcpp::IntegerVector out(n);
+    for (int64_t i = 0; i < n; ++i) out[i] = iarr->IsValid(i) ? iarr->Value(i) : NA_INTEGER;
+    return out;
+  }
+  case arrow::Type::INT64: {
+    auto iarr = std::static_pointer_cast<Int64Array>(array);
+    // R doesn't have 64-bit ints by default; use double
+    Rcpp::NumericVector out(n);
+    for (int64_t i = 0; i < n; ++i) out[i] = iarr->IsValid(i) ? static_cast<double>(iarr->Value(i)) : NA_REAL;
+    return out;
+  }
+  case arrow::Type::FLOAT: {
+    auto farr = std::static_pointer_cast<FloatArray>(array);
+    Rcpp::NumericVector out(n);
+    for (int64_t i = 0; i < n; ++i) out[i] = farr->IsValid(i) ? static_cast<double>(farr->Value(i)) : NA_REAL;
+    return out;
+  }
+  case arrow::Type::DOUBLE: {
+    auto darr = std::static_pointer_cast<DoubleArray>(array);
+    Rcpp::NumericVector out(n);
+    for (int64_t i = 0; i < n; ++i) out[i] = darr->IsValid(i) ? darr->Value(i) : NA_REAL;
+    return out;
+  }
+  default:
+    // Unknown primitive: hand back list of NAs
+    Rcpp::List out(n);
+    for (int64_t i = 0; i < n; ++i) out[i] = R_NilValue;
+    return out;
+  }
+}
+
+// CollectFlattenedColumns: recursively populates cols map and col_order
+static void CollectFlattenedColumns(const std::shared_ptr<arrow::Array>& array,
+                                    const std::shared_ptr<arrow::DataType>& type,
+                                    const std::string& prefix,
+                                    std::vector<std::string>& col_order,
+                                    std::unordered_map<std::string, Rcpp::RObject>& cols)
+{
+  if (!array) return;
+  int64_t nrows = array->length();
+  
+  if (type->id() == arrow::Type::STRUCT) {
+    auto sarr = std::static_pointer_cast<arrow::StructArray>(array);
+    int nf = sarr->num_fields();
+    for (int f = 0; f < nf; ++f) {
+      std::string child_name = type->field(f)->name();
+      std::string colname = child_name; //join_col(prefix, child_name);
+      Rcpp::Rcout << "Colname: " << colname << std::endl << std::flush; //DEBUG
+      auto child_array = sarr->field(f);
+      auto child_type = type->field(f)->type();
+      CollectFlattenedColumns(child_array, child_type, colname, col_order, cols);
+    }
+    return;
+  }
+  
+  if (type->id() == arrow::Type::LIST) {
+    auto larr = std::static_pointer_cast<arrow::ListArray>(array);
+    auto val_type = type->field(0)->type();
+    auto values = larr->values();           // array of all elements flattened
+    // compute max length across rows
+    int64_t maxlen = 0;
+    for (int64_t i = 0; i < nrows; ++i) {
+      int64_t len = larr->value_length(i);
+      if (len > maxlen) maxlen = len;
+    }
+    // For each position p build a column
+    for (int64_t p = 0; p < maxlen; ++p) {
+      // if element type is primitive -> create atomic column
+      if (val_type->id() == arrow::Type::STRUCT) {
+        // We need to expand each subfield of the struct element at position p:
+        auto vals_struct = std::static_pointer_cast<arrow::StructArray>(values);
+        int sub_nf = vals_struct->num_fields();
+        for (int sf = 0; sf < sub_nf; ++sf) {
+          std::string sf_name = val_type->field(sf)->name();
+          std::string colname = prefix + "_" + std::to_string(p) + "_" + sf_name;
+          // build atomic vector for this subfield at index offset+p per row
+          // find subfield array
+          auto subfield_array = vals_struct->field(sf);
+          // create atomic vector depending on subfield type
+          auto sub_type = val_type->field(sf)->type();
+          // create appropriate R vector and fill
+          int64_t n = nrows;
+          // Use ArrayPrimitivesToR on a per-index basis: iterate rows and read value at values_index = offset + p
+          // For performance, handle common scalar types manually:
+          if (sub_type->id() == arrow::Type::STRING || sub_type->id() == arrow::Type::LARGE_STRING) {
+            Rcpp::StringVector col(n);
+            for (int64_t i = 0; i < n; ++i) {
+              int64_t len = larr->value_length(i);
+              if (p < len) {
+                int64_t idx = larr->value_offset(i) + p;
+                if (subfield_array->IsValid(idx)) {
+                  col[i] = Rcpp::String(std::static_pointer_cast<arrow::StringArray>(subfield_array)->GetString(idx));
+                } else col[i] = NA_STRING;
+              } else col[i] = NA_STRING;
+            }
+            cols[colname] = col;
+            col_order.push_back(colname);
+          } else if (sub_type->id() == arrow::Type::INT8 || sub_type->id() == arrow::Type::INT16 || sub_type->id() == arrow::Type::INT32 || sub_type->id() == arrow::Type::INT64) {
+            Rcpp::IntegerVector col(n);
+            auto sub_i32 = std::static_pointer_cast<arrow::Int64Array>(subfield_array); // safe if int32; else use Value and cast
+            for (int64_t i = 0; i < n; ++i) {
+              int64_t len = larr->value_length(i);
+              if (p < len) {
+                int64_t idx = larr->value_offset(i) + p;
+                if (subfield_array->IsValid(idx)) col[i] = static_cast<int>(subfield_array->type()->id() == arrow::Type::INT32 ? std::static_pointer_cast<arrow::Int32Array>(subfield_array)->Value(idx) : static_cast<int>(std::static_pointer_cast<arrow::Int64Array>(subfield_array)->Value(idx)));
+                else col[i] = NA_INTEGER;
+              } else col[i] = NA_INTEGER;
+            }
+            cols[colname] = col;
+            col_order.push_back(colname);
+          } else if (sub_type->id() == arrow::Type::DOUBLE || sub_type->id() == arrow::Type::FLOAT) {
+            Rcpp::NumericVector col(n);
+            for (int64_t i = 0; i < n; ++i) {
+              int64_t len = larr->value_length(i);
+              if (p < len) {
+                int64_t idx = larr->value_offset(i) + p;
+                if (subfield_array->IsValid(idx)) {
+                  if (sub_type->id() == arrow::Type::DOUBLE) col[i] = std::static_pointer_cast<arrow::DoubleArray>(subfield_array)->Value(idx);
+                  else col[i] = static_cast<double>(std::static_pointer_cast<arrow::FloatArray>(subfield_array)->Value(idx));
+                } else col[i] = NA_REAL;
+              } else col[i] = NA_REAL;
+            }
+            cols[colname] = col;
+            col_order.push_back(colname);
+          } else {
+            // Fallback: build list column per row (nil or scalar)
+            Rcpp::List col(n);
+            for (int64_t i = 0; i < n; ++i) {
+              int64_t len = larr->value_length(i);
+              if (p < len) {
+                int64_t idx = larr->value_offset(i) + p;
+                // convert single-element slice
+                auto single = subfield_array->Slice(idx, 1);
+                col[i] = ArrayPrimitivesToR(single, sub_type);
+              } else col[i] = R_NilValue;
+            }
+            cols[colname] = col;
+            col_order.push_back(colname);
+          }
+        } // end subfields
+      } else {
+        // val_type is primitive: create column prefix_p of appropriate atomic type
+        std::string colname = prefix + "_" + std::to_string(p);
+        int64_t n = nrows;
+        switch (val_type->id()) {
+        case arrow::Type::STRING:
+        case arrow::Type::LARGE_STRING: {
+          Rcpp::Rcout << "here 4.0.1" << std::endl << std::flush; //DEBUG
+          Rcpp::StringVector col(n);
+          Rcpp::Rcout << "here 4.0.2" << std::endl << std::flush; //DEBUG
+          auto sval = std::static_pointer_cast<arrow::StringArray>(values);
+          Rcpp::Rcout << "here 4.0.3" << std::endl << std::flush; //DEBUG
+          for (int64_t i = 0; i < n; ++i) {
+            int64_t len = larr->value_length(i);
+            if (p < len) {
+              int64_t idx = larr->value_offset(i) + p;
+              Rcpp::Rcout << "here 4.0.4.1" << std::endl << std::flush; //DEBUG
+              col[i] = sval->IsValid(idx) ? Rcpp::String(sval->GetString(idx)) : NA_STRING;
+              Rcpp::Rcout << "here 4.0.4.2" << std::endl << std::flush; //DEBUG
+            } else col[i] = NA_STRING;
+          }
+          Rcpp::Rcout << "here 4.0.5" << std::endl << std::flush; //DEBUG
+          cols[colname] = col;
+          Rcpp::Rcout << "here 4.0.6" << std::endl << std::flush; //DEBUG
+          col_order.push_back(colname);
+          break;
+        }
+        case arrow::Type::BOOL: {
+          Rcpp::LogicalVector col(n);
+          auto barr = std::static_pointer_cast<arrow::BooleanArray>(values);
+          for (int64_t i = 0; i < n; ++i) {
+            int64_t len = larr->value_length(i);
+            if (p < len) {
+              int64_t idx = larr->value_offset(i) + p;
+              col[i] = barr->IsValid(idx) ? static_cast<int>(barr->Value(idx)) : NA_LOGICAL;
+            } else col[i] = NA_LOGICAL;
+          }
+          cols[colname] = col;
+          col_order.push_back(colname);
+          break;
+        }
+        case arrow::Type::INT8:
+        case arrow::Type::INT16:
+        case arrow::Type::INT32: {
+          Rcpp::IntegerVector col(n);
+          // handle as Int64Array then cast, as Arrow may be mixed
+          for (int64_t i = 0; i < n; ++i) {
+            int64_t len = larr->value_length(i);
+            if (p < len) {
+              int64_t idx = larr->value_offset(i) + p;
+              if (values->IsValid(idx)) {
+                // try common int arrays
+                if (values->type_id() == arrow::Type::INT32) {
+                  col[i] = std::static_pointer_cast<arrow::Int32Array>(values)->Value(idx);
+                } else if (values->type_id() == arrow::Type::INT64) {
+                  col[i] = static_cast<int>(std::static_pointer_cast<arrow::Int64Array>(values)->Value(idx));
+                } else if (values->type_id() == arrow::Type::INT16) {
+                  col[i] = static_cast<int>(std::static_pointer_cast<arrow::Int16Array>(values)->Value(idx));
+                } else {
+                  col[i] = NA_INTEGER;
+                }
+              } else col[i] = NA_INTEGER;
+            } else col[i] = NA_INTEGER;
+          }
+          cols[colname] = col;
+          col_order.push_back(colname);
+          break;
+        }
+        case arrow::Type::INT64: {
+          Rcpp::NumericVector col(n);
+          for (int64_t i = 0; i < n; ++i) {
+            int64_t len = larr->value_length(i);
+            if (p < len) {
+              int64_t idx = larr->value_offset(i) + p;
+              if (values->IsValid(idx)) col[i] = static_cast<double>(std::static_pointer_cast<arrow::Int64Array>(values)->Value(idx));
+              else col[i] = NA_REAL;
+            } else col[i] = NA_REAL;
+          }
+          cols[colname] = col;
+          col_order.push_back(colname);
+          break;
+        }
+        case arrow::Type::FLOAT:
+        case arrow::Type::DOUBLE: {
+          Rcpp::NumericVector col(n);
+          if (values->type_id() == arrow::Type::DOUBLE) {
+            auto darr = std::static_pointer_cast<arrow::DoubleArray>(values);
+            for (int64_t i = 0; i < n; ++i) {
+              int64_t len = larr->value_length(i);
+              if (p < len) {
+                int64_t idx = larr->value_offset(i) + p;
+                col[i] = darr->IsValid(idx) ? darr->Value(idx) : NA_REAL;
+              } else col[i] = NA_REAL;
+            }
+          } else {
+            auto farr = std::static_pointer_cast<arrow::FloatArray>(values);
+            for (int64_t i = 0; i < n; ++i) {
+              int64_t len = larr->value_length(i);
+              if (p < len) {
+                int64_t idx = larr->value_offset(i) + p;
+                col[i] = farr->IsValid(idx) ? static_cast<double>(farr->Value(idx)) : NA_REAL;
+              } else col[i] = NA_REAL;
+            }
+          }
+          cols[colname] = col;
+          col_order.push_back(colname);
+          break;
+        }
+        default: {
+          // fallback: fill list column with single-element conversions
+          Rcpp::List col(n);
+          for (int64_t i = 0; i < n; ++i) {
+            int64_t len = larr->value_length(i);
+            if (p < len) {
+              int64_t idx = larr->value_offset(i) + p;
+              auto single = values->Slice(idx, 1);
+              col[i] = ArrayPrimitivesToR(single, val_type);
+            } else col[i] = R_NilValue;
+          }
+          cols[colname] = col;
+          col_order.push_back(colname);
+        }
+        } // switch val_type
+      } // else primitive val_type
+    } // for p
+    return;
+  } // LIST
+  
+  // Primitive scalar at this level: just convert whole array to R atomic vector
+  {
+    Rcpp::RObject v = ArrayPrimitivesToR(array, type);
+    // add to map if not already present
+    if (cols.find(prefix) == cols.end()) {
+      cols[prefix] = v;
+      col_order.push_back(prefix);
+    }
+    return;
+  }
+}
+
+// Convert a single RecordBatch into a flattened data.frame (Rcpp::List with df attrs)
+static Rcpp::List RecordBatchToFlattenedDF(const std::shared_ptr<arrow::RecordBatch>& rb)
+{
+  if (!rb) return Rcpp::List::create();
+  
+  auto schema = rb->schema();
+  int nfields = schema->num_fields();
+  int64_t nrows = rb->num_rows();
+  
+  // map of column name -> R vector
+  std::unordered_map<std::string, Rcpp::RObject> cols;
+  std::vector<std::string> col_order;
+  
+  for (int i = 0; i < nfields; ++i) {
+    Rcpp::checkUserInterrupt();
+    std::string fname = schema->field(i)->name();
+    auto ftype = schema->field(i)->type();
+    auto arr = rb->column(i);
+    CollectFlattenedColumns(arr, ftype, fname, col_order, cols);
+  }
+  
+  // Build Rcpp::List in col_order
+  int ncols = (int)col_order.size();
+  Rcpp::List out(ncols);
+  Rcpp::CharacterVector names(ncols);
+  for (int j = 0; j < ncols; ++j) {
+    const std::string &cn = col_order[j];
+    out[j] = cols[cn];
+    names[j] = cn;
+  }
+  out.attr("names") = names;
+  out.attr("class") = Rcpp::CharacterVector::create("data.frame");
+  out.attr("row.names") = Rcpp::IntegerVector::create(NA_INTEGER, -static_cast<int>(nrows));
+  return out;
+}
+
+// Entrypoint: RecordBatchVector -> list of flattened data.frames
+// [[Rcpp::export]]
+Rcpp::List RecordBatchVectorToFlattenedDFList(SEXP rbv_sexp) {
+  // The package likely has direct access to the C++ RecordBatchVector pointer in code.
+  // Here we assume rbv_sexp wraps a pointer to shared_ptr<arrow::RecordBatchVector> or you
+  // will call this function from C++ with the pointer directly. For convenience we implement
+  // a wrapper that does not try to parse SEXP: in your code call RecordBatchVectorToFlattenedDFList directly.
+  Rcpp::stop("This wrapper is intended to be called from C++ with a std::shared_ptr<arrow::RecordBatchVector>. Use the C++ entrypoint instead.");
+  return Rcpp::List::create();
+}
+
+// Alternate C++ entrypoint (call this from your C++ code where you have rbv):
+static Rcpp::List RecordBatchVectorToFlattenedDFList_cpp(const std::shared_ptr<arrow::RecordBatchVector>& rbv)
+{
+  if (!rbv) return Rcpp::List::create();
+  Rcpp::List out(rbv->size());
+  for (size_t i = 0; i < rbv->size(); ++i) {
+    Rcpp::checkUserInterrupt();
+    out[i] = RecordBatchToFlattenedDF((*rbv)[i]);
+  }
+  return out;
 }
 
 std::vector<std::string> getFilesInDir(const std::string &folderPath, const std::string &extension)
@@ -573,7 +1047,7 @@ RcppExport bool SetQuickBLASTOptions(SEXP ptr, SEXP program_name, SEXP options)
     // auto ptr = GetQuickBLASTInstance(ptr_id_);
     Rcpp::XPtr<QuickBLAST> ptr_ = Rcpp::as<Rcpp::XPtr<QuickBLAST>>(ptr);
     // ptr.ptr->GetQuickBLASTOptions() = *ptr.ptr->SetQuickBLASTOptions(program_name_, options_);
-    ptr_->GetQuickBLASTOptions() = *ptr_->SetQuickBLASTOptions(program_name_, options_);
+    ptr_->GetQuickBLASTOptions() = *ptr_->SetQuickBLASTOptions(program_name_, options_, CBlastOptions::EAPILocality::eLocal);
     return true;
   }catch (const std::exception &e)
   {
@@ -669,7 +1143,8 @@ RcppExport SEXP BLAST2Seqs(SEXP ptr, SEXP query, SEXP subject)
           if(ret_rb->num_rows() <= 0){
             Rcpp::stop("No alignments could be computed");
           }
-            ret_val->emplace_back(ret_rb); //
+            ret_val->emplace_back(ret_rb); 
+          Rcpp::Rcout << ret_rb->ToString() << std::endl << std::flush; //DEBUG
             // Rcpp::Rcout << "here18.1.3"  << std::endl << std::flush; //DEBUG
         }
       }catch(...){
@@ -686,7 +1161,9 @@ RcppExport SEXP BLAST2Seqs(SEXP ptr, SEXP query, SEXP subject)
         // return arrow::RecordBatch::MakeEmpty(ptr.ptr->GetSchema()).ValueOrDie();
     }
 
-    Rcpp::List ret_vals_ = as<List>(Hits2RList(*ret_val));
+    // Rcpp::List ret_vals_ = as<List>(Hits2RList(*ret_val));
+    Rcpp::List ret_vals_ = as<List>(RecordBatchVectorToFlattenedDFList_cpp(ret_val));
+    
 
     PrintClock(start);
     return rm_null(ret_vals_);
@@ -805,7 +1282,7 @@ RcppExport bool BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension
                 }
             }
             int one_dim_index = i + queryFiles.size() * j;
-            std::cout << "BLASTing : " << base_name << std::endl;
+            Rcpp::Rcout << "BLASTing : " << base_name << std::endl;
             static_cast<void>(ptr_->BLAST_files(query_input.string(), subject_input.string(), outFileStr, seq_limit, threads, true, false, min_batch_size));
 
             // static_cast<void>(cpp_BLAST2Files(sh_ptr, query_input.string(), subject_input.string(), outFile_.string(), seq_limit, num_threads_, true, false, min_batch_size_));
@@ -920,7 +1397,7 @@ RcppExport bool BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP o
             std::filesystem::path qry_filePath = folder / qry_filename;
             std::filesystem::path subj_filename = inputFiles[j];
             std::filesystem::path subj_filePath = folder / subj_filename;
-            std::cout << "BLASTing : " << base_name << std::endl;
+            Rcpp::Rcout << "BLASTing : " << base_name << std::endl;
             static_cast<void>(ptr_->BLAST_files(qry_filePath.string(), subj_filePath.string(), outFileStr, seq_limit, threads, true, false, min_batch_size));
             // ret_lst[one_dim_index] = outFile_.string();
             // names[one_dim_index] = base_name;
@@ -956,6 +1433,7 @@ RcppExport bool BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP o
 // [[Rcpp::export]]
 RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = R_NilValue, int seq_limit = -1, unsigned int num_threads = 0, bool show_progress = true, bool return_values = true, unsigned int min_batch_size = 0)
 {
+  try{
     auto start = std::chrono::high_resolution_clock::now();
     unsigned int threads = DetectThreadLimit(num_threads);
     Rcpp::XPtr<QuickBLAST> ptr_ = ResolveQuickBLASTInstance(ptr);
@@ -966,11 +1444,11 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
     assert(TYPEOF(subject) == CHARSXP);
     // unsigned int ptr_id_ = as<unsigned int>(ptr_id);
     // QuickBLASTHandle ptr = GetQuickBLASTInstance(ptr_id_);
-
+    Rcpp::Rcout << "here 1.0.0" << std::endl << std::flush; //DEBUG
     std::string query_ = Rcpp::as<std::string>(query);
     std::string subject_ = Rcpp::as<std::string>(subject);
     std::string out_file_ = out_file == R_NilValue ? std::tmpnam(nullptr) : Rcpp::as<std::string>(out_file);
-  
+    Rcpp::Rcout << "here 1.1.0" << std::endl << std::flush; //DEBUG
     if(min_batch_size == 0){
       min_batch_size = threads;
     }    
@@ -982,7 +1460,7 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
     assert(std::filesystem::exists(query_));
     assert(std::filesystem::exists(subject_));
     // ArrowRBVHandle ret_vals;
-    std::shared_ptr<arrow::RecordBatchVector> ret_vals;
+    std::shared_ptr<arrow::RecordBatchVector> ret_vals = std::make_shared<arrow::RecordBatchVector>();
     if (return_values)
     {
         // std::shared_ptr<arrow::RecordBatchVector> ret_vals = ptr.ptr->BLAST_files(query_, subject_, out_file_, seq_limit_, num_threads_, show_progress_, return_values_, min_batch_size_);
@@ -1002,12 +1480,19 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
         ret_vals->emplace_back(arrow::RecordBatch::MakeEmpty(ptr_->GetSchema()).ValueOrDie());
     }
 
-    Rcpp::List ret_vals_ = as<List>(Hits2RList(*ret_vals));
-
+    // Rcpp::List ret_vals_ = as<List>(Hits2RList(*ret_vals));
+      Rcpp::List ret_vals_ = as<List>(RecordBatchVectorToFlattenedDFList_cpp(ret_vals));
+    
     PrintClock(start);
     if(return_values){
       return rm_null(ret_vals_);
     }
+  } catch(std::exception &e){
+    Rcpp::stop(std::string("std::exception in BLAST2Files(): ") + e.what());
+    // throw;
+  } catch (...) {
+    Rcpp::stop("Unknown exception in BLAST_seqs");
+  }
 }
 
 
@@ -1017,9 +1502,11 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
  //'
  //' @description BLAST the input query against remote NCBI DBs (one sequence at a time - to respect rate limits)
  //'
+ //' @note Check (BLAST Guide)[https://blast.ncbi.nlm.nih.gov/BLAST_guide.pdf] and (NCBI BLAST)[https://blast.ncbi.nlm.nih.gov/Blast.cgi] (Program -> Choose DB/Search set) for database names.
+ //'
  //' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]
  //' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
- //' @param database (string) Name of the remote NCBI DB
+ //' @param database (string) Name of the remote NCBI DB - Check note for reference and supported values.
  //' @param query_input (Rcpp::List) (Named) List of input queries (Sequences, Files, Folders - type is determined by input_type parameter)
  //' @param input_type (QuickBLAST::EInputType) Input type (Check [QuickBLAST::GetQuickBLASTEnums()])
  //' @param outFile (string) Output file name (Optional)
@@ -1054,6 +1541,7 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
       case QuickBLAST::EInputType::eSequenceString:{
         std::shared_ptr<arrow::RecordBatchVector> ret_rb = ptr_->BLAST_remote(program_, database_, query_input_, input_type_, outFile_, return_values, 120, 4000);
         // ret_val->emplace_back(ret_rb);
+        ret_val = ret_rb;
         break;
       }
       case QuickBLAST::EInputType::eFolder:{
@@ -1061,7 +1549,10 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
       }
       }
       
-      Rcpp::List ret_vals_ = Rcpp::as<List>(Hits2RList(*ret_val));
+      Rcpp::Rcout << "here 2.0.0" << std::endl << std::flush; //DEBUG
+      
+      // Rcpp::List ret_vals_ = Rcpp::as<List>(Hits2RList(*ret_val));
+      Rcpp::List ret_vals_ = as<List>(RecordBatchVectorToFlattenedDFList_cpp(ret_val));
       
       PrintClock(start);
       if(return_values){

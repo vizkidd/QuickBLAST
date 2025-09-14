@@ -13,6 +13,8 @@
 // #endif
 //// #define long int int64_t;
 
+#include <objmgr/bioseq_ci.hpp>
+
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
 #include "omp.h"
 #endif
@@ -47,7 +49,6 @@
 #include <iostream>
 #include <memory>
 #include <ncbi_pch.hpp>
-#include <algo/blast/api/blast_options_handle.hpp>
 #include <algo/blast/api/blast_types.hpp>
 #include <objects/seqalign/Seq_align_set.hpp>
 #include <algo/blast/api/blast_options_handle.hpp>
@@ -61,6 +62,12 @@
 #include <algo/blast/api/sseqloc.hpp>
 #include <objmgr/seq_vector.hpp>
 
+#include <objects/seq/Seqdesc.hpp>    // CSeqdesc, CSeqdesc::SetTitle()
+#include <objects/seq/Seq_descr.hpp>  // CSeq_descr
+#include <objects/biblio/Title.hpp>   // CTitle (only required if you explicitly create a CTitle)
+#include <objmgr/seqdesc_ci.hpp>
+
+#include <algo/align/util/score_builder.hpp> // CScoreBuilder, AddScore, AddSplignScores
 #include <algo/blast/api/blast_options_handle.hpp>
 #include <algo/blast/format/blastfmtutil.hpp>
 #include <objtools/align_format/align_format_util.hpp>
@@ -74,6 +81,7 @@
 
 #include <algo/blast/QuickBLAST/commons.hpp>
 #include <algo/blast/QuickBLAST/ArrowWrapper.hpp>
+#include <algo/blast/QuickBLAST/DebugHelper.hpp>
 
 USING_NCBI_SCOPE;
 USING_SCOPE(blast);
@@ -187,22 +195,22 @@ public:
     //     void ResetHitCount() { hit_count = 0; }
 
     std::shared_ptr<arrow::Schema> GetSchema();
-    std::string GetProgram();
+    std::string GetProgram(void);
     void SetThreadCount(int num_threads);
-    int GetHitCount();
+    int GetHitCount(void);
     void AddHitCount(int val = 1);
     ncbi::blast::CBlastOptionsHandle &GetQuickBLASTOptions();
     void ResetHitCount();
 
-    unsigned int GetObjectID();
+    unsigned int GetObjectID(void);
     void SetObjectID(unsigned int id);
-
+    std::string GetQuickBLASTOptionString(void);
     // template <typename T1>
     std::shared_ptr<arrow::RecordBatchVector> StreamFile(const std::string_view &filename, const char *delim = "\n", const int &num_threads = 1, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<FastaSequenceData>)> &Entry_callback = {}, bool return_values = false);
     // template <typename OptionsType>
     // ncbi::blast::CBlastOptionsHandle *SetQuickBLASTOptions(const std::string &program_name, const OptionsType &options);
     // // ncbi::blast::CBlastOptionsHandle* SetQuickBLASTOptions(const std::string& program_name, const std::string& options);
-    ncbi::blast::CBlastOptionsHandle *SetQuickBLASTOptions(const std::string &program_name, const std::string &options);
+    ncbi::blast::CBlastOptionsHandle *SetQuickBLASTOptions(const std::string &program_name, const std::string &options, CBlastOptions::EAPILocality locality );
 
     // Rcpp::List BLAST(const std::string &query, const std::string &subject, const std::string &outputFile, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress = true);
     auto BLAST(const std::string &query, const std::string &subject, std::string &outputFile, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress = true);
@@ -213,8 +221,9 @@ public:
     SEXP Hits2RList(const arrow::RecordBatchVector &rb_vector);
       
     template <typename T>
-    std::conditional_t<std::is_same_v<T, TSeqLocVector>, std::shared_ptr<arrow::RecordBatchVector>, std::shared_ptr<arrow::RecordBatch>> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const T &sloc, const CScope &scope);
-    std::shared_ptr<arrow::RecordBatchVector> ExtractHitsRemote(const TSeqAlignVector &alignments);
+    std::conditional_t<std::is_same_v<T, TSeqLocVector>, std::shared_ptr<arrow::RecordBatchVector>, std::shared_ptr<arrow::RecordBatch>> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const T &sloc, CScope &scope); 
+    std::shared_ptr<arrow::RecordBatchVector> ExtractHitsRemote(const TSeqAlignVector &alignments, CScope &scope);
+    
     // private:
     // std::vector<std::pair<std::string, std::string>> BLASTOptionsFromString(const std::string &input);
     // int CountCharacter(std::string filename, char character, int num_threads);
@@ -256,19 +265,19 @@ struct QuickBLAST::Impl
     // bool db_scan_mode = false;
     // std::promise<arrow::Status> ok_promise;
 
-    std::shared_ptr<ArrowWrapper> GetArrowWrapper();
+    std::shared_ptr<ArrowWrapper> GetArrowWrapper(void);
 
-    std::shared_ptr<arrow::Schema> GetSchema();
-    std::string GetProgram();
+    std::shared_ptr<arrow::Schema> GetSchema(void);
+    std::string GetProgram(void);
     void SetThreadCount(int num_threads);
-    int GetHitCount();
+    int GetHitCount(void);
     void AddHitCount(int val = 1);
-    ncbi::blast::CBlastOptionsHandle &GetQuickBLASTOptions();
-    void ResetHitCount();
-    unsigned int GetObjectID();
+    ncbi::blast::CBlastOptionsHandle &GetQuickBLASTOptions(void);
+    void ResetHitCount(void);
+    unsigned int GetObjectID(void);
     void SetObjectID(unsigned int id);
-
-    ncbi::blast::CBlastOptionsHandle *SetQuickBLASTOptions(const std::string &program_name, const std::string &options);
+    std::string GetQuickBLASTOptionString(void);
+    ncbi::blast::CBlastOptionsHandle *SetQuickBLASTOptions(const std::string &program_name, const std::string &options, CBlastOptions::EAPILocality locality);
     // QuickBLAST::QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand, std::string program, std::string options, bool save_sequences)
     Impl(ESeqType seq_type, EStrand strand, std::string program, std::string options, bool save_sequences);
 
@@ -308,12 +317,19 @@ struct QuickBLAST::Impl
     // auto QuickBLAST::BLAST(const std::string &query, const std::string &subject, const std::string &outputFile, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress)
     auto BLAST(const std::string &query, const std::string &subject, std::string &outputFile, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress);
   
-    
-    std::shared_ptr<arrow::RecordBatchVector> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const TSeqLocVector &sloc, const CScope &scope);
-    std::shared_ptr<arrow::RecordBatch> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const SSeqLoc &sloc, const CScope &scope);
-    std::shared_ptr<arrow::RecordBatchVector> ExtractHitsRemote(const TSeqAlignVector &alignments);
+    std::shared_ptr<arrow::RecordBatchVector> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const TSeqLocVector &sloc, CScope &scope); 
+    std::shared_ptr<arrow::RecordBatch> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const SSeqLoc &sloc, CScope &scope); 
+    std::shared_ptr<arrow::RecordBatchVector> ExtractHitsRemote(const TSeqAlignVector &alignments, CScope &scope);
 
+private:
     SSeqLoc *CreateSSeqLocFromType(FastaSequenceData fasta_data, CRef<ncbi::CScope> parent_scope);
+  void AddAllAvailableScoresToAlign(CRef<CSeq_align> align, CRef<CScope> scope, double effective_search_space);
+  void AddAllAvailableScoresToAlignList(std::list< CRef<CSeq_align> >& aligns, CRef<CScope> scope, double effective_search_space);
+  void AddAllAvailableScoresToAlignSet(CRef<CSeq_align_set> alnset, CRef<CScope> scope, double effective_search_space);
+  void AddAllAvailableScoresToSeqAlignVector(TSeqAlignVector &alnvec, CRef<CScope> scope, double effective_search_space);
+  bool IsProteinBioseq(const CBioseq_Handle &bh);
+  bool GetFullSequenceString(CRef<CSeq_id> id, CScope &scope, std::string &out_seq);
+  bool GetHSPSequencesFromDenseg(const CDense_seg& dseg, CScope &scope, std::string &q_hsp_ungapped, std::string &s_hsp_ungapped, std::string *q_aligned_with_gaps = nullptr, std::string *s_aligned_with_gaps = nullptr);
 };
 
 // namespace QuickBLASTUtils{

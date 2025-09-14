@@ -112,42 +112,46 @@ ArrowWrapper::Impl::Impl()
   blast_metadata = std::make_shared<arrow::KeyValueMetadata>();
   AddFASTAMetadata("format", "Arrow Parquet");
   AddFASTAMetadata("Created By", username);
-  fasta_schema = arrow::schema({arrow::field("index", arrow::int32()), arrow::field("header", arrow::utf8()), arrow::field("sequence", arrow::utf8())});
+  fasta_schema = arrow::schema({arrow::field("index", arrow::int64()), arrow::field("header", arrow::utf8()), arrow::field("sequence", arrow::utf8())});
 
   seq_info_type = arrow::struct_({
-      arrow::field("num_alignments", arrow::int8()),
+      arrow::field("num_alignments", arrow::int64()),
+      // arrow::field("seq_titles", arrow::struct_({arrow::field("qseq_title", arrow::utf8()),
+                                      // arrow::field("sseq_title", arrow::utf8())})),
       arrow::field("seqids", arrow::struct_({arrow::field("qseqid", arrow::utf8()),
                                              arrow::field("sseqid", arrow::utf8())})),
       arrow::field("seqs", arrow::struct_({arrow::field("qseq", arrow::large_utf8()),
                                            arrow::field("sseq", arrow::large_utf8())})),
       arrow::field("strands", arrow::utf8()),
-      arrow::field("lengths", arrow::struct_({arrow::field("qlen", arrow::int8()),
-                                              arrow::field("slen", arrow::int8())})),
+      arrow::field("lengths", arrow::struct_({arrow::field("qlen", arrow::int64()),
+                                              arrow::field("slen", arrow::int64())})),
   });
-  this->hsp_type = arrow::struct_({arrow::field("pident", arrow::float64()),
+  this->hsp_type = arrow::struct_({arrow::field("qhsp", arrow::large_utf8()),
+                                   arrow::field("shsp", arrow::large_utf8()),
+                                   arrow::field("pident", arrow::float64()),
                                    arrow::field("pident_gap", arrow::float64()),
                                    arrow::field("frames", arrow::utf8()),
                                    arrow::field("evalue", arrow::float64()),
-                                   arrow::field("length", arrow::int8()),
+                                   arrow::field("length", arrow::int64()),
                                    arrow::field("length01", arrow::float64()),
-                                   arrow::field("qstart", arrow::int8()),
-                                   arrow::field("qend", arrow::int8()),
-                                   arrow::field("sstart", arrow::int8()),
-                                   arrow::field("send", arrow::int8()),
+                                   arrow::field("qstart", arrow::int64()),
+                                   arrow::field("qend", arrow::int64()),
+                                   arrow::field("sstart", arrow::int64()),
+                                   arrow::field("send", arrow::int64()),
                                    arrow::field("bitscore", arrow::float64()),
                                    arrow::field("score", arrow::float64()),
                                    arrow::field("qcovhsp", arrow::float64()),
                                    arrow::field("blast_score", arrow::float64()),
-                                   arrow::field("gaps", arrow::int8()),
-                                   arrow::field("nident", arrow::int8()),
-                                   arrow::field("mismatch", arrow::int8()),
-                                   arrow::field("positive", arrow::int8()),
-                                   arrow::field("n_splices", arrow::int8()),
-                                   arrow::field("hsp_num", arrow::int8()),
+                                   arrow::field("gaps", arrow::int64()),
+                                   arrow::field("nident", arrow::int64()),
+                                   arrow::field("mismatch", arrow::int64()),
+                                   arrow::field("positive", arrow::int64()),
+                                   arrow::field("n_splices", arrow::int64()),
+                                   arrow::field("hsp_num", arrow::int64()),
                                    arrow::field("sum_evalue", arrow::float64()),
                                    arrow::field("product_coverage", arrow::float64()),
                                    arrow::field("overall_identity", arrow::float64()),
-                                   arrow::field("negative_count", arrow::int8()),
+                                   arrow::field("negative_count", arrow::int64()),
                                    arrow::field("matches", arrow::float64()),
                                    arrow::field("high_quality_percent_coverage", arrow::float64()),
                                    arrow::field("exon_identity", arrow::float64()),
@@ -202,7 +206,7 @@ int ArrowWrapper::GetRecordCount() { return pImpl->GetRecordCount(); }
 
 void ArrowWrapper::Impl::ResetRecordCount()
 {
-  rec_count = 0;
+  rec_count = 1;
 }
 void ArrowWrapper::ResetRecordCount()
 {
@@ -258,25 +262,50 @@ void ArrowWrapper::SetThreadCount(int num_threads)
 
 FastaSequenceData ArrowWrapper::Impl::CastToType(const std::string &full_entry)
 {
-  std::regex pattern("^>(\\w+)[\\r\\n]+([\\w\\W]+)$");
-  std::regex punct_pattern("[[:punct:][:space:]\\n\\t]");
-  std::smatch match;
-
-  std::string full_entry_str(static_cast<std::string>(full_entry));
+  // std::regex pattern("^>(\\w+)[\\r\\n]+([\\w\\W]+)$");
+  // std::regex punct_pattern("[[:punct:][:space:]\\n\\t]");
+  // std::smatch match;
+  // 
+  // std::string full_entry_str(static_cast<std::string>(full_entry));
+  // FastaSequenceData fasta_data;
+  // fasta_data.rec_no = GetRecordCount();
+  // if (std::regex_match(full_entry, match, pattern))
+  // {
+  //   fasta_data.header = match[1].str();
+  //   fasta_data.seq = std::regex_replace(match[2].str(), punct_pattern, "");
+  // }
+  // else
+  // {
+  // 
+  //   fasta_data.seq = std::regex_replace(full_entry, punct_pattern, "");
+  // }
+  // fasta_data.header = fasta_data.header.empty() ? std::to_string(fasta_data.rec_no) : fasta_data.header;
+  
+  static const std::regex pattern(R"(^>([^\r\n]+)\r?\n([\s\S]+)$)");
+  static const std::regex seq_clean(R"([^A-Za-z])"); // remove anything that's not a letter
+  
   FastaSequenceData fasta_data;
   fasta_data.rec_no = GetRecordCount();
-  if (std::regex_match(full_entry, match, pattern))
-  {
-    fasta_data.header = match[1].str();
-    fasta_data.seq = std::regex_replace(match[2].str(), punct_pattern, "");
+  
+  std::smatch match;
+  if (std::regex_match(full_entry, match, pattern) && full_entry[0] == '>') {
+    fasta_data.header = match[1].str();         // whole header line (keeps pipes/spaces)
+    std::string raw_seq = match[2].str();      // sequence possibly with newlines/spaces
+    fasta_data.seq = std::regex_replace(raw_seq, seq_clean, "");
+  } else {
+    // If pattern fails, fallback: take only letters from the whole input (conservative)
+    fasta_data.seq = std::regex_replace(full_entry, seq_clean, "");
   }
-  else
-  {
-
-    fasta_data.seq = std::regex_replace(full_entry, punct_pattern, "");
+  
+  if (fasta_data.header.empty()) {
+    fasta_data.header = std::to_string(fasta_data.rec_no);
   }
-  fasta_data.header = fasta_data.header.empty() ? std::to_string(fasta_data.rec_no) : fasta_data.header;
+  
   AddRecordCount();
+  
+  Rcpp::Rcout << ">" << fasta_data.header << std::endl << std::flush; //DEBUG
+  Rcpp::Rcout << fasta_data.seq << std::endl << std::flush; //DEBUG
+  
   return fasta_data;
 }
 FastaSequenceData ArrowWrapper::CastToType(const std::string &full_entry)

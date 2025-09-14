@@ -36,8 +36,8 @@ knitr::opts_chunk$set(
 ```{r setup, echo=TRUE,include=T, tidy=TRUE}
 library(QuickBLAST)
 QuickBLAST::isQuickBLASTLoaded()
-blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp")
-blastn_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 0, strand = 0, program = "blastn")
+blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = TRUE, options = "-evalue 100000")
+blastn_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 0, strand = 0, program = "blastn", options = "-evalue 100000")
 tblastx_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 0, strand = 0, program = "tblastx")
 blastp_inst
 blastn_inst
@@ -68,4 +68,10 @@ blastn_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 0, strand = 0, pr
 QuickBLAST::BLAST2Seqs(tblastx_inst, "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG")
 QuickBLAST::BLAST2Seqs(blastn_inst, "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG")
 QuickBLAST::BLAST2Seqs(blastp_inst, "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG")
+QuickBLAST::BLAST2Seqs(blastp_inst, "MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", "MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE")
+QuickBLAST::RemoteBLAST(blastn_inst, query_input="AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", database= "nr", input_type=1, return_values=T)
+
+QuickBLAST::RemoteBLAST(blastp_inst, query_input="MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", database= "pdb", input_type=1, return_values=T)
+
+QuickBLAST::BLAST2Files(ptr = blastp_inst, query = "inst/extdata/protein_query.fasta", subject = "inst/extdata/protein_subject.fasta", out_file = "test.arrow", show_progress = T,return_values = T)
 ```

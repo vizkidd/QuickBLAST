@@ -13,6 +13,7 @@
 #include <arrow/util/type_fwd.h>
 #include <arrow/builder.h>
 #include <arrow/record_batch.h>
+// #include <arrow/util/string.h>
 
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
 #include "omp.h"
@@ -91,7 +92,7 @@ struct ArrowWrapper::Impl
     std::shared_ptr<arrow::RecordBatchVector> rbv_batch;
     std::vector<std::thread> writer_threads;
 
-    unsigned int rb_batch_size = 1024, rec_count = 0, n_threads = 1;
+    unsigned int rb_batch_size = 1024, rec_count = 1, n_threads = 1;
 
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
     omp_lock_t rec_countLock;
