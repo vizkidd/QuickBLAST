@@ -1,3 +1,31 @@
+#' Globals
+# arrow_lfs <- arrow::LocalFileSystem$create()
+## internal single-file-system getter for the package
+.arrow_fs_singleton <- local({
+  fs <- NULL
+  function() {
+    if (!is.null(fs)) return(fs)
+    
+    fs <- tryCatch(
+      {
+        arrow::LocalFileSystem$create()
+      },
+      error = function(e) {
+        # fallback if the "file" scheme is already registered (common when arrow already initialized)
+        if (grepl("Attempted to register factory for scheme 'file'", e$message, fixed = TRUE)) {
+          arrow::FileSystem$from_uri("file:///")
+        } else {
+          stop(e)
+        }
+      }
+    )
+    
+    # cache and return
+    force(fs)
+    fs
+  }
+})
+
 # #' Get an Instance of QuickBLAST class and its exposed methods
 # #' @note Check BLAST C++ Call in Help for the list of parameters for the exposed BLAST function. Exposed C++ function only takes BLAST options as string.
 # #' @seealso [QuickBLAST::CreateNewBLASTInstance()], [QuickBLAST::GetQuickBLASTEnums()]
@@ -71,30 +99,58 @@ GetAvailableBLASTOptions <- function() {
 #'
 #' Give the path to a BLAST Hits file to load it into a data.frame(BLAST HITs Table). The column names can be provided as col.names. Rows with NAs are automatically removed.
 #'
-#' Note : If use.feather is enabled, then the functions returns an arrow::RecordBatchStreamReader object. Call wrap it in an iterators::iter() (like batch_iter <- iter(function(){ batch_reader$read_next_batch() })) and call iterators::nextElem(batch_iter) to get each batch of the BLAST Hits.
+#' Note : If blast.table is enabled, then the functions returns an arrow::RecordBatchStreamReader object. Call wrap it in an iterators::iter() (like batch_iter <- iter(function(){ batch_reader$read_next_batch() })) and call iterators::nextElem(batch_iter) to get each batch of the BLAST Hits.
 #'
 #'
 #' @param infile BLAST hits filename (not a connection) (Gzipped files supported)
 #' @param sep Delimiter of the BLAST File columns. Default - '\\t'
 #' @param header Does the file have a header? . Default - FALSE
-#' @param use.feather Should feather API be used to read BLAST Hits? - Default - FALSE
+#' @param blast.table Is the input a table of BLAST Hits? (or an arrow::IPC file) - Default - TRUE
 #' @return Data Frame with BLAST Results
 #' @export
-LoadBLASTHits <- function(infile, sep = "\t", header = F, use.feather = F) {
+LoadBLASTHits <- function(infile, sep = "\t", header = F, blast.table = T) {
   if (try(file.exists(infile)) && file.info(infile)$size > 0) { # any(grepl(x = class(infile), pattern = "gzfile|connection", ignore.case = T)) #
     # if(gzipped){
     #  infile <- gzfile(description = infile, open = "r")
     # }
     # blast_results <- read.table(file = infile,header = header,sep=sep,quote = "", blank.lines.skip = T, fill = t,na.strings = NA)
-    if (!use.feather) {
+    if (blast.table) {
       blast_results <- iterators::iread.table(file = infile, row.names = NULL, header = header, sep = sep, quote = "", blank.lines.skip = T, fill = T, na.strings = "NA") # data.table::fread(file = infile,header = header,sep=sep,quote = "", blank.lines.skip = T, nThread = n_threads)
       return(blast_results)
     } else {
-      arrow_lfs <- arrow::LocalFileSystem$create()
-      arrow_i_stream <- arrow_lfs$OpenInputStream(infile)
-      batch_reader <- arrow::RecordBatchStreamReader$create(arrow_i_stream)
+      # arrow_lfs <- arrow::LocalFileSystem$create()
+      arrow_lfs <- .arrow_fs_singleton()
+      # arrow_i_stream <- arrow_lfs$OpenInputStream(infile)
+      # batch_reader <- arrow::RecordBatchStreamReader$create(arrow_i_stream)
+      in_stream <- arrow_lfs$OpenInputStream(infile)
+      # compressed_stream <- arrow::CompressedInputStream$create(infile, "gzip")
+      # Use the FileReader (not StreamReader)
+      file_reader <- arrow::RecordBatchFileReader$create(in_stream)
+      # file_reader <- arrow::RecordBatchStreamReader$create(compressed_stream)
+      # # create an iterator over 1..n, mapping to get_batch
+      # n <- file_reader$num_record_batches
+      # batch_iter <- iterators::iter(seq_len(n), function(j) {
+      #   return(file_reader$get_batch(j - 1L)$to_data_frame())
+      # })
+      ret_tib <- dplyr::bind_rows(lapply(file_reader$batches(), FUN = function(x){
+        return(x$to_data_frame())
+      }))
+      
+      ret_df <- ret_tib %>%
+        # expand seq_info (it is a tibble/list-col)
+        tidyr::unnest(cols = c(seq_info)) %>%
+        # expand seqids and seqs and lengths which are themselves nested tibbles
+        tidyr::unnest_wider(seqids, names_sep = "_") %>%
+        tidyr::unnest_wider(seqs,   names_sep = "_") %>%
+        tidyr::unnest_wider(lengths, names_sep = "_") %>%
+        # expand hsps which is another nested tibble
+        tidyr::unnest(cols = c(hsps)) %>%
+        # if any columns are still list-columns of length-1, unnest them:
+        tidyr::mutate(across(where(~ is.list(.) && all(lengths(.) == n())), ~ unlist(.))) %>%
+        tidyr::as_tibble()
+      
       # blast_results <- arrow::read_feather(file = infile, mmap = T)
-      return(batch_reader) # batch_iter <- iter(function())
+      return(ret_df) # batch_iter <- iter(function())
     }
   } else {
     stop(paste("File", infile, "does not exist or size 0"))
@@ -269,11 +325,18 @@ dll_obj_list <-  list()
 
 .onLoad <- function(libname, pkgname) {
   # # # Load the DLLs when the package is loaded
-  # # require(QuickBLAST)
-  # #require(QuickBLASTdeps)
-  # # require(arrow)
-  # # require(Rcpp)
-  # # require(RcppProgress)
+  # require(arrow)
+  # require(Rcpp)
+  # require(RcppProgress)
+  # require(remotes)
+  Sys.setenv("ARROW_DEFAULT_MEMORY_POOL"="system")
+  Sys.setenv("ARROW_DEBUG_MEMORY_POOL"="warn")
+  Sys.setenv("OMP_NUM_THREADS"=parallel::detectCores(all.tests = T, logical = T))
+  Sys.setenv("OMP_DYNAMIC"="TRUE")
+  Sys.setenv("OMP_WAIT_POLICY"="PASSIVE")
+  Sys.setenv("OMP_DISPLAY_ENV"="VERBOSE")
+  packageStartupMessage("QuickBLAST Loaded!")
+  packageStartupMessage("Version: ", utils::packageVersion("QuickBLAST"))
   # #R_dll_paths, msys_dll_paths
   # # library.dynam("Rcpp", "Rcpp", fs::path_package("Rcpp","..",".."))
   # if(Sys.info()['sysname'] != "Linux"){

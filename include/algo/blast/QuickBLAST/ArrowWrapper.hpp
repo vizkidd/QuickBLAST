@@ -86,11 +86,14 @@ struct ArrowWrapper::Impl
     std::shared_ptr<arrow::KeyValueMetadata> blast_metadata;
     // std::promise<arrow::Status> ok_promise;
     arrow::fs::LocalFileSystem arrow_LFS;
-    std::shared_ptr<arrow::io::OutputStream> outFileStream;
-    std::shared_ptr<arrow::io::CompressedOutputStream> compressed_outstream;
+    // std::shared_ptr<arrow::io::OutputStream> outFileStream;
+    // std::shared_ptr<arrow::io::FileOutputStream> outFileStream; 
+    // std::shared_ptr<arrow::io::CompressedOutputStream> compressed_outstream;
     // std::shared_ptr<arrow::ipc::RecordBatchWriter> rec_writer;
     std::shared_ptr<arrow::RecordBatchVector> rbv_batch;
     std::vector<std::thread> writer_threads;
+    std::string output_filename;
+    bool save2file;
 
     unsigned int rb_batch_size = 1024, rec_count = 1, n_threads = 1;
 

@@ -13,6 +13,10 @@
 
 using namespace Rcpp;
 
+// [[Rcpp::plugins(openmp)]]
+// [[Rcpp::depends(RcppProgress)]]
+
+
 // // #if defined(MINGW32) || defined(WIN32)
 // extern "C"
 // {
@@ -317,13 +321,12 @@ static Rcpp::RObject ArrayPrimitivesToR(const std::shared_ptr<arrow::Array>& arr
     auto sarr = std::static_pointer_cast<arrow::StringArray>(array);
     // get actual length from the array (int64_t)
     int64_t n_local = sarr->length();
-    Rcpp::Rcout << "here 3.1.1" << std::endl << std::flush; //DEBUG
     // Safety: Rcpp::StringVector constructor expects an 'int' (32-bit) on many builds.
     if (n_local > static_cast<int64_t>(std::numeric_limits<int>::max())) {
       Rcpp::stop("Arrow string array has too many elements to convert to an R character vector.");
     }
     int n_int = static_cast<int>(n_local);
-    Rcpp::Rcout << "converting Arrow StringArray of length " << n_local << std::endl << std::flush;
+    // Rcpp::Rcout << "converting Arrow StringArray of length " << n_local << std::endl << std::flush;
     Rcpp::StringVector out(n_int);
     // If you expect extremely large individual strings, you might check sarr->value(i).size() here
     for (int64_t i = 0; i < n_local; ++i) {
@@ -331,32 +334,32 @@ static Rcpp::RObject ArrayPrimitivesToR(const std::shared_ptr<arrow::Array>& arr
       if (sarr->IsValid(i)) {
         // Prefer GetView() to avoid an extra allocation if possible.
         std::string_view sv = sarr->GetView(i);
-        Rcpp::Rcout << "Row : " << idx << std::endl << std::flush; //DEBUG
-        Rcpp::Rcout << "Row Size: " << sv.size() << std::endl << std::flush; //DEBUG
-        Rcpp::Rcout << "Row Data: " << sv.data() << std::endl << std::flush; //DEBUG
+        // Rcpp::Rcout << "Row : " << idx << std::endl << std::flush; //DEBUG
+        // Rcpp::Rcout << "Row Size: " << sv.size() << std::endl << std::flush; //DEBUG
+        // Rcpp::Rcout << "Row Data: " << sv.data() << std::endl << std::flush; //DEBUG
         // Construct Rcpp::String from the view (this makes a copy once)
         out[idx] = Rcpp::String(std::string(sv.data(), sv.size()));
       } else {
         out[idx] = NA_STRING;
       }
     }
-    for( int i = 0; i < out.size(); i++ ){
-      Rcpp::Rcout << "Element " << i << ": " << out(i) << std::endl << std::flush; //DEBUG
-    }
-    Rcpp::Rcout << "here 3.1.4" << std::endl << std::flush; //DEBUG
+    // for( int i = 0; i < out.size(); i++ ){
+    //   Rcpp::Rcout << "Element " << i << ": " << out(i) << std::endl << std::flush; //DEBUG
+    // }
+    // Rcpp::Rcout << "here 3.1.4" << std::endl << std::flush; //DEBUG
     return out;
   }
   case arrow::Type::LARGE_STRING: {
     auto sarr = std::static_pointer_cast<arrow::LargeStringArray>(array);
     // get actual length from the array (int64_t)
     int64_t n_local = sarr->length();
-    Rcpp::Rcout << "here 3.0.1" << std::endl << std::flush; //DEBUG
+    // Rcpp::Rcout << "here 3.0.1" << std::endl << std::flush; //DEBUG
     // Safety: Rcpp::StringVector constructor expects an 'int' (32-bit) on many builds.
     if (n_local > static_cast<int64_t>(std::numeric_limits<int>::max())) {
       Rcpp::stop("Arrow string array has too many elements to convert to an R character vector.");
     }
     int n_int = static_cast<int>(n_local);
-    Rcpp::Rcout << "converting Arrow StringArray of length " << n_local << std::endl << std::flush;
+    // Rcpp::Rcout << "converting Arrow StringArray of length " << n_local << std::endl << std::flush;
     Rcpp::StringVector out(n_int);
     // If you expect extremely large individual strings, you might check sarr->value(i).size() here
     for (int64_t i = 0; i < n_local; ++i) {
@@ -364,19 +367,19 @@ static Rcpp::RObject ArrayPrimitivesToR(const std::shared_ptr<arrow::Array>& arr
       if (sarr->IsValid(i)) {
         // Prefer GetView() to avoid an extra allocation if possible.
         std::string_view sv = sarr->GetView(i);
-        Rcpp::Rcout << "Row : " << idx << std::endl << std::flush; //DEBUG
-        Rcpp::Rcout << "Row Size: " << sv.size() << std::endl << std::flush; //DEBUG
-        Rcpp::Rcout << "Row Data: " << sv.data() << std::endl << std::flush; //DEBUG
+        // Rcpp::Rcout << "Row : " << idx << std::endl << std::flush; //DEBUG
+        // Rcpp::Rcout << "Row Size: " << sv.size() << std::endl << std::flush; //DEBUG
+        // Rcpp::Rcout << "Row Data: " << sv.data() << std::endl << std::flush; //DEBUG
         // Construct Rcpp::String from the view (this makes a copy once)
         out[idx] = Rcpp::String(std::string(sv.data(), sv.size()));
       } else {
         out[idx] = NA_STRING;
       }
     }
-    for( int i = 0; i < out.size(); i++ ){
-      Rcpp::Rcout << "Element " << i << ": " << out(i) << std::endl << std::flush; //DEBUG
-    }
-    Rcpp::Rcout << "here 3.0.4" << std::endl << std::flush; //DEBUG
+    // for( int i = 0; i < out.size(); i++ ){
+    //   Rcpp::Rcout << "Element " << i << ": " << out(i) << std::endl << std::flush; //DEBUG
+    // }
+    // Rcpp::Rcout << "here 3.0.4" << std::endl << std::flush; //DEBUG
     return out;
   }
   case arrow::Type::BOOL: {
@@ -446,7 +449,7 @@ static void CollectFlattenedColumns(const std::shared_ptr<arrow::Array>& array,
     for (int f = 0; f < nf; ++f) {
       std::string child_name = type->field(f)->name();
       std::string colname = child_name; //join_col(prefix, child_name);
-      Rcpp::Rcout << "Colname: " << colname << std::endl << std::flush; //DEBUG
+      // Rcpp::Rcout << "Colname: " << colname << std::endl << std::flush; //DEBUG
       auto child_array = sarr->field(f);
       auto child_type = type->field(f)->type();
       CollectFlattenedColumns(child_array, child_type, colname, col_order, cols);
@@ -1166,7 +1169,7 @@ RcppExport SEXP BLAST2Seqs(SEXP ptr, SEXP query, SEXP subject)
     
 
     PrintClock(start);
-    return rm_null(ret_vals_);
+    return ret_vals_; //rm_null(ret_vals_);
 }
 
 
@@ -1479,14 +1482,19 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
         // ret_vals.ptr->emplace_back(arrow::RecordBatch::MakeEmpty(ptr.ptr->GetSchema()).ValueOrDie());
         ret_vals->emplace_back(arrow::RecordBatch::MakeEmpty(ptr_->GetSchema()).ValueOrDie());
     }
-
+   
     // Rcpp::List ret_vals_ = as<List>(Hits2RList(*ret_vals));
       Rcpp::List ret_vals_ = as<List>(RecordBatchVectorToFlattenedDFList_cpp(ret_vals));
-    
+   
     PrintClock(start);
+   
     if(return_values){
-      return rm_null(ret_vals_);
+   
+      return ret_vals_; //rm_null(ret_vals_);
+    }else{
+      return Rcpp::wrap(true);
     }
+
   } catch(std::exception &e){
     Rcpp::stop(std::string("std::exception in BLAST2Files(): ") + e.what());
     // throw;
@@ -1539,9 +1547,14 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
         break;
       }
       case QuickBLAST::EInputType::eSequenceString:{
-        std::shared_ptr<arrow::RecordBatchVector> ret_rb = ptr_->BLAST_remote(program_, database_, query_input_, input_type_, outFile_, return_values, 120, 4000);
+        // std::shared_ptr<arrow::RecordBatchVector> ret_rb = ptr_->BLAST_remote(program_, database_, query_input_, input_type_, outFile_, return_values, 120, 4000);
         // ret_val->emplace_back(ret_rb);
-        ret_val = ret_rb;
+        if(return_values){
+          ret_val = ptr_->BLAST_remote(program_, database_, query_input_, input_type_, outFile_, return_values, 120, 4000);
+        }else{
+          static_cast<void>(ptr_->BLAST_remote(program_, database_, query_input_, input_type_, outFile_, return_values, 120, 4000));
+          ret_val->emplace_back(arrow::RecordBatch::MakeEmpty(ptr_->GetSchema()).ValueOrDie());
+        }
         break;
       }
       case QuickBLAST::EInputType::eFolder:{
@@ -1549,13 +1562,11 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
       }
       }
       
-      Rcpp::Rcout << "here 2.0.0" << std::endl << std::flush; //DEBUG
-      
       // Rcpp::List ret_vals_ = Rcpp::as<List>(Hits2RList(*ret_val));
       Rcpp::List ret_vals_ = as<List>(RecordBatchVectorToFlattenedDFList_cpp(ret_val));
       
       PrintClock(start);
       if(return_values){
-        return rm_null(ret_vals_);
+        return ret_vals_; //rm_null(ret_vals_);
       }
  }

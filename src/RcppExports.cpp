@@ -20,6 +20,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// RecordBatchVectorToFlattenedDFList
+Rcpp::List RecordBatchVectorToFlattenedDFList(SEXP rbv_sexp);
+RcppExport SEXP _QuickBLAST_RecordBatchVectorToFlattenedDFList(SEXP rbv_sexpSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rbv_sexp(rbv_sexpSEXP);
+    rcpp_result_gen = Rcpp::wrap(RecordBatchVectorToFlattenedDFList(rbv_sexp));
+    return rcpp_result_gen;
+END_RCPP
+}
 // GetInstanceCount
 RcppExport unsigned int GetInstanceCount();
 RcppExport SEXP _QuickBLAST_GetInstanceCount() {
@@ -178,6 +189,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_QuickBLAST_isQuickBLASTLoaded", (DL_FUNC) &_QuickBLAST_isQuickBLASTLoaded, 0},
+    {"_QuickBLAST_RecordBatchVectorToFlattenedDFList", (DL_FUNC) &_QuickBLAST_RecordBatchVectorToFlattenedDFList, 1},
     {"_QuickBLAST_GetInstanceCount", (DL_FUNC) &_QuickBLAST_GetInstanceCount, 0},
     {"_QuickBLAST_GetInstanceID", (DL_FUNC) &_QuickBLAST_GetInstanceID, 1},
     {"_QuickBLAST_GetQuickBLASTInstance", (DL_FUNC) &_QuickBLAST_GetQuickBLASTInstance, 1},

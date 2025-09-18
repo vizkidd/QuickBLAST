@@ -15,6 +15,10 @@ isQuickBLASTLoaded <- function() {
     .Call(`_QuickBLAST_isQuickBLASTLoaded`)
 }
 
+RecordBatchVectorToFlattenedDFList <- function(rbv_sexp) {
+    .Call(`_QuickBLAST_RecordBatchVectorToFlattenedDFList`, rbv_sexp)
+}
+
 #' @name GetInstanceCount
 #' @title Get count of QuickBLAST instances stored in C++ side
 #'

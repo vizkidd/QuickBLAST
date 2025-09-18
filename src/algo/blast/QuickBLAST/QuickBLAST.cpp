@@ -1454,7 +1454,7 @@ SSeqLoc *QuickBLAST::Impl::CreateSSeqLocFromType(FastaSequenceData fasta_data, C
   //   // std::replace(cleanID.begin(), cleanID.end(), ' ', '_');
   //   if(cleanID.length() > 50)
   //     cleanID.resize(50); //respecting the 50 char limit for FASTA headers by BLAST
-  CRef<CSeq_id> id(new CSeq_id(fastaID, CSeq_id::fParse_AnyRaw | CSeq_id::fParse_PartialOK | CSeq_id::fParse_AnyLocal));
+  CRef<CSeq_id> id(new CSeq_id(fastaID, CSeq_id::fParse_RawText | CSeq_id::fParse_PartialOK | CSeq_id::fParse_AnyLocal));
   // // id->SetLocal().SetId(rec_no);
   // // id->SetLocal().SetStr(cleanID);
   // id->SetLocal().SetStr(fastaID);
@@ -1578,17 +1578,17 @@ SSeqLoc *QuickBLAST::Impl::CreateSSeqLocFromType(FastaSequenceData fasta_data, C
   parent_scope->AddTopLevelSeqEntry(*ret_entry);
   // parent_scope->AddBioseq(*bioseq);
 
-  //DEBUG
-  for (auto &id0 : ret_entry->GetSeq().GetId()) {
-    Rcpp::Rcout << "Added seq id: " << id0->AsFastaString() << std::endl;
-  }
-  try {
-    CSeq_id_Handle idh = CSeq_id_Handle::GetHandle(*ret_entry->GetSeq().GetId().front());
-    CBioseq_Handle bh = parent_scope->GetBioseqHandle(idh);
-    Rcpp::Rcout << "Scope resolves id: " << idh.AsString() << std::endl;
-  } catch (const CException &e) {
-    Rcpp::Rcerr << "Scope resolution failed after add: " << e.GetMsg() << std::endl;
-  } //DEBUG END
+  // //DEBUG
+  // for (auto &id0 : ret_entry->GetSeq().GetId()) {
+  //   Rcpp::Rcout << "Added seq id: " << id0->AsFastaString() << std::endl;
+  // }
+  // try {
+  //   CSeq_id_Handle idh = CSeq_id_Handle::GetHandle(*ret_entry->GetSeq().GetId().front());
+  //   CBioseq_Handle bh = parent_scope->GetBioseqHandle(idh);
+  //   Rcpp::Rcout << "Scope resolves id: " << idh.AsString() << std::endl;
+  // } catch (const CException &e) {
+  //   Rcpp::Rcerr << "Scope resolution failed after add: " << e.GetMsg() << std::endl;
+  // } //DEBUG END
   
   // return new SSeqLoc(cseq_loc_obj.GetObject(), parent_scope.GetObject());
   return new SSeqLoc(cseq_loc_obj, parent_scope);
@@ -2248,8 +2248,8 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
      
      
                    //DEBUG
-                   Rcpp::Rcout << "Query id: " << query_loc->seqloc->GetId()->GetSeqIdString(true) << std::endl;
-                   Rcpp::Rcout << "Subject id: " << subject_loc->seqloc->GetId()->GetSeqIdString(true) << std::endl;
+                   // Rcpp::Rcout << "Query id: " << query_loc->seqloc->GetId()->GetSeqIdString(true) << std::endl;
+                   // Rcpp::Rcout << "Subject id: " << subject_loc->seqloc->GetId()->GetSeqIdString(true) << std::endl;
                   //DEBUG
                     // Rcpp::Rcout << "strcmp(): " << strcmp(subject_loc->seqloc->GetId()->GetSeqIdString(true).c_str(), query_loc->seqloc->GetId()->GetSeqIdString(true).c_str()) << std::endl << std::flush; //DEBUG
                     // 
@@ -2944,12 +2944,12 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHits(const TSeqAlig
             // HSP sequences
             bool ok = GetHSPSequencesFromDenseg(dseg, scope, q_hsp, s_hsp, &q_aligned, &s_aligned);
             
-            NcbiCout << "Full query length: " << q_full.size() << " HSP ungapped length: " << q_hsp.size() << NcbiEndl;
-            NcbiCout << "Full subject length: " << s_full.size() << " HSP ungapped length: " << s_hsp.size() << NcbiEndl;
-            NcbiCout << "Aligned strings length: " << q_aligned.size() << " / " << s_aligned.size() << NcbiEndl;
-            NcbiCout << "Query FASTA: " << q_full.substr(0, 200) << NcbiEndl;   // print only prefix
-            NcbiCout << "Subject FASTA: " << s_full.substr(0, 200) << NcbiEndl;
-            NcbiCout << "Query HSP: " << q_hsp.substr(0, 200) << NcbiEndl;   // print only prefix
+            // NcbiCout << "Full query length: " << q_full.size() << " HSP ungapped length: " << q_hsp.size() << NcbiEndl;
+            // NcbiCout << "Full subject length: " << s_full.size() << " HSP ungapped length: " << s_hsp.size() << NcbiEndl;
+            // NcbiCout << "Aligned strings length: " << q_aligned.size() << " / " << s_aligned.size() << NcbiEndl;
+            // NcbiCout << "Query FASTA: " << q_full.substr(0, 200) << NcbiEndl;   // print only prefix
+            // NcbiCout << "Subject FASTA: " << s_full.substr(0, 200) << NcbiEndl;
+            // NcbiCout << "Query HSP: " << q_hsp.substr(0, 200) << NcbiEndl;   // print only prefix
             NcbiCout << "Subject HSP: " << s_hsp.substr(0, 200) << NcbiEndl;
           }
          
@@ -3009,77 +3009,77 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHits(const TSeqAlig
           // For each requested score, call GetNamedScore and check result
           bool ok;
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_AlignLength, aln_len);
-          Rcpp::Rcout << "AlignLength present: " << ok << " value: " << aln_len << std::endl;
+          // Rcpp::Rcout << "AlignLength present: " << ok << " value: " << aln_len << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_BitScore, bits);
-          Rcpp::Rcout << "BitScore present: " << ok << " value: " << bits << std::endl;
+          // Rcpp::Rcout << "BitScore present: " << ok << " value: " << bits << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_Blast, blast_score);
-          Rcpp::Rcout << "Blast score present: " << ok << " value: " << blast_score << std::endl;
+          // Rcpp::Rcout << "Blast score present: " << ok << " value: " << blast_score << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_IdentityCount, num_ident);
-          Rcpp::Rcout << "IdentityCount present: " << ok << " value: " << num_ident << std::endl;
+          // Rcpp::Rcout << "IdentityCount present: " << ok << " value: " << num_ident << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity_Ungapped, pident);
-          Rcpp::Rcout << "PercentIdentity_Ungapped present: " << ok << " value: " << pident << std::endl;
+          // Rcpp::Rcout << "PercentIdentity_Ungapped present: " << ok << " value: " << pident << std::endl;
           
           if(!ok)
             if (aln_len > 0){
               pident = 100.0 * (double)num_ident / (double)aln_len;
-              Rcpp::Rcout << "computed pident = " << pident << std::endl;
+              // Rcpp::Rcout << "computed pident = " << pident << std::endl;
             }
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity, pident_gap);
-          Rcpp::Rcout << "PercentIdentity (gapped) present: " << ok << " value: " << pident_gap << std::endl;
+          // Rcpp::Rcout << "PercentIdentity (gapped) present: " << ok << " value: " << pident_gap << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_GapCount, gaps);
-          Rcpp::Rcout << "GapCount present: " << ok << " value: " << gaps << std::endl;
+          // Rcpp::Rcout << "GapCount present: " << ok << " value: " << gaps << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_EValue, evalue);
-          Rcpp::Rcout << "EValue present: " << ok << " value: " << evalue << std::endl;
+          // Rcpp::Rcout << "EValue present: " << ok << " value: " << evalue << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_MismatchCount, mismatches);
-          Rcpp::Rcout << "MismatchCount present: " << ok << " value: " << mismatches << std::endl;
+          // Rcpp::Rcout << "MismatchCount present: " << ok << " value: " << mismatches << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentCoverage, qcovhsp);
-          Rcpp::Rcout << "PercentCoverage present: " << ok << " value: " << qcovhsp << std::endl;
+          // Rcpp::Rcout << "PercentCoverage present: " << ok << " value: " << qcovhsp << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_Score, score);
-          Rcpp::Rcout << "Score present: " << ok << " value: " << score << std::endl;
+          // Rcpp::Rcout << "Score present: " << ok << " value: " << score << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_PositiveCount, positive);
-          Rcpp::Rcout << "PositiveCount present: " << ok << " value: " << positive << std::endl;
+          // Rcpp::Rcout << "PositiveCount present: " << ok << " value: " << positive << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_Splices, n_splices);
-          Rcpp::Rcout << "Splices present: " << ok << " value: " << n_splices << std::endl;
+          // Rcpp::Rcout << "Splices present: " << ok << " value: " << n_splices << std::endl;
           
           // extended ones
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_SumEValue, sum_evalue);
-          Rcpp::Rcout << "SumEValue present: " << ok << " value: " << sum_evalue << std::endl;
+          // Rcpp::Rcout << "SumEValue present: " << ok << " value: " << sum_evalue << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_ProductCoverage, product_coverage);
-          Rcpp::Rcout << "ProductCoverage present: " << ok << " value: " << product_coverage << std::endl;
+          // Rcpp::Rcout << "ProductCoverage present: " << ok << " value: " << product_coverage << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_OverallIdentity, overall_identity);
-          Rcpp::Rcout << "OverallIdentity present: " << ok << " value: " << overall_identity << std::endl;
+          // Rcpp::Rcout << "OverallIdentity present: " << ok << " value: " << overall_identity << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_NegativeCount, negative_count);
-          Rcpp::Rcout << "NegativeCount present: " << ok << " value: " << negative_count << std::endl;
+          // Rcpp::Rcout << "NegativeCount present: " << ok << " value: " << negative_count << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_Matches, matches);
-          Rcpp::Rcout << "Matches present: " << ok << " value: " << matches << std::endl;
+          // Rcpp::Rcout << "Matches present: " << ok << " value: " << matches << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_HighQualityPercentCoverage, high_quality_percent_coverage);
-          Rcpp::Rcout << "HQPercentCoverage present: " << ok << " value: " << high_quality_percent_coverage << std::endl;
+          // Rcpp::Rcout << "HQPercentCoverage present: " << ok << " value: " << high_quality_percent_coverage << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_ExonIdentity, exon_identity);
-          Rcpp::Rcout << "ExonIdentity present: " << ok << " value: " << exon_identity << std::endl;
+          // Rcpp::Rcout << "ExonIdentity present: " << ok << " value: " << exon_identity << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_ConsensusSplices, consensus_splices);
-          Rcpp::Rcout << "ConsensusSplices present: " << ok << " value: " << consensus_splices << std::endl;
+          // Rcpp::Rcout << "ConsensusSplices present: " << ok << " value: " << consensus_splices << std::endl;
           
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_CompAdjMethod, comp_adj_method);
-          Rcpp::Rcout << "CompAdjMethod present: " << ok << " value: " << comp_adj_method << std::endl;
+          // Rcpp::Rcout << "CompAdjMethod present: " << ok << " value: " << comp_adj_method << std::endl;
           
           // Seq positions
           int qstart = it->GetSeqStart(0);
@@ -3088,8 +3088,8 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHits(const TSeqAlig
           int send   = it->GetSeqStop(1);
           aln_len01 = it->AlignLengthRatio();
           
-          Rcpp::Rcout << "qstart=" << qstart << " qend=" << qend << " sstart=" << sstart << " send=" << send << std::endl;
-          Rcpp::Rcout << "aln_len (reported): " << aln_len << " nident=" << num_ident << " pident=" << pident << " mismatches=" << mismatches << " gaps=" << gaps << std::endl;
+          // Rcpp::Rcout << "qstart=" << qstart << " qend=" << qend << " sstart=" << sstart << " send=" << send << std::endl;
+          // Rcpp::Rcout << "aln_len (reported): " << aln_len << " nident=" << num_ident << " pident=" << pident << " mismatches=" << mismatches << " gaps=" << gaps << std::endl;
 
           frames = std::to_string(GetFrame(qstart, aln_len, query_strand)) + "/" + std::to_string(GetFrame(sstart, aln_len, subject_strand));
           
@@ -3319,14 +3319,25 @@ comp_adj_method_array},
    
    arrow::Status align_sts = alignment_rb->ValidateFull();
    if(!align_sts.ok()){
-     Rcpp::Rcout << align_sts.message()  << std::endl << align_sts.ToString() << std::endl << "rows:" << alignment_rb->num_rows() << "\ncols:" << alignment_rb->num_columns()  << std::endl << std::flush; //DEBUG
+     // Rcpp::Rcout << align_sts.message()  << std::endl << align_sts.ToString() << std::endl << "rows:" << alignment_rb->num_rows() << "\ncols:" << alignment_rb->num_columns()  << std::endl << std::flush; //DEBUG
      Rcpp::stop("ExtractHits() - arrow::RecordBatch() - Alignments failed validation.");
    }                                                             
   
   if (alignment_rb)
   {
-    Rcpp::Rcout << alignment_rb->ToString() << std::endl << std::flush; //DEBUG
-    return alignment_rb;
+    // Rcpp::Rcout << alignment_rb->ToString() << std::endl << std::flush; //DEBUG
+    if(save_sequences){
+      const auto &wrt_sts = arrow_wrapper->AddRB2Batch(alignment_rb);
+      if (wrt_sts.ok())
+      {
+        return alignment_rb;
+      }else{
+        Rcpp::Rcerr << "ExtractHits() - Error writing RecordBatch..." << std::endl << std::flush; //DEBUG 
+        return arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie(); // //ERROR
+      }
+    }else{
+      return alignment_rb;
+    }
   }
   Rcpp::Rcerr << "ExtractHits() - Empty alignment_rb..." << std::endl << std::flush; //DEBUG
   return arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie(); // //ERROR RETURN, END
@@ -3696,22 +3707,22 @@ bool QuickBLAST::Impl::GetHSPSequencesFromDenseg(const CDense_seg& dseg, CScope 
   
   const size_t num_rows = dseg.CheckNumRows();
   const size_t num_segs = dseg.GetNumseg();
-  if (num_rows < 2 || num_segs == 0) { Rcpp::Rcout << "here 0.2" << std::endl; return false; }
+  if (num_rows < 2 || num_segs == 0) { return false; }
   
   const size_t q_row = 0, s_row = 1;
-  if (!dseg.CanGetIds()) { Rcpp::Rcout << "here 0.3" << std::endl; return false; }
+  if (!dseg.CanGetIds()) { return false; }
   const auto &ids = dseg.GetIds();
-  if (ids.size() <= q_row || ids.size() <= s_row) { Rcpp::Rcout << "here 0.4" << std::endl; return false; }
+  if (ids.size() <= q_row || ids.size() <= s_row) { return false; }
   
   CSeq_id_Handle q_idh = CSeq_id_Handle::GetHandle(*ids[q_row]);
   CSeq_id_Handle s_idh = CSeq_id_Handle::GetHandle(*ids[s_row]);
-  if (!q_idh || !s_idh) { Rcpp::Rcout << "here 0.5" << std::endl; return false; }
+  if (!q_idh || !s_idh) { return false; }
   
   CBioseq_Handle q_bh = scope.GetBioseqHandle(q_idh);
   CBioseq_Handle s_bh = scope.GetBioseqHandle(s_idh);
   if (!q_bh || !s_bh) {
-    Rcpp::Rcout << "Fallback: direct handle failed for ids: "
-                << q_idh.AsString() << " / " << s_idh.AsString() << std::endl;
+    // Rcpp::Rcout << "Fallback: direct handle failed for ids: "
+                // << q_idh.AsString() << " / " << s_idh.AsString() << std::endl;
     return false;
   }
   
@@ -3727,10 +3738,13 @@ bool QuickBLAST::Impl::GetHSPSequencesFromDenseg(const CDense_seg& dseg, CScope 
     if (sd.IsIupacaa()) stored_s = sd.GetIupacaa().Get();
     else if (sd.IsIupacna()) stored_s = sd.GetIupacna().Get();
   }
-  Rcpp::Rcout << "Stored q len: " << stored_q.size() << " s len: " << stored_s.size() << std::endl << std::flush;
+  // Rcpp::Rcout << "Stored q len: " << stored_q.size() << " s len: " << stored_s.size() << std::endl << std::flush;
   
   CSeqVector qsv(q_bh);
   CSeqVector ssv(s_bh);
+  
+  qsv.SetIupacCoding(); 
+  ssv.SetIupacCoding(); 
   
   const auto &starts = dseg.GetStarts();
   const auto &lens = dseg.GetLens();
@@ -3747,14 +3761,14 @@ bool QuickBLAST::Impl::GetHSPSequencesFromDenseg(const CDense_seg& dseg, CScope 
       std::string qchunk = stored_q.substr((size_t)q_start, (size_t)seg_len);
       q_hsp_ungapped.append(qchunk);
       if (q_aligned_with_gaps) q_aligned_with_gaps->append(qchunk);
-      Rcpp::Rcout << "Ungapped qchunk size:" << qchunk.size() << std::endl << std::flush;
+      // Rcpp::Rcout << "Ungapped qchunk size:" << qchunk.size() << std::endl << std::flush;
     } else if (q_start >= 0) {
       // fallback: pull from CSeqVector (might be encoded; handle with care)
       std::string qchunk;
       qsv.GetSeqData((TSeqPos)q_start, (TSeqPos)seg_len, qchunk); // from,length
       q_hsp_ungapped.append(qchunk);
       if (q_aligned_with_gaps) q_aligned_with_gaps->append(qchunk);
-      Rcpp::Rcout << "Ungapped qchunk (from CSeqVector) size:" << qchunk.size() << std::endl << std::flush;
+      // Rcpp::Rcout << "Ungapped qchunk (from CSeqVector) size:" << qchunk.size() << std::endl << std::flush;
     } else {
       if (q_aligned_with_gaps) q_aligned_with_gaps->append(seg_len, '-');
     }
@@ -3763,13 +3777,13 @@ bool QuickBLAST::Impl::GetHSPSequencesFromDenseg(const CDense_seg& dseg, CScope 
       std::string schunk = stored_s.substr((size_t)s_start, (size_t)seg_len);
       s_hsp_ungapped.append(schunk);
       if (s_aligned_with_gaps) s_aligned_with_gaps->append(schunk);
-      Rcpp::Rcout << "Ungapped schunk size:" << schunk.size() << std::endl << std::flush;
+      // Rcpp::Rcout << "Ungapped schunk size:" << schunk.size() << std::endl << std::flush;
     } else if (s_start >= 0) {
       std::string schunk;
       ssv.GetSeqData((TSeqPos)s_start, (TSeqPos)seg_len, schunk);
       s_hsp_ungapped.append(schunk);
       if (s_aligned_with_gaps) s_aligned_with_gaps->append(schunk);
-      Rcpp::Rcout << "Ungapped schunk (from CSeqVector) size:" << schunk.size() << std::endl << std::flush;
+      // Rcpp::Rcout << "Ungapped schunk (from CSeqVector) size:" << schunk.size() << std::endl << std::flush;
     } else {
       if (s_aligned_with_gaps) s_aligned_with_gaps->append(seg_len, '-');
     }

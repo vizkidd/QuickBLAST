@@ -73,5 +73,5 @@ QuickBLAST::RemoteBLAST(blastn_inst, query_input="AAAAAAAAAAAATTTTTTTTTTTTGGGGGG
 
 QuickBLAST::RemoteBLAST(blastp_inst, query_input="MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", database= "pdb", input_type=1, return_values=T)
 
-QuickBLAST::BLAST2Files(ptr = blastp_inst, query = "inst/extdata/protein_query.fasta", subject = "inst/extdata/protein_subject.fasta", out_file = "test.arrow", show_progress = T,return_values = T)
+QuickBLAST::BLAST2Files(ptr = blastp_inst, query = system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), subject = system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), out_file = "test.arrow", show_progress = T,return_values = T)
 ```

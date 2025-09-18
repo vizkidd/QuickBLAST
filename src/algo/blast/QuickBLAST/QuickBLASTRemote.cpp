@@ -84,7 +84,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_remote(
   scope->AddDefaults();
   
   for(const std::string &query : query_input){
-    
+    Rcpp::checkUserInterrupt();
     auto q_type = this->arrow_wrapper->CastToType(query);
     if (q_type.header.empty() || q_type.seq.empty()) {
       Rcpp::stop("BLAST_seqs: query header/sequence is empty.");
@@ -166,7 +166,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_remote(
     // descr->Set().push_back(title_desc);
     
     
-    CRef<CSeq_id> id(new CSeq_id(fastaID, CSeq_id::fParse_AnyRaw | CSeq_id::fParse_PartialOK | CSeq_id::fParse_AnyLocal));
+    CRef<CSeq_id> id(new CSeq_id(fastaID, CSeq_id::fParse_RawText | CSeq_id::fParse_PartialOK | CSeq_id::fParse_AnyLocal));
     // // id->SetLocal().SetId(rec_no);
     // // id->SetLocal().SetStr(cleanID);
     // id->SetLocal().SetStr(fastaID);
@@ -288,16 +288,16 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_remote(
     scope->AddTopLevelSeqEntry(*ret_entry);
     
     //DEBUG
-    for (auto &id0 : ret_entry->GetSeq().GetId()) {
-      Rcpp::Rcout << "Added seq id: " << id0->AsFastaString() << std::endl;
-    }
-    try {
-      CSeq_id_Handle idh = CSeq_id_Handle::GetHandle(*ret_entry->GetSeq().GetId().front());
-      CBioseq_Handle bh = scope->GetBioseqHandle(idh);
-      Rcpp::Rcout << "Scope resolves id: " << idh.AsString() << std::endl;
-    } catch (const CException &e) {
-      Rcpp::Rcerr << "Scope resolution failed after add: " << e.GetMsg() << std::endl;
-    }
+    // for (auto &id0 : ret_entry->GetSeq().GetId()) {
+    //   Rcpp::Rcout << "Added seq id: " << id0->AsFastaString() << std::endl;
+    // }
+    // try {
+    //   CSeq_id_Handle idh = CSeq_id_Handle::GetHandle(*ret_entry->GetSeq().GetId().front());
+    //   CBioseq_Handle bh = scope->GetBioseqHandle(idh);
+    //   Rcpp::Rcout << "Scope resolves id: " << idh.AsString() << std::endl;
+    // } catch (const CException &e) {
+    //   Rcpp::Rcerr << "Scope resolution failed after add: " << e.GetMsg() << std::endl;
+    // }
     
     // // query_input_list.push_back(query_seqloc);
     // query_input_list.push_back(bioseq);
@@ -349,6 +349,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_remote(
   
   unsigned int waited = 0;
   while (status == CRemoteBlast::ESearchStatus::eStatus_Pending) {
+    Rcpp::checkUserInterrupt();
     // Check status - example API: remote.GetStatus()
     // Many implementations: remote.CheckStatus() or remote.GetRIDStatus()
     if (status == CRemoteBlast::ESearchStatus::eStatus_Done) break;
@@ -433,7 +434,8 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_remote(
     CBlastServices::TBioseqVector bioseqs;
     std::string errors, warnings;
     try {
-      CBlastServices::GetSequences(seqids, database, seq_type == ESeqType::eProtein ? 'p' : 'n' , bioseqs, errors, warnings, /*verbose=*/true);
+      Rcpp::checkUserInterrupt();
+      CBlastServices::GetSequences(seqids, database, seq_type == ESeqType::eProtein ? 'p' : 'n' , bioseqs, errors, warnings, /*verbose=*/false);
     }
     catch (const CException &e) {
       // toolkit exception — handle/log
@@ -451,6 +453,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_remote(
     // 3) add returned Bioseqs to the scope so CSeqVector/CBioseq_Handle lookups work
     for (auto &bioseq_ref : bioseqs) {
       if (!bioseq_ref) continue;
+      Rcpp::checkUserInterrupt();
       CRef<CSeq_entry> entry(new CSeq_entry());
       entry->SetSeq(*bioseq_ref);                 // copy CBioseq into Seq-entry
       scope->AddTopLevelSeqEntry(*entry);         // now scope can resolve those seq-ids
@@ -506,7 +509,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHitsRemote(co
   
   for (const auto &align_set_ref : alignments) {
     if (!align_set_ref) continue;
-    
+    Rcpp::checkUserInterrupt();
     // seq_aligns (list) inside seq_align_set
     const auto &seq_align_list = align_set_ref->Get();
     for (const auto &seq_align : seq_align_list) {
@@ -522,7 +525,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHitsRemote(co
       
       assert(seq_align->IsSet());
       assert(seq_align->CanGet());
-      
+      Rcpp::checkUserInterrupt();
       // Get seq ids of the two sequences involved in the alignment
       std::string qid = "(unknown)";
       std::string sid = "(unknown)";
@@ -582,11 +585,11 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHitsRemote(co
         if (dseg.CanGetIds()) {
           const auto &ids = dseg.GetIds();
           // print/inspect id strings:
-          for (size_t r = 0; r < ids.size(); ++r) {
-            if (ids[r]) {
-              NcbiCout << "Row " << r << " id: " << ids[r]->GetSeqIdString(true) << NcbiEndl;
-            }
-          }
+          // for (size_t r = 0; r < ids.size(); ++r) {
+          //   if (ids[r]) {
+          //     NcbiCout << "Row " << r << " id: " << ids[r]->GetSeqIdString(true) << NcbiEndl;
+          //   }
+          // }
         }
         
         // Full sequences for the two first rows (query, subject)
@@ -611,10 +614,10 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHitsRemote(co
         // HSP sequences
         bool ok = GetHSPSequencesFromDenseg(dseg, scope, q_hsp, s_hsp, &q_aligned, &s_aligned);
         
-        NcbiCout << "Full query length: " << q_full.size() << " HSP ungapped length: " << q_hsp.size() << NcbiEndl;
-        NcbiCout << "Full subject length: " << s_full.size() << " HSP ungapped length: " << s_hsp.size() << NcbiEndl;
-        NcbiCout << "Aligned strings length: " << q_aligned.size() << " / " << s_aligned.size() << NcbiEndl;
-        NcbiCout << "Query HSP: " << q_hsp.substr(0, 200) << NcbiEndl;   // print only prefix
+        // NcbiCout << "Full query length: " << q_full.size() << " HSP ungapped length: " << q_hsp.size() << NcbiEndl;
+        // NcbiCout << "Full subject length: " << s_full.size() << " HSP ungapped length: " << s_hsp.size() << NcbiEndl;
+        // NcbiCout << "Aligned strings length: " << q_aligned.size() << " / " << s_aligned.size() << NcbiEndl;
+        // NcbiCout << "Query HSP: " << q_hsp.substr(0, 200) << NcbiEndl;   // print only prefix
         NcbiCout << "Subject HSP: " << s_hsp.substr(0, 200) << NcbiEndl;
       }
       // // handle Std-seg (a sequence of local 'loc' entries)
@@ -903,19 +906,31 @@ strand_array,                                                                   
   
   arrow::Status align_sts = alignment_rb->ValidateFull();
   if(!align_sts.ok()){
-    Rcpp::Rcout << align_sts.message()  << std::endl << align_sts.ToString() << std::endl << "rows:" << alignment_rb->num_rows() << "\ncols:" << alignment_rb->num_columns()  << std::endl << std::flush; //DEBUG
+    // Rcpp::Rcout << align_sts.message()  << std::endl << align_sts.ToString() << std::endl << "rows:" << alignment_rb->num_rows() << "\ncols:" << alignment_rb->num_columns()  << std::endl << std::flush; //DEBUG
     Rcpp::stop("ExtractHitsRemote() - arrow::RecordBatch() - Alignments failed validation.");
   }
   
   if (alignment_rb)
   {
-    Rcpp::Rcout << "DEBUG: RecordBatch::" << std::endl <<  alignment_rb->ToString() << std::endl << std::flush; //DEBUG
-    ret_val->emplace_back(alignment_rb);
+    // Rcpp::Rcout << "DEBUG: RecordBatch::" << std::endl <<  alignment_rb->ToString() << std::endl << std::flush; //DEBUG
+    if(save_sequences){
+      const auto &wrt_sts = arrow_wrapper->AddRB2Batch(alignment_rb);
+      if (wrt_sts.ok())
+      {
+        ret_val->emplace_back(alignment_rb);
+      }else{
+        Rcpp::Rcerr << "ExtractHits() - Error writing RecordBatch..." << std::endl << std::flush; //DEBUG 
+        ret_val->emplace_back(arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie()); // //ERROR
+      }
+    }else{
+      ret_val->emplace_back(alignment_rb);
+    }
+    // ret_val->emplace_back(alignment_rb);
   }else{
     Rcpp::Rcerr << "ExtractHitsRemote() - Empty alignment_rb..." << std::endl << std::flush; //DEBUG
     ret_val->emplace_back(arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie());
   }
-
+  
   return ret_val;
   
 }

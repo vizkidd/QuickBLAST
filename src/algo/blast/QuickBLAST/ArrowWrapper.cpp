@@ -101,7 +101,7 @@ ArrowWrapper::Impl::Impl()
   // parquet_writer_props = props_bldr.build();
   // arrow_writer_props = arrow_props_bldr.build();
 
-  ipc_options.allow_64bit = false;
+  ipc_options.allow_64bit = true; //false;
   ipc_options.use_threads = true;
   ipc_options.metadata_version = arrow::ipc::MetadataVersion::V5;
   ipc_options.codec = arrow::util::Codec::Create(arrow::Compression::LZ4_FRAME).ValueOrDie();
@@ -110,7 +110,7 @@ ArrowWrapper::Impl::Impl()
 
   rbv_batch = std::make_shared<arrow::RecordBatchVector>();
   blast_metadata = std::make_shared<arrow::KeyValueMetadata>();
-  AddFASTAMetadata("format", "Arrow Parquet");
+  AddFASTAMetadata("format", "Arrow IPC");
   AddFASTAMetadata("Created By", username);
   fasta_schema = arrow::schema({arrow::field("index", arrow::int64()), arrow::field("header", arrow::utf8()), arrow::field("sequence", arrow::utf8())});
 
@@ -303,8 +303,8 @@ FastaSequenceData ArrowWrapper::Impl::CastToType(const std::string &full_entry)
   
   AddRecordCount();
   
-  Rcpp::Rcout << ">" << fasta_data.header << std::endl << std::flush; //DEBUG
-  Rcpp::Rcout << fasta_data.seq << std::endl << std::flush; //DEBUG
+  // Rcpp::Rcout << ">" << fasta_data.header << std::endl << std::flush; //DEBUG
+  // Rcpp::Rcout << fasta_data.seq << std::endl << std::flush; //DEBUG
   
   return fasta_data;
 }
@@ -385,16 +385,30 @@ arrow::Result<std::shared_ptr<arrow::RecordBatchVector>> ArrowWrapper::AddRBV2Ba
 
 arrow::Status ArrowWrapper::Impl::CreateOutputStream(std::string &outFile)
 {
+  // outFileStream.reset();
+  // compressed_outstream.reset();
+  
   if(outFile.empty()){
-    outFile = std::tmpnam(nullptr); 
+    // outFile = std::tmpnam(nullptr); 
+    save2file = false;
+  }else{
+    save2file = true;
   }
-  outFileStream = arrow_LFS.OpenAppendStream(outFile, GetBLASTMetadata()).ValueOrDie();
-  auto codec = arrow::util::Codec::Create(arrow::Compression::GZIP).ValueOrDie();
-
-  compressed_outstream = arrow::io::CompressedOutputStream::Make(codec.get(), outFileStream).ValueOrDie();
-
+  
+  // Rcpp::Rcout << "here 1.6.0" << std::endl << std::flush; //DEBUG
+  // outFileStream = arrow_LFS.OpenAppendStream(outFile, blast_metadata).ValueOrDie();
+  // // Rcpp::Rcout << "here 1.6.1" << std::endl << std::flush; //DEBUG
+  // // auto codec = arrow::util::Codec::Create(arrow::Compression::GZIP).ValueOrDie();
+  // // Rcpp::Rcout << "here 1.6.2" << std::endl << std::flush; //DEBUG
+  // // compressed_outstream = arrow::io::CompressedOutputStream::Make(codec.get(), outFileStream).ValueOrDie();
+  // Rcpp::Rcout << "here 1.6.3" << std::endl << std::flush; //DEBUG
+  output_filename = outFile;
+  
+  Rcpp::Rcout << "Writing to : " << output_filename << std::endl << std::flush; //DEBUG
+  
   return arrow::Status::OK();
 }
+
 arrow::Status ArrowWrapper::CreateOutputStream(std::string &outFile)
 {
   return pImpl->CreateOutputStream(outFile);
@@ -556,25 +570,67 @@ void ArrowWrapper::Impl::FinishOutputStream()
     static_cast<void>(WriteBatch2File());
   }
 
-  std::thread fin_thread([this]()
-                         {
-                           if (this->writer_threads.size() > 0)
-                           {
-                             static_cast<void>(this->writer_threads[this->writer_threads.size() - 1].join());
-                             //  for (auto &wrt_thread : this->writer_threads)
-                             //  {
-
-                             //    static_cast<void>(wrt_thread.join());
-                             //  }
-                           }
-                           // static_cast<void>(this->rec_writer->Close());
-                           this->writer_threads.clear();
-                           this->rbv_batch->clear();
-                           // Rcpp::Rcout << "Done writing to file." << std::endl;
-                         });
-
-  fin_thread.detach();
+  for (auto &t : writer_threads) {
+    if (t.joinable())
+      t.join();
+  }
+  
+  // static_cast<void>(this->rec_writer->Close());
+  this->writer_threads.clear();
+  this->rbv_batch->clear();
+  Rcpp::Rcout << "Done writing to file." << std::endl <<std::flush; //DEBUG
+  
+  // std::thread fin_thread([this]()
+  //                        {
+  //                          // if (this->writer_threads.size() > 0)
+  //                          // {
+  //                          //   static_cast<void>(this->writer_threads[this->writer_threads.size() - 1].join());
+  //                          //   //  for (auto &wrt_thread : this->writer_threads)
+  //                          //   //  {
+  //                          // 
+  //                          //   //    static_cast<void>(wrt_thread.join());
+  //                          //   //  }
+  //                          // }
+  //                          
+  //                          for (auto &t : writer_threads) {
+  //                            if (t.joinable())
+  //                              t.join();
+  //                          }
+  //  
+  //                          // static_cast<void>(this->rec_writer->Close());
+  //                          this->writer_threads.clear();
+  //                          this->rbv_batch->clear();
+  //                          Rcpp::Rcout << "Done writing to file." << std::endl <<std::flush; //DEBUG
+  //                          
+  //                          Rcpp::Rcout << "here 1.7.2" << std::endl << std::flush; //DEBUG
+  //                          // // Close compressed stream
+  //                          // arrow::Status st1 = compressed_outstream->Close();
+  //                          // Rcpp::Rcout << "here 1.7.3" << std::endl << std::flush; //DEBUG
+  //                          // if (!st1.ok()) {
+  //                          //   Rcpp::Rcerr << "Error closing compressed_outstream: " << st1.ToString() << std::endl;
+  //                          // }
+  //                          
+  //                          Rcpp::Rcout << "here 1.7.4" << std::endl << std::flush; //DEBUG
+  //                          // outFileStream->Flush();
+  //                          // Rcpp::Rcout << "here 1.7.5" << std::endl << std::flush; //DEBUG
+  //                          // // Optionally check outFileStream closed; but compressed close usually handled it
+  //                          // if (outFileStream && !outFileStream->closed()) {
+  //                          //   Rcpp::Rcout << "here 1.7.6" << std::endl << std::flush; //DEBUG
+  //                          //   arrow::Status st2 = outFileStream->Close();
+  //                          //   Rcpp::Rcout << "here 1.7.7" << std::endl << std::flush; //DEBUG
+  //                          //   if (!st2.ok()) {
+  //                          //     Rcpp::Rcerr << "Error closing outFileStream: " << st2.ToString() << std::endl;
+  //                          //   }
+  //                          // }
+  //                          
+  //                          // outFileStream.reset();
+  //                        });
+  // 
+  // // fin_thread.detach();
+  // if (fin_thread.joinable())
+  //   fin_thread.join();
 }
+
 void ArrowWrapper::FinishOutputStream()
 {
   pImpl->FinishOutputStream();
@@ -582,11 +638,20 @@ void ArrowWrapper::FinishOutputStream()
 
 arrow::Status ArrowWrapper::Impl::WriteBatch2File()
 {
-  assert(compressed_outstream);
-
-  auto writer_ = arrow::ipc::MakeFileWriter(compressed_outstream.get(), GetBLASTSchema(), GetArrowIPCOptions(), GetBLASTMetadata());
+  if(!save2file)
+  {
+    rbv_batch->clear();
+    return arrow::Status::OK();
+  }
+  
+  // assert(compressed_outstream);
+  // Rcpp::Rcout << "Writing to : " << output_filename << std::endl << std::flush; //DEBUG //output_filename
+  std::shared_ptr<arrow::io::OutputStream> outFileStream = arrow_LFS.OpenAppendStream(output_filename, blast_metadata).ValueOrDie();
+  // auto writer_ = arrow::ipc::MakeFileWriter(compressed_outstream.get(), GetBLASTSchema(), GetArrowIPCOptions(), GetBLASTMetadata());
+  auto writer_ = arrow::ipc::MakeFileWriter(outFileStream.get(), GetBLASTSchema(), GetArrowIPCOptions(), GetBLASTMetadata());
   if (!writer_.ok())
   {
+    Rcpp::Rcerr << "WriteBatch2File() - Error initiating file writer : " << writer_.status().detail() << std::endl << writer_.status().message() << std::endl;
     return writer_.status();
   }
   std::shared_ptr<arrow::ipc::RecordBatchWriter> rec_writer = writer_.ValueOrDie();
@@ -620,30 +685,39 @@ arrow::Status ArrowWrapper::Impl::WriteBatch2File()
 
           if (!sts.ok())
           {
-            // std::cout << "ERROR : Could not write RB" << sts.detail() << std::endl
-            //           << sts.message() << std::endl
-            //           << rb->schema()->ToString() << std::endl;
-            Rprintf("ERROR : Could not write RB \n %s \n %s \n %s \n", sts.detail()->ToString().c_str(), sts.message().c_str(), rb->schema()->ToString().c_str());
+            Rcpp::Rcout << "ERROR : Could not write RB" << sts.detail() << std::endl
+                      << sts.message() << std::endl << std::flush; 
+                      // << rb->schema()->ToString() << std::endl;
+            // Rprintf("ERROR : Could not write RB \n %s \n %s \n %s \n", sts.detail()->ToString().c_str(), sts.message().c_str(), rb->schema()->ToString().c_str());
             return sts;
           }
         }
         else
         {
-          // std::cerr << "Warn : Invalid Alignment RB (Not Writing) : " << rb_sts.detail() << std::endl
-          //           << rb_sts.message() << std::endl
+          Rcpp::Rcerr << "Warn : Invalid Alignment RB (Not Writing) : " << rb_sts.detail() << std::endl
+                    << rb_sts.message() << std::endl << std::flush;
           //           << rb->schema()->ToString() << std::endl;
-          REprintf("Warn : Invalid Alignment RB (Not Writing) : \n %s \n %s \n %s \n", rb_sts.detail()->ToString().c_str(), rb_sts.message().c_str(), rb->schema()->ToString().c_str());
+          // REprintf("Warn : Invalid Alignment RB (Not Writing) : \n %s \n %s \n %s \n", rb_sts.detail()->ToString().c_str(), rb_sts.message().c_str(), rb->schema()->ToString().c_str());
         }
       }
     }
     else
     {
-      // std::cerr << "ERR : Invalid Alignment RB Ptr (Not Writing)..." << std::endl;
-      REprintf("ERR : Invalid Alignment RB Ptr (Not Writing)...\n");
+      Rcpp::Rcerr << "ERR : Invalid Alignment RB Ptr (Not Writing)..." << std::endl;
+      // REprintf("ERR : Invalid Alignment RB Ptr (Not Writing)...\n");
     }
   }
 
   static_cast<void>(rec_writer->Close());
+
+  outFileStream->Flush();
+  // Optionally check outFileStream closed; but compressed close usually handled it
+  if (outFileStream && !outFileStream->closed()) {
+    arrow::Status st2 = outFileStream->Close();
+    if (!st2.ok()) {
+      Rcpp::Rcerr << "Error closing outFileStream: " << st2.ToString() << std::endl;
+    }
+  }
 
   return arrow::Status::OK();
 }
