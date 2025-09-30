@@ -2,7 +2,7 @@
 
 rm -rf BUILD/ inst/libs/
 
-# Rscript -e "Rcpp::compileAttributes(verbose = T)"
+Rscript -e "Rcpp::compileAttributes(verbose = T)"
 
 Rscript -e "devtools::document(quiet = T)" #roxygen2::roxygenize(clean = T)
 

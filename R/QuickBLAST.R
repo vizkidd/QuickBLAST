@@ -103,21 +103,22 @@ GetAvailableBLASTOptions <- function() {
 #'
 #'
 #' @param infile BLAST hits filename (not a connection) (Gzipped files supported)
-#' @param sep Delimiter of the BLAST File columns. Default - '\\t'
-#' @param header Does the file have a header? . Default - FALSE
-#' @param blast.table Is the input a table of BLAST Hits? (or an arrow::IPC file) - Default - TRUE
+#' @param sep Delimiter of the BLAST File columns. (Only applies when format == 'table'). Default - '\\t'
+#' @param header Does the file have a header? (Only applies when format == 'table'). Default - FALSE
+#' @param format Input Format (Required) - 'table'/'ipc' (arrow::ipc)/'parquet' (arrow::parquet) - Default : 'parquet'
 #' @return Data Frame with BLAST Results
 #' @export
-LoadBLASTHits <- function(infile, sep = "\t", header = F, blast.table = T) {
-  if (try(file.exists(infile)) && file.info(infile)$size > 0) { # any(grepl(x = class(infile), pattern = "gzfile|connection", ignore.case = T)) #
+LoadBLASTHits <- function(infile, sep = "\t", header = F, format = 'parquet') {
+  if (try(file.exists(infile)) && file.info(infile)$size > 0) {
+    # any(grepl(x = class(infile), pattern = "gzfile|connection", ignore.case = T)) #
     # if(gzipped){
     #  infile <- gzfile(description = infile, open = "r")
     # }
     # blast_results <- read.table(file = infile,header = header,sep=sep,quote = "", blank.lines.skip = T, fill = t,na.strings = NA)
-    if (blast.table) {
+    if (format == "table") {
       blast_results <- iterators::iread.table(file = infile, row.names = NULL, header = header, sep = sep, quote = "", blank.lines.skip = T, fill = T, na.strings = "NA") # data.table::fread(file = infile,header = header,sep=sep,quote = "", blank.lines.skip = T, nThread = n_threads)
       return(blast_results)
-    } else {
+    } else if (format == "ipc") {
       # arrow_lfs <- arrow::LocalFileSystem$create()
       arrow_lfs <- .arrow_fs_singleton()
       # arrow_i_stream <- arrow_lfs$OpenInputStream(infile)
@@ -152,6 +153,11 @@ LoadBLASTHits <- function(infile, sep = "\t", header = F, blast.table = T) {
       # blast_results <- arrow::read_feather(file = infile, mmap = T)
       return(ret_df) # batch_iter <- iter(function())
     }
+      else if (format == "parquet") {
+        return(arrow::read_parquet(infile))
+      }else{
+        stop(paste("Format: Should be one of 'table'/'ipc'/'parquet' "))
+      }
   } else {
     stop(paste("File", infile, "does not exist or size 0"))
   }

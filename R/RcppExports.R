@@ -131,14 +131,15 @@ BLAST2Seqs <- function(ptr, query, subject) {
 #' @param query (string) Query folder
 #' @param subject (string) Subject folder.
 #' @param extension (string) Extension of files in folder.
-#' @param out_folder (string) Ouput Folder (Must be empty).
+#' @param out_folder (string) Ouput Folder (Required).
+#' @param out_format (string) Ouput Format. 'ipc'/'csv'/'parquet' (Optional) (Default: 'parquet').
 #' @param num_threads (unsigned int) Number of threads. (Optional)
 #' @param reciprocal_hits (bool) Perform Bi-directional (Reciprocal => query <-> subject) BLAST? (Default: FALSE) (Optional)
 #' @param min_batch_size (unsigned int) Minimum batch size (Optional).
 #' @return (bool) TRUE - on success, FALSE - Otherwise. (Results are not returned as R Lists to reduce overhead)
 #' @export
-BLAST2Folders <- function(ptr, query, subject, extension, out_folder, num_threads = 0L, reciprocal_hits = FALSE, min_batch_size = 0L) {
-    .Call(`_QuickBLAST_BLAST2Folders`, ptr, query, subject, extension, out_folder, num_threads, reciprocal_hits, min_batch_size)
+BLAST2Folders <- function(ptr, query, subject, extension, out_folder, out_format = NULL, num_threads = 0L, reciprocal_hits = FALSE, min_batch_size = 0L) {
+    .Call(`_QuickBLAST_BLAST2Folders`, ptr, query, subject, extension, out_folder, out_format, num_threads, reciprocal_hits, min_batch_size)
 }
 
 #' @name BLAST1Folder
@@ -151,14 +152,15 @@ BLAST2Folders <- function(ptr, query, subject, extension, out_folder, num_thread
 #' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
 #' @param input_folder (string) Input folder
 #' @param extension (string) Extension of files in folder.
-#' @param out_folder (string) Ouput Folder (Must be empty).
+#' @param out_folder (string) Ouput Folder (Required).
+#' @param out_format (string) Ouput Format. 'ipc'/'csv'/'parquet' (Optional) (Default: 'parquet').
 #' @param num_threads (unsigned int) Number of threads. (Optional)
 #' @param reciprocal_hits (bool) Perform Bi-directional (Reciprocal => query <-> subject) BLAST? (Default: FALSE) (Optional)
 #' @param min_batch_size (unsigned int) Minimum batch size (Optional).
 #' @return (bool) TRUE - on success, FALSE - Otherwise. (Results are not returned as R Lists to reduce overhead)
 #' @export
-BLAST1Folder <- function(ptr, input_folder, extension, out_folder, num_threads = 0L, reciprocal_hits = FALSE, min_batch_size = 0L) {
-    .Call(`_QuickBLAST_BLAST1Folder`, ptr, input_folder, extension, out_folder, num_threads, reciprocal_hits, min_batch_size)
+BLAST1Folder <- function(ptr, input_folder, extension, out_folder, out_format = NULL, num_threads = 0L, reciprocal_hits = FALSE, min_batch_size = 0L) {
+    .Call(`_QuickBLAST_BLAST1Folder`, ptr, input_folder, extension, out_folder, out_format, num_threads, reciprocal_hits, min_batch_size)
 }
 
 #' @name BLAST2Files
@@ -171,7 +173,8 @@ BLAST1Folder <- function(ptr, input_folder, extension, out_folder, num_threads =
 #' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
 #' @param query (string) Query file
 #' @param subject (string) Subject file
-#' @param out_file (string) Ouput file (Optional - Intermediate temporary file is created if this option is not provided. Make sure tempdir has enough space)
+#' @param out_file (string) Ouput file (Optional)
+#' @param out_format (string) Ouput Format. 'ipc'/'csv'/'parquet' (Optional) (Default: 'parquet').
 #' @param seq_limit (int) Batch Size to BLAST at a time. { -1 = Whole File, 0 - One sequence at a time or > 0 } (Optional)
 #' @param num_threads (unsigned int) Number of threads. (Optional)
 #' @param show_progress (bool) Show progress (Default: TRUE) (Optional)
@@ -179,8 +182,8 @@ BLAST1Folder <- function(ptr, input_folder, extension, out_folder, num_threads =
 #' @param min_batch_size (unsigned int) Minimum batch size (Optional).
 #' @return (SEXP) Rcpp::List - if return_values == TRUE, out_file - Otherwise.
 #' @export
-BLAST2Files <- function(ptr, query, subject, out_file = NULL, seq_limit = -1L, num_threads = 0L, show_progress = TRUE, return_values = TRUE, min_batch_size = 0L) {
-    .Call(`_QuickBLAST_BLAST2Files`, ptr, query, subject, out_file, seq_limit, num_threads, show_progress, return_values, min_batch_size)
+BLAST2Files <- function(ptr, query, subject, out_file = NULL, out_format = NULL, seq_limit = -1L, num_threads = 0L, show_progress = TRUE, return_values = TRUE, min_batch_size = 0L) {
+    .Call(`_QuickBLAST_BLAST2Files`, ptr, query, subject, out_file, out_format, seq_limit, num_threads, show_progress, return_values, min_batch_size)
 }
 
 RemoteBLAST <- function(ptr, database, query_input, input_type, outFile = NULL, return_values = TRUE) {

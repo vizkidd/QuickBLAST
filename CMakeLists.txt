@@ -149,7 +149,7 @@ if(NOT WIN32)
     )
 
     execute_process(
-    COMMAND make -j ${N_PROC}
+    COMMAND make -j ${N_PROC} 
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/arrow/cpp/BUILD
     #COMMAND_ERROR_IS_FATAL ANY
     )

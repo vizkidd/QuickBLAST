@@ -4,6 +4,13 @@
 #include <vector>
 #include <thread>
 #include <algorithm>   // std::max
+#include <mutex>
+
+#include <iconv.h>
+#include <string_view>
+#include <cstring>
+#include <cerrno>
+#include <stdexcept>
 
 // #include <R_ext/Print.h>
 #include <R.h>

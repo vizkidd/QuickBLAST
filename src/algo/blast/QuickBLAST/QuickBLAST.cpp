@@ -1123,7 +1123,7 @@ std::shared_ptr<arrow::Schema> QuickBLAST::Impl::GetSchema() {
   return arrow_wrapper->GetSchema(); 
 };
 
-void QuickBLAST::Impl::SetThreadCount(int num_threads)
+void QuickBLAST::Impl::SetThreadCount(unsigned int num_threads)
 {
   this->num_threads = num_threads;
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
@@ -1131,6 +1131,11 @@ void QuickBLAST::Impl::SetThreadCount(int num_threads)
 #endif
   arrow_wrapper->SetThreadCount(num_threads);
 }
+unsigned int QuickBLAST::Impl::GetThreadCount()
+{
+  return num_threads;
+}
+
 int QuickBLAST::Impl::GetHitCount()
 {
   return hit_count;
@@ -1327,6 +1332,11 @@ QuickBLAST::Impl::Impl(ESeqType seq_type, EStrand strand, std::string program, s
     // SetThreadCount(std::thread::hardware_concurrency());
     // Rprintf("DBG1 QB \n");
     arrow_wrapper = std::make_shared<ArrowWrapper>();
+    const auto empty_rb_ = arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema());
+    if(!empty_rb_.ok()){
+      throw std::runtime_error("QuickBLAST::Impl(): Error creating empty record batch.");
+    }
+    empty_rb = empty_rb_.ValueOrDie();
     // arrow_wrapper = ArrowWrapper();
     // ArrowWrapper *arrow_ptr = new ArrowWrapper();
     // Rcpp::XPtr<ArrowWrapper> arrow_ptr_(arrow_ptr, true);
@@ -1345,9 +1355,16 @@ QuickBLAST::Impl::Impl(ESeqType seq_type, EStrand strand, std::string program, s
     omp_init_lock(&hit_countLock);
 #endif
   }
-  catch (const std::exception &e)
-  {
-    Rprintf("C++ side Exception: QB : %s\n", e.what());
+  catch(const std::exception &e){
+    Rcpp::stop(std::string("QuickBLAST::Impl(): C++ Exception : ") + e.what());
+  }
+  catch(const std::runtime_error &e){
+    Rcpp::stop(std::string("QuickBLAST::Impl(): C++ Runtime Error : ") + e.what());
+  }catch(const Rcpp::exception &e){
+    Rcpp::stop(std::string("QuickBLAST::Impl(): Rcpp::exception : ") + e.what());
+  }
+  catch(...){
+    Rcpp::stop("QuickBLAST::Impl(): Unknown Exception");
   }
 }
 
@@ -1417,14 +1434,52 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractFASTA(const FastaSe
   return arrow::RecordBatch::Make(arrow_wrapper->GetFASTASchema(), 1, {recnoArr, hArr, seqArr});
 }
 
-SSeqLoc *QuickBLAST::Impl::CreateSSeqLocFromType(FastaSequenceData fasta_data, CRef<ncbi::CScope> parent_scope)
+static std::string sanitize_protein(const std::string &s_in, bool &had_bad) {
+  static const std::string allowed = "ACDEFGHIKLMNPQRSTVWYBXZJUO"; // include common ambiguity letters
+  std::string out;
+  out.reserve(s_in.size());
+  had_bad = false;
+  for (unsigned char c0 : s_in) {
+    if (c0 == '\0') { had_bad = true; continue; }
+    unsigned char c = static_cast<unsigned char>(std::toupper(c0));
+    if (c >= 'A' && c <= 'Z') {
+      if (allowed.find(c) != std::string::npos) out.push_back(char(c));
+      else { had_bad = true; /* optional: map unknown to 'X' */ out.push_back('X'); }
+    } else {
+      // skip digits, punctuation, whitespace
+      had_bad = true;
+    }
+  }
+  return out;
+}
+
+static std::string sanitize_nucleotide(const std::string &s_in, bool &had_bad) {
+  static const std::string allowed = "ACGTUN*-"; // IUPAC nucleotides
+  std::string out; out.reserve(s_in.size()); had_bad = false;
+  for (unsigned char c0 : s_in) {
+    if (c0 == '\0') { had_bad = true; continue; }
+    unsigned char c = static_cast<unsigned char>(std::toupper(c0));
+    if (c >= 'A' && c <= 'Z') {
+      if (allowed.find(c) != std::string::npos) out.push_back(char(c));
+      else { had_bad = true; /* map unknown to N */ out.push_back('N'); }
+    } else {
+      had_bad = true;
+    }
+  }
+  return out;
+}
+
+// SSeqLoc *QuickBLAST::Impl::CreateSSeqLocFromType(FastaSequenceData fasta_data, CRef<ncbi::CScope> parent_scope)
+std::pair<std::shared_ptr<SSeqLoc>, CSeq_entry_Handle> QuickBLAST::Impl::CreateSSeqLocFromType(FastaSequenceData fasta_data, CRef<ncbi::CScope> parent_scope)
 {
   //https://www.ncbi.nlm.nih.gov/IEB/ToolBox/CPP_DOC/lxr/ident
   
   int rec_no = fasta_data.rec_no;
   std::string fastaID(fasta_data.header.data());
   std::string fastaSequence(fasta_data.seq.data());
-
+  
+  // Rcpp::Rcout << "Header : "  << rec_no << " : " << fastaID << std::endl << "Sequence : " << fastaSequence << std::endl << std::flush; //DEBUG
+  
   // std::string cleanID = fastaID;
   // std::replace(cleanID.begin(), cleanID.end(), ' ', '_');
   // if(cleanID.length() > 50)
@@ -1575,7 +1630,7 @@ SSeqLoc *QuickBLAST::Impl::CreateSSeqLocFromType(FastaSequenceData fasta_data, C
   ret_entry->SetSeq(*bioseq);
   
   // Add the sequence entry to the scope so Seq-id <-> SeqMap lookups succeed.
-  parent_scope->AddTopLevelSeqEntry(*ret_entry);
+  CSeq_entry_Handle tse_handle = parent_scope->AddTopLevelSeqEntry(*ret_entry);
   // parent_scope->AddBioseq(*bioseq);
 
   // //DEBUG
@@ -1591,7 +1646,15 @@ SSeqLoc *QuickBLAST::Impl::CreateSSeqLocFromType(FastaSequenceData fasta_data, C
   // } //DEBUG END
   
   // return new SSeqLoc(cseq_loc_obj.GetObject(), parent_scope.GetObject());
-  return new SSeqLoc(cseq_loc_obj, parent_scope);
+  
+  // return new SSeqLoc(cseq_loc_obj, parent_scope);
+  
+  auto sseq = std::make_shared<ncbi::blast::SSeqLoc>(
+       cseq_loc_obj,
+       parent_scope
+    );
+  
+  return std::make_pair(std::move(sseq), tse_handle);
 }
 
 // std::string QuickBLAST::GetSSeqLocSequence(const SSeqLoc &seq_loc)
@@ -2141,7 +2204,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::StreamFile(const std::stri
 // }
 
 // std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::string &queryFile, const std::string &subjectFile, const std::string &outFile, unsigned int blast_sequence_limit, int num_threads, const bool show_progress, const bool return_values, int batch_size)
-std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const std::string &queryFile, const std::string &subjectFile, std::string &outFile, unsigned int blast_sequence_limit, int num_threads, const bool show_progress, const bool return_values, int batch_size)
+std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const std::string &queryFile, const std::string &subjectFile, std::string &outFile, const std::string &outFormat, unsigned int blast_sequence_limit, int num_threads, const bool show_progress, const bool return_values, int batch_size)
 {
   // assert(num_threads > 0);
   /*   if (!arrow_wrapper || arrow_wrapper.get() == nullptr)
@@ -2172,24 +2235,29 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
 #endif
 
   n_threads = int(ceil(n_threads / 2) - 2) <= 0 ? 1 : int(ceil(n_threads / 2) - 2);
-  arrow::Status outfile_sts = arrow_wrapper->CreateOutputStream(outFile);
-  if (!outfile_sts.ok())
-  {
-    /* Rcpp::Rcerr << "ERROR : Could not create output file stream : " << outfile_sts.detail() << std::endl
-                << outfile_sts.message() << std::endl; */
-    // cerr << "ERROR : Could not create output file stream : " << outfile_sts.detail() << std::endl
-    //      << outfile_sts.message() << std::endl;
-    // REprintf("ERROR : Could not create output file stream : %s \n %s \n", outfile_sts.detail()->ToString().c_str(), outfile_sts.message().c_str());
-    Rcpp::stop("ERROR : Could not create output file stream : %s \n %s \n", outfile_sts.detail()->ToString().c_str(), outfile_sts.message().c_str());
-    return std::make_shared<arrow::RecordBatchVector>();
-  }
-
+  
   SetThreadCount(n_threads);
 
   unsigned int q_seq_count = arrow_wrapper->CountCharacter(queryFile, '>', n_threads);
 
   unsigned int s_seq_count = arrow_wrapper->CountCharacter(subjectFile, '>', n_threads);
 
+  if((s_seq_count > 10000 || q_seq_count > 10000) && outFile.empty())
+    Rcpp::Rcerr << "Warning: Queries/Subjects > 10000, large inputs can crash during return" << std::endl << std::flush; 
+  
+  arrow::Status outfile_sts = arrow_wrapper->CreateOutputStream(outFile, outFormat);
+  if (!outfile_sts.ok())
+  {
+    /* Rcpp::Rcerr << "ERROR : Could not create output file stream : " << outfile_sts.detail() << std::endl
+                   << outfile_sts.message() << std::endl; */
+    // cerr << "ERROR : Could not create output file stream : " << outfile_sts.detail() << std::endl
+    //      << outfile_sts.message() << std::endl;
+    // REprintf("ERROR : Could not create output file stream : %s \n %s \n", outfile_sts.detail()->ToString().c_str(), outfile_sts.message().c_str());
+    throw std::runtime_error(std::string("ERROR : Could not create output file stream ") + outfile_sts.detail()->ToString() + std::string("\n") + outfile_sts.message());
+    return std::make_shared<arrow::RecordBatchVector>();
+  }
+  
+  
   const unsigned int totalIterations = q_seq_count * s_seq_count;
   if (blast_sequence_limit > 0)
   {
@@ -2208,39 +2276,95 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
   ////  batch_size = 32 * n_threads; // batch_size > 0 ? batch_size : 1024;
   arrow_wrapper->SetBatchSize(batch_size);
 
-  // Progress progress_bar(totalIterations, show_progress);
+  Progress progress_bar(totalIterations, show_progress);
 
   std::shared_ptr<arrow::RecordBatchVector> final_ret = StreamFile(
-      queryFile, ">", n_threads, [this, n_threads, subjectFile, blast_sequence_limit, return_values](std::shared_ptr<FastaSequenceData> data_q) //&progress_bar
+      queryFile, ">", n_threads, [this, &progress_bar, n_threads, subjectFile, blast_sequence_limit, return_values](std::shared_ptr<FastaSequenceData> data_q)
       {
+        // Rcpp::Rcout << data_q->rec_no << "-Q->" << data_q->header << std::endl << std::flush; //DEBUG
+        // Rcpp::Rcout << data_q->seq << std::endl << std::flush; //DEBUG
+        // std::ostringstream osq; //DEBUG
+        // for (size_t i = 0; i < 32; ++i) {
+        //   osq << std::hex << std::setw(2) << std::setfill('0')
+        //       << (static_cast<int>(static_cast<unsigned char>(data_q->seq[i]))) << (i+1==32 ? "" : " ");
+        // }
+        // Rcpp::Rcout << "Hex bytes: " << osq.str() << std::endl << std::flush; //DEBUG
+        
+        bool had_bad_q = false;
+        switch (seq_type)
+        {
+        case ESeqType::eProtein:
+        {
+          data_q->seq = sanitize_protein(data_q->seq, had_bad_q);
+          break;
+        }
+        case ESeqType::eNucleotide:
+        {
+          data_q->seq = sanitize_nucleotide(data_q->seq, had_bad_q);
+          break;
+        }
+        }
+        if (had_bad_q) {
+          Rcpp::Rcout << "Warning: removed/normalized invalid bytes from Query sequence " << data_q->header << std::endl;
+        }
+        if(data_q->seq.empty()){
+          return std::make_shared<arrow::RecordBatchVector>();
+        }
             CRef<ncbi::CScope> scope(new ncbi::CScope(*CObjectManager::GetInstance()));
             // const std::shared_ptr<SSeqLoc> query_loc(std::move(CreateSSeqLocFromType<FastaSequenceData>(*data_q, scope)));
-            const std::shared_ptr<SSeqLoc> query_loc(std::move(this->CreateSSeqLocFromType(*data_q, scope)));
+            // const std::shared_ptr<SSeqLoc> query_loc(std::move(this->CreateSSeqLocFromType(*data_q, scope)));
+            auto [ query_loc, query_seq_entry ] = CreateSSeqLocFromType(*data_q, scope);
             if (!query_loc) {
               Rcpp::stop("BLAST_files: CreateSSeqLocFromType(query) returned NULL.");
             }
             _ASSERT(query_loc->seqloc.NotEmpty());
             
+            assert(!Progress::check_abort());
             Rcpp::checkUserInterrupt();
 
             std::shared_ptr<TSeqLocVector> subjects_loc_vec(new TSeqLocVector());
+            std::shared_ptr<vector<CSeq_entry_Handle>> subjects_seqent_vec =  std::make_shared<vector<CSeq_entry_Handle>>();
 
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
             omp_lock_t query_locLock;
             omp_lock_t subjects_loc_vecLock;
+            omp_lock_t subjects_seqent_vecLock;
             omp_init_lock(&query_locLock);
             omp_init_lock(&subjects_loc_vecLock);
+            omp_init_lock(&subjects_seqent_vecLock);
 #endif
 
             std::shared_ptr<arrow::RecordBatchVector> ret_results = StreamFile(
                 subjectFile, ">", n_threads, [this, query_loc,
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
-                &query_locLock, &subjects_loc_vecLock,
+                &query_locLock, &subjects_loc_vecLock, &subjects_seqent_vecLock,
 #endif
-                & scope, &subjects_loc_vec, blast_sequence_limit, return_values](std::shared_ptr<FastaSequenceData> data_s) // &progress_bar
+                & scope, &subjects_loc_vec, &subjects_seqent_vec, &progress_bar, blast_sequence_limit, return_values](std::shared_ptr<FastaSequenceData> data_s)
                 {
                     // const std::unique_ptr<SSeqLoc> subject_loc(CreateSSeqLocFromType<FastaSequenceData>(*data_s, scope));
-                    const std::unique_ptr<SSeqLoc> subject_loc(std::move(this->CreateSSeqLocFromType(*data_s, scope)));
+                  bool had_bad_s = false;
+                  switch (seq_type)
+                  {
+                  case ESeqType::eProtein:
+                  {
+                    data_s->seq = sanitize_protein(data_s->seq, had_bad_s);
+                    break;
+                  }
+                  case ESeqType::eNucleotide:
+                  {
+                    data_s->seq = sanitize_nucleotide(data_s->seq, had_bad_s);
+                    break;
+                  }
+                  }
+                  if (had_bad_s) {
+                    Rcpp::Rcout << "Warning: removed/normalized invalid bytes from Query sequence " << data_s->header << std::endl;
+                  }
+                    if(data_s->seq.empty()){
+                      return std::make_shared<arrow::RecordBatchVector>();
+                    }
+                    
+                    // const std::unique_ptr<SSeqLoc> subject_loc(std::move(this->CreateSSeqLocFromType(*data_s, scope))); 
+                    auto [ subject_loc, subject_seq_entry] = CreateSSeqLocFromType(*data_s, scope);
                     if (!subject_loc) {
                       Rcpp::stop("BLAST_files: CreateSSeqLocFromType(subject) returned NULL.");
                     }
@@ -2262,6 +2386,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
                     
                     if (strcmp(subject_loc->seqloc->GetId()->GetSeqIdString(true).c_str(), query_loc->seqloc->GetId()->GetSeqIdString(true).c_str()) != 0)
                     {
+                        assert(!Progress::check_abort());
                         Rcpp::checkUserInterrupt();
 
                         CBl2Seq* blaster;
@@ -2278,8 +2403,13 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
                                 TSeqAlignVector alignments = blaster->Run();
                                 AddAllAvailableScoresToSeqAlignVector(alignments, scope, 0);
                                 
-                                arrow::RecordBatchVector tmp_rbv = { ExtractHits(alignments, *query_loc, *subject_loc, *scope) }; 
-                                // progress_bar.increment();
+                                arrow::RecordBatchVector tmp_rbv = { ExtractHits(alignments, *query_loc, *subject_loc, *scope, return_values) }; 
+                                
+                                progress_bar.increment();
+                                scope->RemoveTopLevelSeqEntry(subject_seq_entry);
+                                // subject_seq_entry.Reset();
+                                subject_loc.reset();
+                                
                                 if (return_values)
                                 {
                                     return std::make_shared<arrow::RecordBatchVector>(tmp_rbv);
@@ -2295,13 +2425,15 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
                             {
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
                                 omp_set_lock(&subjects_loc_vecLock);
+                                omp_set_lock(&subjects_seqent_vecLock);
 #endif
                                 subjects_loc_vec->emplace_back(*subject_loc);
+                                subjects_seqent_vec->emplace_back(subject_seq_entry);
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
                                 omp_unset_lock(&subjects_loc_vecLock);
+                                omp_unset_lock(&subjects_seqent_vecLock);
 #endif
 
-                                // progress_bar.increment();
                                 if (subjects_loc_vec->size() >= blast_sequence_limit)
                                 {
                                     TSeqLocVector subjects_buffer_vec;
@@ -2309,6 +2441,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
                                     omp_set_lock(&subjects_loc_vecLock);
 
 #endif
+                                    subjects_buffer_vec.reserve(subjects_loc_vec->size());
                                     subjects_buffer_vec.swap(*subjects_loc_vec);
                                     subjects_loc_vec->clear();
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
@@ -2320,8 +2453,25 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
                                     TSeqAlignVector alignments = blaster->Run();
                                     AddAllAvailableScoresToSeqAlignVector(alignments, scope, 0);
                                     
-                                    std::shared_ptr<arrow::RecordBatchVector> tmp_rbv = ExtractHits(alignments, *query_loc, subjects_buffer_vec, *scope); 
+                                    std::shared_ptr<arrow::RecordBatchVector> tmp_rbv = ExtractHits(alignments, *query_loc, subjects_buffer_vec, *scope, return_values); 
                                     //return ExtractHits(blaster->Run(), *query_loc, subjects_buffer_vec, *scope);
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
+                                    omp_set_lock(&subjects_seqent_vecLock);
+#endif
+                                    for(auto s_ent: *subjects_seqent_vec){
+                                      progress_bar.increment();
+                                      scope->RemoveTopLevelSeqEntry(s_ent);
+                                      // s_ent.Reset();
+                                    }
+                                    subjects_seqent_vec->clear();
+                                    subjects_seqent_vec->shrink_to_fit();
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
+                                    omp_unset_lock(&subjects_seqent_vecLock);
+#endif
+                                    // for(auto s_loc: subjects_buffer_vec){
+                                    //   s_loc.reset();
+                                    // }
+                                    
                                     if (return_values)
                                     {
                                         return tmp_rbv;
@@ -2332,14 +2482,24 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
                                         return std::make_shared<arrow::RecordBatchVector>();
                                     }
                                 }
+                                
                             }
                             break;
                             }
                         }
                         catch (const CException& e)
                         {
-                            // Handle exception ...
-                            Rcpp::Rcerr << e.GetFunction() << std::endl;
+                          // Rcpp::Rcout << data_s->rec_no << "-S->" << data_s->header << std::endl << std::flush; //DEBUG
+                          // Rcpp::Rcout << data_s->seq << std::endl << std::flush; //DEBUG
+                          // std::ostringstream oss; //DEBUG
+                          // for (size_t i = 0; i < 32; ++i) {
+                          //   oss << std::hex << std::setw(2) << std::setfill('0')
+                          //       << (static_cast<int>(static_cast<unsigned char>(data_s->seq[i]))) << (i+1==32 ? "" : " ");
+                          // }
+                          // Rcpp::Rcout << "Hex bytes: " << oss.str() << std::endl << std::flush; //DEBUG
+                          
+                          // Handle exception ...
+                          Rcpp::Rcerr << e.GetFunction() << std::endl;
                           Rcpp::Rcerr << e.GetErrCodeString() << std::endl;
                             Rcpp::Rcerr << e.GetErrCode() << std::endl;
                             Rcpp::Rcerr << e.GetModule() << std::endl;
@@ -2351,16 +2511,21 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
                             Rcpp::Rcerr << e.GetStackTraceLevel() << std::endl;
                             Rcpp::Rcerr << e.GetClass() << std::endl
                                 << std::flush;
-                            Rcpp::stop("NCBI Exception: Stopping run");
+                            Rcpp::stop("BLAST_files(): NCBI Exception: Stopping run");
                             // throw;
                         }
                         catch (const std::exception& e)
                         {
-                            Rcpp::Rcerr << e.what() << std::endl
-                                << std::flush;
-                            Rcpp::stop("C++ Exception: Stopping run");
-                            // throw;
+                            Rcpp::stop(std::string("BLAST_files(): C++ Exception: ") + e.what());
                         }
+                        catch(const Rcpp::exception &e){
+                          Rcpp::stop(std::string("BLAST_files() - Rcpp Exception : ") + e.what());
+                        }catch(...){
+                          Rcpp::stop("BLAST_files() - Unknown Exception");
+                        }
+                        
+                        // Rcpp::Rcout << "Processing Subject: " << data_s->rec_no << std::endl;
+                        
                     }
 
                     return std::make_shared<arrow::RecordBatchVector>(); // EMPTY ERROR Return
@@ -2374,8 +2539,26 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
                 TSeqAlignVector alignments = blaster.Run();
                 AddAllAvailableScoresToSeqAlignVector(alignments, scope, 0);
                 
-                std::shared_ptr<arrow::RecordBatchVector> ret_vec = ExtractHits(alignments, *query_loc, *subjects_loc_vec, *scope);
+                std::shared_ptr<arrow::RecordBatchVector> ret_vec = ExtractHits(alignments, *query_loc, *subjects_loc_vec, *scope, return_values);
 
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
+                omp_set_lock(&subjects_seqent_vecLock);
+#endif
+                for(auto s_ent: *subjects_seqent_vec){
+                  progress_bar.increment();
+                  scope->RemoveTopLevelSeqEntry(s_ent);
+                  // s_ent.Reset();
+                }
+                subjects_seqent_vec->clear();
+                subjects_seqent_vec->shrink_to_fit();
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
+                omp_unset_lock(&subjects_seqent_vecLock);
+#endif
+                
+                // for(auto s_loc: subjects_loc_vec.get()){
+                //   s_loc.reset();
+                // }
+                
                 if (return_values)
                 {
                     ret_results->insert(ret_results->end(), ret_vec->begin(), ret_vec->end());
@@ -2390,13 +2573,18 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
             omp_destroy_lock(&query_locLock);
             omp_destroy_lock(&subjects_loc_vecLock);
 #endif
+            progress_bar.increment();
+            scope->RemoveTopLevelSeqEntry(query_seq_entry);
+            // query_seq_entry.Reset();
+            query_loc.reset();
+            
             if (return_values) {
-                return ret_results;
+              return ret_results;
             }
             else
             {
-                ret_results->clear();
-                return std::make_shared<arrow::RecordBatchVector>();
+              ret_results->clear();
+              return std::make_shared<arrow::RecordBatchVector>();
             } },
       return_values);
 
@@ -2404,7 +2592,11 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
 #pragma omp barrier
 #endif
 
+
+  Rcpp::Rcout << "Final Batch Size: " << arrow_wrapper->GetBatchSize() << std::endl << std::flush; 
+
   arrow_wrapper->FinishOutputStream();
+  
   if (return_values)
   {
     return final_ret;
@@ -2412,6 +2604,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
   else
   {
     final_ret->clear();
+    final_ret->shrink_to_fit();
     return std::make_shared<arrow::RecordBatchVector>();
   }
 }
@@ -2447,12 +2640,14 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::BLAST_seqs(const std::stri
     scope->AddDefaults();
     // 4) build SSeqLoc objects and check for null
     
-    const std::unique_ptr<SSeqLoc> query_seqloc(std::move(this->CreateSSeqLocFromType(q_type, scope)));
+    // const std::unique_ptr<SSeqLoc> query_seqloc(std::move(this->CreateSSeqLocFromType(q_type, scope)));
+    auto [ query_seqloc, query_seq_entry ] = CreateSSeqLocFromType(q_type, scope);
     if (!query_seqloc) {
       Rcpp::stop("BLAST_seqs: CreateSSeqLocFromType(query) returned NULL.");
     }
     _ASSERT(query_seqloc->seqloc.NotEmpty());
-    const std::unique_ptr<SSeqLoc> subject_seqloc(std::move(this->CreateSSeqLocFromType(s_type, scope)));
+    // const std::unique_ptr<SSeqLoc> subject_seqloc(std::move(this->CreateSSeqLocFromType(s_type, scope)));
+    auto [ subject_seqloc, subject_seq_entry ] = CreateSSeqLocFromType(s_type, scope);
     if (!subject_seqloc) {
       Rcpp::stop("BLAST_seqs: CreateSSeqLocFromType(subject) returned NULL.");
     }
@@ -2467,8 +2662,8 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::BLAST_seqs(const std::stri
     TSeqAlignVector alignments = blaster.Run();
     // CRef<CScope> scope(new CScope(*CObjectManager::GetInstance()));
     AddAllAvailableScoresToSeqAlignVector(alignments, scope, 0);
-  
-    return this->ExtractHits(alignments, *query_seqloc, *subject_seqloc, *scope); 
+    
+    return this->ExtractHits(alignments, *query_seqloc, *subject_seqloc, *scope, true); 
   }
   catch (const ncbi::CException &e) {
     // NCBI toolkit exceptions
@@ -2477,10 +2672,13 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::BLAST_seqs(const std::stri
     Rcpp::stop(msg);
   }
   catch (const std::exception &e) {
-    Rcpp::stop(std::string("std::exception in BLAST_seqs: ") + e.what());
+    Rcpp::stop(std::string("BLAST_seqs() - C++ exception : ") + e.what());
+  }
+  catch(const Rcpp::exception &e){
+    Rcpp::stop(std::string("BLAST_seqs() - Rcpp Exception : ") + e.what());
   }
   catch (...) {
-    Rcpp::stop("Unknown exception in BLAST_seqs");
+    Rcpp::stop("BLAST_seqs(): Unknown exception");
   }
   
   // // Rcpp::checkUserInterrupt();
@@ -2514,7 +2712,7 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::BLAST_seqs(const std::stri
 //' @param show_progress (bool) TRUE - Show progress, Set FALSE for multiple instances - Not used for Sequence BLAST
 //' @return Nested List of BLAST Hits
 // auto QuickBLAST::BLAST(const std::string &query, const std::string &subject, const std::string &outputFile, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress)
-auto QuickBLAST::Impl::BLAST(const std::string &query, const std::string &subject, std::string &outputFile, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress)
+auto QuickBLAST::Impl::BLAST(const std::string &query, const std::string &subject, std::string &outputFile, const std::string &outFormat, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress)
 {
 
   assert(std::filesystem::exists(query));
@@ -2531,8 +2729,11 @@ auto QuickBLAST::Impl::BLAST(const std::string &query, const std::string &subjec
 #endif
     int batch_size = 96 * num_threads; // int(ceil(totalIterations / pow(2, n_threads))); // int(ceil(sqrt(totalIterations) * (n_threads * 2)) / 2);
     batch_size = 32 * n_threads;
-    batch_size = batch_size > 0 ? batch_size : 1024;
-    return BLAST_files(query, subject, outputFile, blast_sequence_limit, n_threads, show_progress, true, batch_size);
+    if(blast_sequence_limit > 0)
+      batch_size = batch_size > 0 ? batch_size : blast_sequence_limit;
+    else
+      batch_size = batch_size > 0 ? batch_size : 0;
+    return BLAST_files(query, subject, outputFile, outFormat, blast_sequence_limit, n_threads, show_progress, true, batch_size);
     // return Hits2RList(*ret_val);
   }
   break;
@@ -2587,9 +2788,13 @@ std::string QuickBLAST::Impl::GetProgram(){
   return program;
 }
 
-void QuickBLAST::SetThreadCount(int num_threads)
+void QuickBLAST::SetThreadCount(unsigned int num_threads)
 {
   pImpl->SetThreadCount(num_threads);
+}
+unsigned int QuickBLAST::GetThreadCount()
+{
+  return pImpl->GetThreadCount();
 }
 int QuickBLAST::GetHitCount()
 {
@@ -2646,51 +2851,71 @@ SEXP QuickBLAST::Hits2RList(const arrow::RecordBatchVector &rb_vector)
 //   return pImpl->SetQuickBLASTOptions(program_name, options);
 // }
 
-std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const TSeqLocVector &sloc, CScope &scope) 
+std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const TSeqLocVector &sloc, CScope &scope, const bool &return_values) 
 {
-  Rcpp::checkUserInterrupt();
-  assert(!alignments.empty());
-  
-  std::shared_ptr<arrow::RecordBatchVector> ret_rbv;
-  
-  if (!qloc.seqloc) {
-    Rprintf("ERROR: ExtractHits: qloc.seqloc is NULL\n");
-    ret_rbv->emplace_back(arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie());
-    return ret_rbv;
-  }
-  // if (!sloc.seqloc) {
-  //   Rprintf("ERROR: ExtractHits: sloc.seqloc is NULL\n");
-  //   ret_rbv->emplace_back(arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie());
-  //   return ret_rbv;
-  // }
-  
-  // if constexpr (std::is_same_v<T, TSeqLocVector>)
-  // {
-  arrow::RecordBatchVector recBth_vec;
-  
-  for (const auto &s_it : sloc)
-  {
+  try{
     Rcpp::checkUserInterrupt();
-
-    std::shared_ptr<arrow::RecordBatch> rb = ExtractHits(alignments, qloc, s_it, scope);
-
-    if (rb)
-    {
-      recBth_vec.emplace_back(std::move(rb));
+    assert(!alignments.empty());
+    
+    std::shared_ptr<arrow::RecordBatchVector> ret_rbv;
+    
+    if (!qloc.seqloc) {
+      Rprintf("ERROR: ExtractHits: qloc.seqloc is NULL\n");
+      //ret_rbv->emplace_back(arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie());
+      ret_rbv->emplace_back(empty_rb);
+      return ret_rbv;
     }
+    // if (!sloc.seqloc) {
+    //   Rprintf("ERROR: ExtractHits: sloc.seqloc is NULL\n");
+    //   ret_rbv->emplace_back(arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie());
+    //   return ret_rbv;
+    // }
+    
+    // if constexpr (std::is_same_v<T, TSeqLocVector>)
+    // {
+    std::shared_ptr<arrow::RecordBatchVector> recBth_vec = std::make_shared<arrow::RecordBatchVector>();
+    
+    for (const auto &s_it : sloc)
+    {
+      Rcpp::checkUserInterrupt();
+  
+      std::shared_ptr<arrow::RecordBatch> rb = ExtractHits(alignments, qloc, s_it, scope, return_values);
+  
+      if(return_values)
+        if (rb)
+        {
+          recBth_vec->emplace_back(std::move(rb));
+        }
+    }
+  
+    // if(return_values){
+      return recBth_vec;
+    // }
+    
+    //Already adding RBs to Batch in the overloaded ExtractHits()
+    // else{
+    //   const auto &wrt_sts = arrow_wrapper->AddRBV2Batch(*recBth_vec);
+    //   // recBth_vec.clear();
+    //   // recBth_vec.shrink_to_fit();
+    //   if (!wrt_sts.ok())
+    //   {
+    //     throw std::runtime_error(std::string("Warn : Invalid Alignment RBV (Returning Empty) : ") + wrt_sts.detail()->ToString() + std::string(" : ") + wrt_sts.message());
+    //   }
+    //   return std::make_shared<arrow::RecordBatchVector>();
+    // }
   }
-
-  const auto &wrt_sts = arrow_wrapper->AddRBV2Batch(recBth_vec);
-  if (wrt_sts.ok())
-  {
-    return wrt_sts.ValueOrDie();
+  catch(const std::exception &e){
+    Rcpp::stop(std::string("ExtractHits(): C++ Exception : ") + e.what());
   }
-  else
-  {
-    cerr << "Warn : Invalid Alignment RBV (Returning Empty) : " << wrt_sts.status().detail() << std::endl
-         << wrt_sts.status().message() << std::endl;
+  catch(const std::runtime_error &e){
+    Rcpp::stop(std::string("ExtractHits(): C++ Runtime Error : ") + e.what());
   }
-  return std::make_shared<arrow::RecordBatchVector>();
+  catch(const Rcpp::exception &e){
+    Rcpp::stop(std::string("ExtractHits() - Rcpp Exception : ") + e.what());
+  }
+  catch(...){
+    Rcpp::stop("ExtractHits(): Unknown Exception");
+  }
   // }
   // // For SSeqLoc
   // else if constexpr (std::is_same_v<T, SSeqLoc>)
@@ -2716,631 +2941,656 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHits(const TS
   // }
 }
 
-std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const SSeqLoc &sloc, CScope &scope) 
+std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const SSeqLoc &sloc, CScope &scope, const bool &return_values) 
 {
-  Rcpp::checkUserInterrupt();
-  // assert(!alignments.empty());
-  if (alignments.empty()) {
-    // return an empty but typed record batch
-    return arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie();
-  }
-
-  if (!qloc.seqloc) {
-    Rprintf("ERROR: ExtractHits: qloc.seqloc is NULL\n");
-    return arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie();
-  }
-  if (!sloc.seqloc) {
-    Rprintf("ERROR: ExtractHits: sloc.seqloc is NULL\n");
-    return arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie();
-  }
+  try{
+    Rcpp::checkUserInterrupt();
+    // assert(!alignments.empty());
+    if (alignments.empty()) {
+      // return an empty but typed record batch
+      return empty_rb; //arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie();
+    }
   
-  // CRef<ncbi::CScope> scope(new ncbi::CScope(*CObjectManager::GetInstance()));
+    if (!qloc.seqloc) {
+      Rprintf("ERROR: ExtractHits: qloc.seqloc is NULL\n");
+      return empty_rb; //arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie();
+    }
+    if (!sloc.seqloc) {
+      Rprintf("ERROR: ExtractHits: sloc.seqloc is NULL\n");
+      return empty_rb; //arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie();
+    }
+    
+    // CRef<ncbi::CScope> scope(new ncbi::CScope(*CObjectManager::GetInstance()));
+    
+    std::string strand;
+    arrow::StringBuilder strand_builder;
+    
+    auto query_strand = qloc.seqloc->GetStrand();
+    auto subject_strand = sloc.seqloc->GetStrand();
   
-  std::string strand;
-  arrow::StringBuilder strand_builder;
-  
-  auto query_strand = qloc.seqloc->GetStrand();
-  auto subject_strand = sloc.seqloc->GetStrand();
-
-  switch (query_strand)
-  {
-  case eNa_strand_minus:
-    strand = strand + "-";
-    break;
-  case eNa_strand_plus:
-    strand = strand + "+";
-    break;
-  default:
-    strand = strand + "*";
-    break;
-  }
-
-  switch (subject_strand)
-  {
-  case eNa_strand_minus:
-    strand = strand + "/-";
-    break;
-  case eNa_strand_plus:
-    strand = strand + "/+";
-    break;
-  default:
-    strand = strand + "/*";
-    break;
-  }
-
-  std::string qseq = "", sseq = "", frame = "*/*", qseq_id, sseq_id;
-  arrow::StringBuilder qseqid_builder, sseqid_builder; // qseq_title_builder, sseq_title_builder;
-  arrow::LargeStringBuilder qseq_builder, sseq_builder;
-  arrow::LargeStringBuilder qhsp_builder, shsp_builder;
-  arrow::Int64Builder qlen_builder, slen_builder, num_alignments_builder;
-
-  qseq_id = qloc.seqloc->GetId()->GetSeqIdString(true);
-  sseq_id = sloc.seqloc->GetId()->GetSeqIdString(true);
-  
-  // Rcpp::Rcout << "here2.0.0" << std::endl << std::flush;
-  // CSeq_id_Handle q_idh = CSeq_id_Handle::GetHandle(*qloc.seqloc->GetId());
-  // Rcpp::Rcout << "here2.0.1" << std::endl << std::flush;
-  // CBioseq_Handle q_bh = scope->GetBioseqHandle(q_idh);
-  // Rcpp::Rcout << "here2.0.2" << std::endl << std::flush;
-  // // const auto q_b = q_bh.GetCompleteObject();
-  // std::string qseq_title = qseq_id;
-  // CSeqdesc_CI qdesc(q_bh, CSeqdesc::e_Title);
-  // if (qdesc) {
-  //   const CSeqdesc& qd = *qdesc;
-  //   if (qd.IsTitle()) {
-  //     // const auto &titles = d.GetTitle().Get();
-  //     // if (!titles.empty()) return titles.front();
-  //     if (qd.IsTitle() && !qd.GetTitle().empty()) 
-  //       qseq_title = qd.GetTitle();
-  //   }
-  // }
-  // Rcpp::Rcout << "here2.0.3" << std::endl << std::flush;
-  // // const auto qdesc = q_b->GetDescr().Get();
-  // // Rcpp::Rcout << "here2.0.4" << std::endl << std::flush;
-  // // std::string qseq_title = qseq_id;
-  // // for (auto &d : qdesc) {
-  // //   if (d->IsTitle() && !d->GetTitle().empty()) 
-  // //     qseq_title = d->GetTitle();
-  // // }
-  // Rcpp::Rcout << "here2.0.5" << std::endl << qseq_title << std::endl << std::flush;
-  //   
-  // CSeq_id_Handle s_idh = CSeq_id_Handle::GetHandle(*sloc.seqloc->GetId());
-  // CBioseq_Handle s_bh = scope->GetBioseqHandle(s_idh);
-  // // const auto s_b = s_bh.GetCompleteObject();
-  // // const auto sdesc = s_b->GetDescr().Get();
-  // std::string sseq_title = sseq_id;
-  // CSeqdesc_CI sdesc(s_bh, CSeqdesc::e_Title);
-  // if (sdesc) {
-  //   const CSeqdesc& sd = *sdesc;
-  //   if (sd.IsTitle()) {
-  //     // const auto &titles = d.GetTitle().Get();
-  //     // if (!titles.empty()) return titles.front();
-  //     if (sd.IsTitle() && !sd.GetTitle().empty()) 
-  //       sseq_title = sd.GetTitle();
-  //   }
-  // }
-  // // for (auto &d : sdesc) {
-  // //   if (d->IsTitle() && !d->GetTitle().empty()) 
-  // //     sseq_title = d->GetTitle();
-  // // }
-  // Rcpp::Rcout << "here2.0.6" << std::endl << sseq_title << std::endl << std::flush;
-  
-  // qseq = "";
-  // sseq = "";
-  // switch (save_sequences)
-  // {
-  // case true:
-  //   qseq = GetSSeqLocSequence(qloc);
-  //   sseq = GetSSeqLocSequence(sloc);
-  //   break;
-  // }
-
-  arrow::Int64Builder hsp_offset_builder;
-
-  int num_rows = 0;
-
-  arrow::Int64Builder length_builder, mismatch_builder, gapopen_builder, qstart_builder, qend_builder, sstart_builder, send_builder, gaps_builder, nident_builder, positive_builder, n_splices_builder, hsp_cnt_builder, negative_count_builder;
-  arrow::DoubleBuilder pident_builder, pident_gap_builder, evalue_builder, bitscore_builder, score_builder, qcovhsp_builder, blast_score_builder, aln_len01_builder, sum_evalue_builder, product_coverage_builder, overall_identity_builder, matches_builder, high_quality_percent_coverage_builder, exon_identity_builder, consensus_splices_builder, comp_adj_method_builder;
-  arrow::StringBuilder frames_builder;
-  
-  for (const auto &seq_align_set : alignments)
-  {
-
-    if (seq_align_set->IsEmpty())
+    switch (query_strand)
     {
+    case eNa_strand_minus:
+      strand = strand + "-";
+      break;
+    case eNa_strand_plus:
+      strand = strand + "+";
+      break;
+    default:
+      strand = strand + "*";
       break;
     }
-    assert(seq_align_set->IsSet());
-    assert(seq_align_set->CanGet());
-    const auto &seq_aligns = seq_align_set->Get();
-    assert(!seq_aligns.empty());
-
-    if (seq_aligns.size() > 0) // FILL UP THE ARRAYS
+  
+    switch (subject_strand)
     {
-
-      try
+    case eNa_strand_minus:
+      strand = strand + "/-";
+      break;
+    case eNa_strand_plus:
+      strand = strand + "/+";
+      break;
+    default:
+      strand = strand + "/*";
+      break;
+    }
+  
+    std::string qseq = "", sseq = "", frame = "*/*", qseq_id, sseq_id;
+    arrow::StringBuilder qseqid_builder, sseqid_builder; // qseq_title_builder, sseq_title_builder;
+    arrow::LargeStringBuilder qseq_builder, sseq_builder;
+    arrow::LargeStringBuilder qhsp_builder, shsp_builder;
+    arrow::Int64Builder qlen_builder, slen_builder, num_alignments_builder;
+  
+    qseq_id = qloc.seqloc->GetId()->GetSeqIdString(true);
+    sseq_id = sloc.seqloc->GetId()->GetSeqIdString(true);
+    
+    // Rcpp::Rcout << "here2.0.0" << std::endl << std::flush;
+    // CSeq_id_Handle q_idh = CSeq_id_Handle::GetHandle(*qloc.seqloc->GetId());
+    // Rcpp::Rcout << "here2.0.1" << std::endl << std::flush;
+    // CBioseq_Handle q_bh = scope->GetBioseqHandle(q_idh);
+    // Rcpp::Rcout << "here2.0.2" << std::endl << std::flush;
+    // // const auto q_b = q_bh.GetCompleteObject();
+    // std::string qseq_title = qseq_id;
+    // CSeqdesc_CI qdesc(q_bh, CSeqdesc::e_Title);
+    // if (qdesc) {
+    //   const CSeqdesc& qd = *qdesc;
+    //   if (qd.IsTitle()) {
+    //     // const auto &titles = d.GetTitle().Get();
+    //     // if (!titles.empty()) return titles.front();
+    //     if (qd.IsTitle() && !qd.GetTitle().empty()) 
+    //       qseq_title = qd.GetTitle();
+    //   }
+    // }
+    // Rcpp::Rcout << "here2.0.3" << std::endl << std::flush;
+    // // const auto qdesc = q_b->GetDescr().Get();
+    // // Rcpp::Rcout << "here2.0.4" << std::endl << std::flush;
+    // // std::string qseq_title = qseq_id;
+    // // for (auto &d : qdesc) {
+    // //   if (d->IsTitle() && !d->GetTitle().empty()) 
+    // //     qseq_title = d->GetTitle();
+    // // }
+    // Rcpp::Rcout << "here2.0.5" << std::endl << qseq_title << std::endl << std::flush;
+    //   
+    // CSeq_id_Handle s_idh = CSeq_id_Handle::GetHandle(*sloc.seqloc->GetId());
+    // CBioseq_Handle s_bh = scope->GetBioseqHandle(s_idh);
+    // // const auto s_b = s_bh.GetCompleteObject();
+    // // const auto sdesc = s_b->GetDescr().Get();
+    // std::string sseq_title = sseq_id;
+    // CSeqdesc_CI sdesc(s_bh, CSeqdesc::e_Title);
+    // if (sdesc) {
+    //   const CSeqdesc& sd = *sdesc;
+    //   if (sd.IsTitle()) {
+    //     // const auto &titles = d.GetTitle().Get();
+    //     // if (!titles.empty()) return titles.front();
+    //     if (sd.IsTitle() && !sd.GetTitle().empty()) 
+    //       sseq_title = sd.GetTitle();
+    //   }
+    // }
+    // // for (auto &d : sdesc) {
+    // //   if (d->IsTitle() && !d->GetTitle().empty()) 
+    // //     sseq_title = d->GetTitle();
+    // // }
+    // Rcpp::Rcout << "here2.0.6" << std::endl << sseq_title << std::endl << std::flush;
+    
+    // qseq = "";
+    // sseq = "";
+    // switch (save_sequences)
+    // {
+    // case true:
+    //   qseq = GetSSeqLocSequence(qloc);
+    //   sseq = GetSSeqLocSequence(sloc);
+    //   break;
+    // }
+  
+    arrow::Int64Builder hsp_offset_builder;
+  
+    int num_rows = 0;
+  
+    arrow::Int64Builder length_builder, mismatch_builder, gapopen_builder, qstart_builder, qend_builder, sstart_builder, send_builder, gaps_builder, nident_builder, positive_builder, n_splices_builder, hsp_cnt_builder, negative_count_builder;
+    arrow::DoubleBuilder pident_builder, pident_gap_builder, evalue_builder, bitscore_builder, score_builder, qcovhsp_builder, blast_score_builder, aln_len01_builder, sum_evalue_builder, product_coverage_builder, overall_identity_builder, matches_builder, high_quality_percent_coverage_builder, exon_identity_builder, consensus_splices_builder, comp_adj_method_builder;
+    arrow::StringBuilder frames_builder;
+    
+    for (const auto &seq_align_set : alignments)
+    {
+  
+      if (seq_align_set->IsEmpty())
       {
-
-        for (const auto &it : seq_aligns)
+        break;
+      }
+      assert(seq_align_set->IsSet());
+      assert(seq_align_set->CanGet());
+      const auto &seq_aligns = seq_align_set->Get();
+      assert(!seq_aligns.empty());
+  
+      if (seq_aligns.size() > 0) // FILL UP THE ARRAYS
+      {
+  
+        try
         {
-          if (!it)
+  
+          for (const auto &it : seq_aligns)
           {
-            continue;
-          }
-          assert(!it.IsNull());
-          if (!it.NotEmpty())
-          {
-            continue;
-          }
-          
-          // const auto& seq_titles = GetTitlesFromSeqAlign(it, scope);
-          // std::string qseq_title = seq_titles.first();
-          // std::string sseq_title = seq_titles.second();
-          
-          assert(it->CanGetScore());
-          // int score, n_splices, num_ident, aln_len, gaps, mismatches, positive, qstart, qend, sstart, send, negative_count;
-          // double bits, evalue, blast_score, pident, aln_len01, pident_gap, qcovhsp, sum_evalue, product_coverage, overall_identity, high_quality_percent_coverage, exon_identity, consensus_splices, comp_adj_method, matches;
-          // std::string frames;
-          // 
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_AlignLength, aln_len);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_BitScore, bits);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_Blast, blast_score);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity_Ungapped, pident);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity, pident_gap);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_GapCount, gaps);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_EValue, evalue);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_IdentityCount, num_ident);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_MismatchCount, mismatches);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentCoverage, qcovhsp);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_Score, score);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_PositiveCount, positive);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_Splices, n_splices);
-          // 
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_SumEValue, sum_evalue);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_ProductCoverage, product_coverage);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_OverallIdentity, overall_identity);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_NegativeCount, negative_count);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_Matches, matches);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_HighQualityPercentCoverage, high_quality_percent_coverage);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_ExonIdentity, exon_identity);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_ConsensusSplices, consensus_splices);
-          // it->GetNamedScore(CSeq_align::EScoreType::eScore_CompAdjMethod, comp_adj_method);
-          // 
-          // aln_len01 = it->AlignLengthRatio();
-          // 
-          // qstart = it->GetSeqStart(0);
-          // qend = it->GetSeqStop(0);
-          // sstart = it->GetSeqStart(1);
-          // send = it->GetSeqStop(1);
-      
-          std::string q_full = "", s_full = "";
-          std::string q_hsp = "", s_hsp = "", q_aligned = "", s_aligned = "";
-          
-          if (it->GetSegs().IsDenseg()) {
-            const CDense_seg& dseg = it->GetSegs().GetDenseg();
+            if (!it)
+            {
+              continue;
+            }
+            assert(!it.IsNull());
+            if (!it.NotEmpty())
+            {
+              continue;
+            }
             
-            // // Get sequence ids (rows)
-            // if (dseg.CanGetIds()) {
-            //   const auto &ids = dseg.GetIds();
-            //   // print/inspect id strings:
-            //   for (size_t r = 0; r < ids.size(); ++r) {
-            //     if (ids[r]) {
-            //       NcbiCout << "Row " << r << " id: " << ids[r]->GetSeqIdString(true) << NcbiEndl;
-            //     }
-            //   }
+            // const auto& seq_titles = GetTitlesFromSeqAlign(it, scope);
+            // std::string qseq_title = seq_titles.first();
+            // std::string sseq_title = seq_titles.second();
+            
+            assert(it->CanGetScore());
+            // int score, n_splices, num_ident, aln_len, gaps, mismatches, positive, qstart, qend, sstart, send, negative_count;
+            // double bits, evalue, blast_score, pident, aln_len01, pident_gap, qcovhsp, sum_evalue, product_coverage, overall_identity, high_quality_percent_coverage, exon_identity, consensus_splices, comp_adj_method, matches;
+            // std::string frames;
+            // 
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_AlignLength, aln_len);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_BitScore, bits);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_Blast, blast_score);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity_Ungapped, pident);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity, pident_gap);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_GapCount, gaps);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_EValue, evalue);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_IdentityCount, num_ident);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_MismatchCount, mismatches);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentCoverage, qcovhsp);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_Score, score);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_PositiveCount, positive);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_Splices, n_splices);
+            // 
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_SumEValue, sum_evalue);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_ProductCoverage, product_coverage);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_OverallIdentity, overall_identity);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_NegativeCount, negative_count);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_Matches, matches);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_HighQualityPercentCoverage, high_quality_percent_coverage);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_ExonIdentity, exon_identity);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_ConsensusSplices, consensus_splices);
+            // it->GetNamedScore(CSeq_align::EScoreType::eScore_CompAdjMethod, comp_adj_method);
+            // 
+            // aln_len01 = it->AlignLengthRatio();
+            // 
+            // qstart = it->GetSeqStart(0);
+            // qend = it->GetSeqStop(0);
+            // sstart = it->GetSeqStart(1);
+            // send = it->GetSeqStop(1);
+        
+            std::string q_full = "", s_full = "";
+            std::string q_hsp = "", s_hsp = "", q_aligned = "", s_aligned = "";
+            
+            if (it->GetSegs().IsDenseg()) {
+              const CDense_seg& dseg = it->GetSegs().GetDenseg();
+              
+              // // Get sequence ids (rows)
+              // if (dseg.CanGetIds()) {
+              //   const auto &ids = dseg.GetIds();
+              //   // print/inspect id strings:
+              //   for (size_t r = 0; r < ids.size(); ++r) {
+              //     if (ids[r]) {
+              //       NcbiCout << "Row " << r << " id: " << ids[r]->GetSeqIdString(true) << NcbiEndl;
+              //     }
+              //   }
+              // }
+              
+              // Full sequences for the two first rows (query, subject)
+              if (dseg.CanGetIds()) {
+                // try to fetch full sequences for rows 0 and 1
+                if (dseg.GetIds().size() > 0) {
+                  GetFullSequenceString(const_cast<CRef<CSeq_id>&>(dseg.GetIds()[0]), scope, q_full);
+                }
+                if (dseg.GetIds().size() > 1) {
+                  GetFullSequenceString(const_cast<CRef<CSeq_id>&>(dseg.GetIds()[1]), scope, s_full);
+                }
+              }
+              
+              // HSP sequences
+              bool ok = GetHSPSequencesFromDenseg(dseg, scope, q_hsp, s_hsp, &q_aligned, &s_aligned);
+              q_hsp = "";//DEBUG
+              s_hsp = ""; //DEBUG
+              
+              // NcbiCout << "Full query length: " << q_full.size() << " HSP ungapped length: " << q_hsp.size() << NcbiEndl;
+              // NcbiCout << "Full subject length: " << s_full.size() << " HSP ungapped length: " << s_hsp.size() << NcbiEndl;
+              // NcbiCout << "Aligned strings length: " << q_aligned.size() << " / " << s_aligned.size() << NcbiEndl;
+              // NcbiCout << "Query FASTA: " << q_full.substr(0, 200) << NcbiEndl;   // print only prefix
+              // NcbiCout << "Subject FASTA: " << s_full.substr(0, 200) << NcbiEndl;
+              // NcbiCout << "Query HSP: " << q_hsp.substr(0, 200) << NcbiEndl;   // print only prefix
+              // NcbiCout << "Subject HSP: " << s_hsp.substr(0, 200) << NcbiEndl;
+            }
+           
+           switch (save_sequences)
+           {
+           case true:
+             qseq = q_full;
+             sseq = s_full;
+             break;
+           }
+            
+            // // handle Std-seg (a sequence of local 'loc' entries)
+            // else if (it->GetSegs().IsStd()) {
+            //   // const CStd_seg &stdseg = it->GetSegs().GetStd();
+            //   // stdseg has a list of segments; each segment has a list of locs for each row
+            //   // iterate and extract using the loc's intervals
+            //   // For brevity, here's a simple approach that attempts to extract by using GetSeqStart/GetSeqStop
+            //   int qstart = it->GetSeqStart(0);
+            //   int qstop  = it->GetSeqStop(0);
+            //   int sstart = it->GetSeqStart(1);
+            //   int sstop  = it->GetSeqStop(1);
+            //   // fetch sequences by slicing the bioseq handles (if available)
+            //   // (You may prefer to iterate stdseg.Get() entries to get exact block-level offsets)
+            //   NcbiCout << "Std-seg: q[" << qstart << "," << qstop << "] s[" << sstart << "," << sstop << "]" << NcbiEndl;
+            //   // you can reuse GetFullSequenceString + substringing with CSeqVector for exact subrange
+            // }
+            // else {
+            //   // Other seg types: disc, spliced, packed-int, etc.
+            //   NcbiCout << "Unhandled seg type; implement specialized extraction if needed" << NcbiEndl;
             // }
             
-            // Full sequences for the two first rows (query, subject)
-            if (dseg.CanGetIds()) {
-              // try to fetch full sequences for rows 0 and 1
-              if (dseg.GetIds().size() > 0) {
-                GetFullSequenceString(const_cast<CRef<CSeq_id>&>(dseg.GetIds()[0]), scope, q_full);
-              }
-              if (dseg.GetIds().size() > 1) {
-                GetFullSequenceString(const_cast<CRef<CSeq_id>&>(dseg.GetIds()[1]), scope, s_full);
-              }
-            }
+            double aln_len01 = 0;
+            double aln_len = 0;
+            double bits = 0.0;
+            double blast_score = 0.0;
+            double pident = 0.0;
+            double pident_gap = 0.0;
+            double gaps = 0;
+            double evalue = 0.0;
+            double num_ident = 0;
+            double mismatches = 0;
+            double qcovhsp = 0.0;
+            double score = 0;
+            double positive = 0;
+            double n_splices = 0;
+            double sum_evalue = 0.0;
+            double product_coverage = 0.0;
+            double overall_identity = 0.0;
+            double negative_count = 0;
+            double matches = 0.0;
+            double high_quality_percent_coverage = 0.0;
+            double exon_identity = 0.0;
+            double consensus_splices = 0.0;
+            double comp_adj_method = 0.0;
+            std::string frames = "*/*";
             
-            // HSP sequences
-            bool ok = GetHSPSequencesFromDenseg(dseg, scope, q_hsp, s_hsp, &q_aligned, &s_aligned);
+            // For each requested score, call GetNamedScore and check result
+            bool ok;
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_AlignLength, aln_len);
+            // Rcpp::Rcout << "AlignLength present: " << ok << " value: " << aln_len << std::endl;
             
-            // NcbiCout << "Full query length: " << q_full.size() << " HSP ungapped length: " << q_hsp.size() << NcbiEndl;
-            // NcbiCout << "Full subject length: " << s_full.size() << " HSP ungapped length: " << s_hsp.size() << NcbiEndl;
-            // NcbiCout << "Aligned strings length: " << q_aligned.size() << " / " << s_aligned.size() << NcbiEndl;
-            // NcbiCout << "Query FASTA: " << q_full.substr(0, 200) << NcbiEndl;   // print only prefix
-            // NcbiCout << "Subject FASTA: " << s_full.substr(0, 200) << NcbiEndl;
-            // NcbiCout << "Query HSP: " << q_hsp.substr(0, 200) << NcbiEndl;   // print only prefix
-            NcbiCout << "Subject HSP: " << s_hsp.substr(0, 200) << NcbiEndl;
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_BitScore, bits);
+            // Rcpp::Rcout << "BitScore present: " << ok << " value: " << bits << std::endl;
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_Blast, blast_score);
+            // Rcpp::Rcout << "Blast score present: " << ok << " value: " << blast_score << std::endl;
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_IdentityCount, num_ident);
+            // Rcpp::Rcout << "IdentityCount present: " << ok << " value: " << num_ident << std::endl;
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity_Ungapped, pident);
+            // Rcpp::Rcout << "PercentIdentity_Ungapped present: " << ok << " value: " << pident << std::endl;
+            
+            if(!ok)
+              if (aln_len > 0){
+                pident = 100.0 * (double)num_ident / (double)aln_len;
+                // Rcpp::Rcout << "computed pident = " << pident << std::endl;
+              }
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity, pident_gap);
+            // Rcpp::Rcout << "PercentIdentity (gapped) present: " << ok << " value: " << pident_gap << std::endl;
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_GapCount, gaps);
+            // Rcpp::Rcout << "GapCount present: " << ok << " value: " << gaps << std::endl;
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_EValue, evalue);
+            // Rcpp::Rcout << "EValue present: " << ok << " value: " << evalue << std::endl;
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_MismatchCount, mismatches);
+            // Rcpp::Rcout << "MismatchCount present: " << ok << " value: " << mismatches << std::endl;
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentCoverage, qcovhsp);
+            // Rcpp::Rcout << "PercentCoverage present: " << ok << " value: " << qcovhsp << std::endl;
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_Score, score);
+            // Rcpp::Rcout << "Score present: " << ok << " value: " << score << std::endl;
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_PositiveCount, positive);
+            // Rcpp::Rcout << "PositiveCount present: " << ok << " value: " << positive << std::endl;
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_Splices, n_splices);
+            // Rcpp::Rcout << "Splices present: " << ok << " value: " << n_splices << std::endl;
+            
+            // extended ones
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_SumEValue, sum_evalue);
+            // Rcpp::Rcout << "SumEValue present: " << ok << " value: " << sum_evalue << std::endl;
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_ProductCoverage, product_coverage);
+            // Rcpp::Rcout << "ProductCoverage present: " << ok << " value: " << product_coverage << std::endl;
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_OverallIdentity, overall_identity);
+            // Rcpp::Rcout << "OverallIdentity present: " << ok << " value: " << overall_identity << std::endl;
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_NegativeCount, negative_count);
+            // Rcpp::Rcout << "NegativeCount present: " << ok << " value: " << negative_count << std::endl;
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_Matches, matches);
+            // Rcpp::Rcout << "Matches present: " << ok << " value: " << matches << std::endl;
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_HighQualityPercentCoverage, high_quality_percent_coverage);
+            // Rcpp::Rcout << "HQPercentCoverage present: " << ok << " value: " << high_quality_percent_coverage << std::endl;
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_ExonIdentity, exon_identity);
+            // Rcpp::Rcout << "ExonIdentity present: " << ok << " value: " << exon_identity << std::endl;
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_ConsensusSplices, consensus_splices);
+            // Rcpp::Rcout << "ConsensusSplices present: " << ok << " value: " << consensus_splices << std::endl;
+            
+            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_CompAdjMethod, comp_adj_method);
+            // Rcpp::Rcout << "CompAdjMethod present: " << ok << " value: " << comp_adj_method << std::endl;
+            
+            // Seq positions
+            int qstart = it->GetSeqStart(0);
+            int qend   = it->GetSeqStop(0);
+            int sstart = it->GetSeqStart(1);
+            int send   = it->GetSeqStop(1);
+            aln_len01 = it->AlignLengthRatio();
+            
+            // Rcpp::Rcout << "qstart=" << qstart << " qend=" << qend << " sstart=" << sstart << " send=" << send << std::endl;
+            // Rcpp::Rcout << "aln_len (reported): " << aln_len << " nident=" << num_ident << " pident=" << pident << " mismatches=" << mismatches << " gaps=" << gaps << std::endl;
+  
+            frames = std::to_string(GetFrame(qstart, aln_len, query_strand)) + "/" + std::to_string(GetFrame(sstart, aln_len, subject_strand));
+            
+            static_cast<void>(qhsp_builder.Append(q_hsp));
+            static_cast<void>(shsp_builder.Append(s_hsp));
+            static_cast<void>(frames_builder.Append(frames));
+            static_cast<void>(qstart_builder.Append(qstart));
+            static_cast<void>(qend_builder.Append(qend));
+            static_cast<void>(sstart_builder.Append(sstart));
+            static_cast<void>(send_builder.Append(send));
+            static_cast<void>(pident_builder.Append(pident));
+            static_cast<void>(evalue_builder.Append(evalue));
+            static_cast<void>(length_builder.Append(aln_len));
+            static_cast<void>(aln_len01_builder.Append(aln_len01));
+            static_cast<void>(bitscore_builder.Append(bits));
+            static_cast<void>(score_builder.Append(score));
+            static_cast<void>(qcovhsp_builder.Append(qcovhsp));
+            static_cast<void>(blast_score_builder.Append(blast_score));
+            static_cast<void>(pident_gap_builder.Append(pident_gap));
+            static_cast<void>(gaps_builder.Append(gaps));
+            static_cast<void>(nident_builder.Append(num_ident));
+            static_cast<void>(mismatch_builder.Append(mismatches));
+            static_cast<void>(positive_builder.Append(positive));
+            static_cast<void>(n_splices_builder.Append(n_splices));
+            static_cast<void>(hsp_cnt_builder.Append(num_rows + 1));
+            static_cast<void>(sum_evalue_builder.Append(sum_evalue));
+            static_cast<void>(product_coverage_builder.Append(product_coverage));
+            static_cast<void>(overall_identity_builder.Append(overall_identity));
+            static_cast<void>(negative_count_builder.Append(negative_count));
+            static_cast<void>(matches_builder.Append(matches));
+            static_cast<void>(high_quality_percent_coverage_builder.Append(high_quality_percent_coverage));
+            static_cast<void>(exon_identity_builder.Append(exon_identity));
+            static_cast<void>(consensus_splices_builder.Append(consensus_splices));
+            static_cast<void>(comp_adj_method_builder.Append(comp_adj_method));
+  
+            /// SEQ INFO
+            static_cast<void>(qseqid_builder.Append(qseq_id));
+            static_cast<void>(sseqid_builder.Append(sseq_id));
+            static_cast<void>(qseq_builder.Append(qseq));
+            static_cast<void>(sseq_builder.Append(sseq));
+            static_cast<void>(qlen_builder.Append(q_full.length()));
+            static_cast<void>(slen_builder.Append(s_full.length()));
+            static_cast<void>(num_alignments_builder.Append(seq_aligns.size()));
+  
+            static_cast<void>(strand_builder.Append(strand));
+            static_cast<void>(hsp_offset_builder.Append(1));
+  
+            // static_cast<void>(qseq_title_builder.Append(qseq_title));
+            // static_cast<void>(sseq_title_builder.Append(sseq_title));
+            
+            num_rows++;
           }
-         
-         switch (save_sequences)
-         {
-         case true:
-           qseq = q_full;
-           sseq = s_full;
-           break;
-         }
-          
-          // // handle Std-seg (a sequence of local 'loc' entries)
-          // else if (it->GetSegs().IsStd()) {
-          //   // const CStd_seg &stdseg = it->GetSegs().GetStd();
-          //   // stdseg has a list of segments; each segment has a list of locs for each row
-          //   // iterate and extract using the loc's intervals
-          //   // For brevity, here's a simple approach that attempts to extract by using GetSeqStart/GetSeqStop
-          //   int qstart = it->GetSeqStart(0);
-          //   int qstop  = it->GetSeqStop(0);
-          //   int sstart = it->GetSeqStart(1);
-          //   int sstop  = it->GetSeqStop(1);
-          //   // fetch sequences by slicing the bioseq handles (if available)
-          //   // (You may prefer to iterate stdseg.Get() entries to get exact block-level offsets)
-          //   NcbiCout << "Std-seg: q[" << qstart << "," << qstop << "] s[" << sstart << "," << sstop << "]" << NcbiEndl;
-          //   // you can reuse GetFullSequenceString + substringing with CSeqVector for exact subrange
-          // }
-          // else {
-          //   // Other seg types: disc, spliced, packed-int, etc.
-          //   NcbiCout << "Unhandled seg type; implement specialized extraction if needed" << NcbiEndl;
-          // }
-          
-          double aln_len01 = 0;
-          double aln_len = 0;
-          double bits = 0.0;
-          double blast_score = 0.0;
-          double pident = 0.0;
-          double pident_gap = 0.0;
-          double gaps = 0;
-          double evalue = 0.0;
-          double num_ident = 0;
-          double mismatches = 0;
-          double qcovhsp = 0.0;
-          double score = 0;
-          double positive = 0;
-          double n_splices = 0;
-          double sum_evalue = 0.0;
-          double product_coverage = 0.0;
-          double overall_identity = 0.0;
-          double negative_count = 0;
-          double matches = 0.0;
-          double high_quality_percent_coverage = 0.0;
-          double exon_identity = 0.0;
-          double consensus_splices = 0.0;
-          double comp_adj_method = 0.0;
-          std::string frames = "*/*";
-          
-          // For each requested score, call GetNamedScore and check result
-          bool ok;
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_AlignLength, aln_len);
-          // Rcpp::Rcout << "AlignLength present: " << ok << " value: " << aln_len << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_BitScore, bits);
-          // Rcpp::Rcout << "BitScore present: " << ok << " value: " << bits << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_Blast, blast_score);
-          // Rcpp::Rcout << "Blast score present: " << ok << " value: " << blast_score << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_IdentityCount, num_ident);
-          // Rcpp::Rcout << "IdentityCount present: " << ok << " value: " << num_ident << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity_Ungapped, pident);
-          // Rcpp::Rcout << "PercentIdentity_Ungapped present: " << ok << " value: " << pident << std::endl;
-          
-          if(!ok)
-            if (aln_len > 0){
-              pident = 100.0 * (double)num_ident / (double)aln_len;
-              // Rcpp::Rcout << "computed pident = " << pident << std::endl;
-            }
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity, pident_gap);
-          // Rcpp::Rcout << "PercentIdentity (gapped) present: " << ok << " value: " << pident_gap << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_GapCount, gaps);
-          // Rcpp::Rcout << "GapCount present: " << ok << " value: " << gaps << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_EValue, evalue);
-          // Rcpp::Rcout << "EValue present: " << ok << " value: " << evalue << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_MismatchCount, mismatches);
-          // Rcpp::Rcout << "MismatchCount present: " << ok << " value: " << mismatches << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentCoverage, qcovhsp);
-          // Rcpp::Rcout << "PercentCoverage present: " << ok << " value: " << qcovhsp << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_Score, score);
-          // Rcpp::Rcout << "Score present: " << ok << " value: " << score << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_PositiveCount, positive);
-          // Rcpp::Rcout << "PositiveCount present: " << ok << " value: " << positive << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_Splices, n_splices);
-          // Rcpp::Rcout << "Splices present: " << ok << " value: " << n_splices << std::endl;
-          
-          // extended ones
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_SumEValue, sum_evalue);
-          // Rcpp::Rcout << "SumEValue present: " << ok << " value: " << sum_evalue << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_ProductCoverage, product_coverage);
-          // Rcpp::Rcout << "ProductCoverage present: " << ok << " value: " << product_coverage << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_OverallIdentity, overall_identity);
-          // Rcpp::Rcout << "OverallIdentity present: " << ok << " value: " << overall_identity << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_NegativeCount, negative_count);
-          // Rcpp::Rcout << "NegativeCount present: " << ok << " value: " << negative_count << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_Matches, matches);
-          // Rcpp::Rcout << "Matches present: " << ok << " value: " << matches << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_HighQualityPercentCoverage, high_quality_percent_coverage);
-          // Rcpp::Rcout << "HQPercentCoverage present: " << ok << " value: " << high_quality_percent_coverage << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_ExonIdentity, exon_identity);
-          // Rcpp::Rcout << "ExonIdentity present: " << ok << " value: " << exon_identity << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_ConsensusSplices, consensus_splices);
-          // Rcpp::Rcout << "ConsensusSplices present: " << ok << " value: " << consensus_splices << std::endl;
-          
-          ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_CompAdjMethod, comp_adj_method);
-          // Rcpp::Rcout << "CompAdjMethod present: " << ok << " value: " << comp_adj_method << std::endl;
-          
-          // Seq positions
-          int qstart = it->GetSeqStart(0);
-          int qend   = it->GetSeqStop(0);
-          int sstart = it->GetSeqStart(1);
-          int send   = it->GetSeqStop(1);
-          aln_len01 = it->AlignLengthRatio();
-          
-          // Rcpp::Rcout << "qstart=" << qstart << " qend=" << qend << " sstart=" << sstart << " send=" << send << std::endl;
-          // Rcpp::Rcout << "aln_len (reported): " << aln_len << " nident=" << num_ident << " pident=" << pident << " mismatches=" << mismatches << " gaps=" << gaps << std::endl;
-
-          frames = std::to_string(GetFrame(qstart, aln_len, query_strand)) + "/" + std::to_string(GetFrame(sstart, aln_len, subject_strand));
-          
-          static_cast<void>(qhsp_builder.Append(q_hsp));
-          static_cast<void>(shsp_builder.Append(s_hsp));
-          static_cast<void>(frames_builder.Append(frames));
-          static_cast<void>(qstart_builder.Append(qstart));
-          static_cast<void>(qend_builder.Append(qend));
-          static_cast<void>(sstart_builder.Append(sstart));
-          static_cast<void>(send_builder.Append(send));
-          static_cast<void>(pident_builder.Append(pident));
-          static_cast<void>(evalue_builder.Append(evalue));
-          static_cast<void>(length_builder.Append(aln_len));
-          static_cast<void>(aln_len01_builder.Append(aln_len01));
-          static_cast<void>(bitscore_builder.Append(bits));
-          static_cast<void>(score_builder.Append(score));
-          static_cast<void>(qcovhsp_builder.Append(qcovhsp));
-          static_cast<void>(blast_score_builder.Append(blast_score));
-          static_cast<void>(pident_gap_builder.Append(pident_gap));
-          static_cast<void>(gaps_builder.Append(gaps));
-          static_cast<void>(nident_builder.Append(num_ident));
-          static_cast<void>(mismatch_builder.Append(mismatches));
-          static_cast<void>(positive_builder.Append(positive));
-          static_cast<void>(n_splices_builder.Append(n_splices));
-          static_cast<void>(hsp_cnt_builder.Append(num_rows + 1));
-          static_cast<void>(sum_evalue_builder.Append(sum_evalue));
-          static_cast<void>(product_coverage_builder.Append(product_coverage));
-          static_cast<void>(overall_identity_builder.Append(overall_identity));
-          static_cast<void>(negative_count_builder.Append(negative_count));
-          static_cast<void>(matches_builder.Append(matches));
-          static_cast<void>(high_quality_percent_coverage_builder.Append(high_quality_percent_coverage));
-          static_cast<void>(exon_identity_builder.Append(exon_identity));
-          static_cast<void>(consensus_splices_builder.Append(consensus_splices));
-          static_cast<void>(comp_adj_method_builder.Append(comp_adj_method));
-
-          /// SEQ INFO
-          static_cast<void>(qseqid_builder.Append(qseq_id));
-          static_cast<void>(sseqid_builder.Append(sseq_id));
-          static_cast<void>(qseq_builder.Append(qseq));
-          static_cast<void>(sseq_builder.Append(sseq));
-          static_cast<void>(qlen_builder.Append(q_full.length()));
-          static_cast<void>(slen_builder.Append(s_full.length()));
-          static_cast<void>(num_alignments_builder.Append(seq_aligns.size()));
-
-          static_cast<void>(strand_builder.Append(strand));
-          static_cast<void>(hsp_offset_builder.Append(1));
-
-          // static_cast<void>(qseq_title_builder.Append(qseq_title));
-          // static_cast<void>(sseq_title_builder.Append(sseq_title));
-          
-          num_rows++;
+        }
+        catch(const std::exception &e){
+          Rcpp::stop(std::string("ExtractHits(): C++ Exception : ") + e.what());
+        }
+        catch(const std::runtime_error &e){
+          Rcpp::stop(std::string("ExtractHits(): C++ Runtime Error : ") + e.what());
+        }
+        catch(const Rcpp::exception &e){
+          Rcpp::stop(std::string("ExtractHits() - Rcpp Exception : ") + e.what());
+        }
+        catch(...){
+          Rcpp::stop("ExtractHits(): Unknown Exception");
         }
       }
-      catch (const std::exception &e)
+      else
       {
-        cout << e.what() << std::endl
-             << std::flush;
+        return empty_rb; //arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie(); // CORRECT RETURN, NO ALIGNMENTS
       }
     }
-    else
+    
+    if (num_rows == 0)
     {
-      return arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie(); // CORRECT RETURN, NO ALIGNMENTS
+      return empty_rb; //arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie(); // CORRECT RETURN, NO ALIGNMENTS
     }
-  }
   
-  if (num_rows == 0)
-  {
-    return arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie(); // CORRECT RETURN, NO ALIGNMENTS
-  }
-
-  std::shared_ptr<arrow::Array> qhsp_array;
-  static_cast<void>(qhsp_builder.Finish(&qhsp_array));
-  std::shared_ptr<arrow::Array> shsp_array;
-  static_cast<void>(shsp_builder.Finish(&shsp_array));
-  std::shared_ptr<arrow::Array> frames_array;
-  static_cast<void>(frames_builder.Finish(&frames_array));
-  std::shared_ptr<arrow::Array> pident_array;
-  static_cast<void>(pident_builder.Finish(&pident_array));
-  std::shared_ptr<arrow::Array> pident_gap_array;
-  static_cast<void>(pident_gap_builder.Finish(&pident_gap_array));
-  std::shared_ptr<arrow::Array> evalue_array;
-  static_cast<void>(evalue_builder.Finish(&evalue_array));
-  std::shared_ptr<arrow::Array> length_array;
-  static_cast<void>(length_builder.Finish(&length_array));
-  std::shared_ptr<arrow::Array> qstart_array;
-  static_cast<void>(qstart_builder.Finish(&qstart_array));
-  std::shared_ptr<arrow::Array> qend_array;
-  static_cast<void>(qend_builder.Finish(&qend_array));
-  std::shared_ptr<arrow::Array> sstart_array;
-  static_cast<void>(sstart_builder.Finish(&sstart_array));
-  std::shared_ptr<arrow::Array> send_array;
-  static_cast<void>(send_builder.Finish(&send_array));
-  std::shared_ptr<arrow::Array> aln_len01_array;
-  static_cast<void>(aln_len01_builder.Finish(&aln_len01_array));
-  std::shared_ptr<arrow::Array> bitscore_array;
-  static_cast<void>(bitscore_builder.Finish(&bitscore_array));
-  std::shared_ptr<arrow::Array> score_array;
-  static_cast<void>(score_builder.Finish(&score_array));
-  std::shared_ptr<arrow::Array> qcovhsp_array;
-  static_cast<void>(qcovhsp_builder.Finish(&qcovhsp_array));
-  std::shared_ptr<arrow::Array> blast_score_array;
-  static_cast<void>(blast_score_builder.Finish(&blast_score_array));
-  std::shared_ptr<arrow::Array> gaps_array;
-  static_cast<void>(gaps_builder.Finish(&gaps_array));
-  std::shared_ptr<arrow::Array> nident_array;
-  static_cast<void>(nident_builder.Finish(&nident_array));
-  std::shared_ptr<arrow::Array> mismatch_array;
-  static_cast<void>(mismatch_builder.Finish(&mismatch_array));
-  std::shared_ptr<arrow::Array> positive_array;
-  static_cast<void>(positive_builder.Finish(&positive_array));
-  std::shared_ptr<arrow::Array> n_splices_array;
-  static_cast<void>(n_splices_builder.Finish(&n_splices_array));
-  std::shared_ptr<arrow::Array> hsp_cnt_array;
-  static_cast<void>(hsp_cnt_builder.Finish(&hsp_cnt_array));
-  std::shared_ptr<arrow::Array> sum_evalue_array;
-  static_cast<void>(sum_evalue_builder.Finish(&sum_evalue_array));
-  std::shared_ptr<arrow::Array> product_coverage_array;
-  static_cast<void>(product_coverage_builder.Finish(&product_coverage_array));
-  std::shared_ptr<arrow::Array> overall_identity_array;
-  static_cast<void>(overall_identity_builder.Finish(&overall_identity_array));
-  std::shared_ptr<arrow::Array> negative_count_array;
-  static_cast<void>(negative_count_builder.Finish(&negative_count_array));
-  std::shared_ptr<arrow::Array> matches_array;
-  static_cast<void>(matches_builder.Finish(&matches_array));
-  std::shared_ptr<arrow::Array> high_quality_percent_coverage_array;
-  static_cast<void>(high_quality_percent_coverage_builder.Finish(&high_quality_percent_coverage_array));
-  std::shared_ptr<arrow::Array> exon_identity_array;
-  static_cast<void>(exon_identity_builder.Finish(&exon_identity_array));
-  std::shared_ptr<arrow::Array> consensus_splices_array;
-  static_cast<void>(consensus_splices_builder.Finish(&consensus_splices_array));
-  std::shared_ptr<arrow::Array> comp_adj_method_array;
-  static_cast<void>(comp_adj_method_builder.Finish(&comp_adj_method_array));
+    std::shared_ptr<arrow::Array> qhsp_array;
+    static_cast<void>(qhsp_builder.Finish(&qhsp_array));
+    std::shared_ptr<arrow::Array> shsp_array;
+    static_cast<void>(shsp_builder.Finish(&shsp_array));
+    std::shared_ptr<arrow::Array> frames_array;
+    static_cast<void>(frames_builder.Finish(&frames_array));
+    std::shared_ptr<arrow::Array> pident_array;
+    static_cast<void>(pident_builder.Finish(&pident_array));
+    std::shared_ptr<arrow::Array> pident_gap_array;
+    static_cast<void>(pident_gap_builder.Finish(&pident_gap_array));
+    std::shared_ptr<arrow::Array> evalue_array;
+    static_cast<void>(evalue_builder.Finish(&evalue_array));
+    std::shared_ptr<arrow::Array> length_array;
+    static_cast<void>(length_builder.Finish(&length_array));
+    std::shared_ptr<arrow::Array> qstart_array;
+    static_cast<void>(qstart_builder.Finish(&qstart_array));
+    std::shared_ptr<arrow::Array> qend_array;
+    static_cast<void>(qend_builder.Finish(&qend_array));
+    std::shared_ptr<arrow::Array> sstart_array;
+    static_cast<void>(sstart_builder.Finish(&sstart_array));
+    std::shared_ptr<arrow::Array> send_array;
+    static_cast<void>(send_builder.Finish(&send_array));
+    std::shared_ptr<arrow::Array> aln_len01_array;
+    static_cast<void>(aln_len01_builder.Finish(&aln_len01_array));
+    std::shared_ptr<arrow::Array> bitscore_array;
+    static_cast<void>(bitscore_builder.Finish(&bitscore_array));
+    std::shared_ptr<arrow::Array> score_array;
+    static_cast<void>(score_builder.Finish(&score_array));
+    std::shared_ptr<arrow::Array> qcovhsp_array;
+    static_cast<void>(qcovhsp_builder.Finish(&qcovhsp_array));
+    std::shared_ptr<arrow::Array> blast_score_array;
+    static_cast<void>(blast_score_builder.Finish(&blast_score_array));
+    std::shared_ptr<arrow::Array> gaps_array;
+    static_cast<void>(gaps_builder.Finish(&gaps_array));
+    std::shared_ptr<arrow::Array> nident_array;
+    static_cast<void>(nident_builder.Finish(&nident_array));
+    std::shared_ptr<arrow::Array> mismatch_array;
+    static_cast<void>(mismatch_builder.Finish(&mismatch_array));
+    std::shared_ptr<arrow::Array> positive_array;
+    static_cast<void>(positive_builder.Finish(&positive_array));
+    std::shared_ptr<arrow::Array> n_splices_array;
+    static_cast<void>(n_splices_builder.Finish(&n_splices_array));
+    std::shared_ptr<arrow::Array> hsp_cnt_array;
+    static_cast<void>(hsp_cnt_builder.Finish(&hsp_cnt_array));
+    std::shared_ptr<arrow::Array> sum_evalue_array;
+    static_cast<void>(sum_evalue_builder.Finish(&sum_evalue_array));
+    std::shared_ptr<arrow::Array> product_coverage_array;
+    static_cast<void>(product_coverage_builder.Finish(&product_coverage_array));
+    std::shared_ptr<arrow::Array> overall_identity_array;
+    static_cast<void>(overall_identity_builder.Finish(&overall_identity_array));
+    std::shared_ptr<arrow::Array> negative_count_array;
+    static_cast<void>(negative_count_builder.Finish(&negative_count_array));
+    std::shared_ptr<arrow::Array> matches_array;
+    static_cast<void>(matches_builder.Finish(&matches_array));
+    std::shared_ptr<arrow::Array> high_quality_percent_coverage_array;
+    static_cast<void>(high_quality_percent_coverage_builder.Finish(&high_quality_percent_coverage_array));
+    std::shared_ptr<arrow::Array> exon_identity_array;
+    static_cast<void>(exon_identity_builder.Finish(&exon_identity_array));
+    std::shared_ptr<arrow::Array> consensus_splices_array;
+    static_cast<void>(consensus_splices_builder.Finish(&consensus_splices_array));
+    std::shared_ptr<arrow::Array> comp_adj_method_array;
+    static_cast<void>(comp_adj_method_builder.Finish(&comp_adj_method_array));
+    
+    arrow::Result<std::shared_ptr<arrow::StructArray>> aln_struct_array = arrow::StructArray::Make({
+  qhsp_array,
+  shsp_array,
+  pident_array,
+  pident_gap_array,
+  frames_array,
+  evalue_array,
+  length_array,
+  aln_len01_array,
+  qstart_array,
+  qend_array,
+  sstart_array,
+  send_array,
+  bitscore_array,
+  score_array,
+  qcovhsp_array,
+  blast_score_array,
+  gaps_array,
+  nident_array,
+  mismatch_array,
+  positive_array,
+  n_splices_array,
+  hsp_cnt_array,
+  sum_evalue_array,
+  product_coverage_array,
+  overall_identity_array,
+  negative_count_array,
+  matches_array,
+  high_quality_percent_coverage_array,
+  exon_identity_array,
+  consensus_splices_array,
+  comp_adj_method_array},
+                                                                                                   {"qhsp", "shsp", "pident", "pident_gap", "frames", "evalue", "length", "length01", "qstart", "qend", "sstart", "send", "bitscore", "score", "qcovhsp", "blast_score", "gaps", "nident", "mismatch", "positive", "n_splices", "hsp_num", "sum_evalue", "product_coverage", "overall_identity", "negative_count", "matches", "high_quality_percent_coverage", "exon_identity", "consensus_splices", "comp_adj_method"});
   
-  arrow::Result<std::shared_ptr<arrow::StructArray>> aln_struct_array = arrow::StructArray::Make({
-qhsp_array,
-shsp_array,
-pident_array,
-pident_gap_array,
-frames_array,
-evalue_array,
-length_array,
-aln_len01_array,
-qstart_array,
-qend_array,
-sstart_array,
-send_array,
-bitscore_array,
-score_array,
-qcovhsp_array,
-blast_score_array,
-gaps_array,
-nident_array,
-mismatch_array,
-positive_array,
-n_splices_array,
-hsp_cnt_array,
-sum_evalue_array,
-product_coverage_array,
-overall_identity_array,
-negative_count_array,
-matches_array,
-high_quality_percent_coverage_array,
-exon_identity_array,
-consensus_splices_array,
-comp_adj_method_array},
-                                                                                                 {"qhsp", "shsp", "pident", "pident_gap", "frames", "evalue", "length", "length01", "qstart", "qend", "sstart", "send", "bitscore", "score", "qcovhsp", "blast_score", "gaps", "nident", "mismatch", "positive", "n_splices", "hsp_num", "sum_evalue", "product_coverage", "overall_identity", "negative_count", "matches", "high_quality_percent_coverage", "exon_identity", "consensus_splices", "comp_adj_method"});
-
-  assert(aln_struct_array.ok());
-
-  std::shared_ptr<arrow::StructArray> aln_struct_array_ = aln_struct_array.ValueOrDie();
-
-  // std::shared_ptr<arrow::Array> qseq_title_array;
-  // static_cast<void>(qseq_title_builder.Finish(&qseq_title_array));
-  // 
-  // std::shared_ptr<arrow::Array> sseq_title_array;
-  // static_cast<void>(sseq_title_builder.Finish(&sseq_title_array));
+    assert(aln_struct_array.ok());
   
-  std::shared_ptr<arrow::Array> qseqid_array;
-  static_cast<void>(qseqid_builder.Finish(&qseqid_array));
-
-  std::shared_ptr<arrow::Array> sseqid_array;
-  static_cast<void>(sseqid_builder.Finish(&sseqid_array));
-
-  std::shared_ptr<arrow::Array> qseq_array;
-  static_cast<void>(qseq_builder.Finish(&qseq_array));
-
-  std::shared_ptr<arrow::Array> sseq_array;
-  static_cast<void>(sseq_builder.Finish(&sseq_array));
+    std::shared_ptr<arrow::StructArray> aln_struct_array_ = aln_struct_array.ValueOrDie();
   
-  std::shared_ptr<arrow::Array> qlen_array;
-  static_cast<void>(qlen_builder.Finish(&qlen_array));
-
-  std::shared_ptr<arrow::Array> slen_array;
-  static_cast<void>(slen_builder.Finish(&slen_array));
-
-  std::shared_ptr<arrow::Array> strand_array;
-  static_cast<void>(strand_builder.Finish(&strand_array));
-
-  std::shared_ptr<arrow::Array> num_alignment_array;
-  static_cast<void>(num_alignments_builder.Finish(&num_alignment_array));
+    // std::shared_ptr<arrow::Array> qseq_title_array;
+    // static_cast<void>(qseq_title_builder.Finish(&qseq_title_array));
+    // 
+    // std::shared_ptr<arrow::Array> sseq_title_array;
+    // static_cast<void>(sseq_title_builder.Finish(&sseq_title_array));
+    
+    std::shared_ptr<arrow::Array> qseqid_array;
+    static_cast<void>(qseqid_builder.Finish(&qseqid_array));
   
-  // Create the seq_info struct array and populate with the arrays
-  // std::shared_ptr<arrow::StructArray> seqtitle_struct_array = *arrow::StructArray::Make({qseq_title_array, sseq_title_array}, {arrow::field("qseq_title", arrow::utf8()), arrow::field("sseq_title", arrow::utf8())});
-  std::shared_ptr<arrow::StructArray> seqids_struct_array = *arrow::StructArray::Make({qseqid_array, sseqid_array}, {arrow::field("qseqid", arrow::utf8()), arrow::field("sseqid", arrow::utf8())});
-  std::shared_ptr<arrow::StructArray> seqs_struct_array = *arrow::StructArray::Make({qseq_array, sseq_array}, {arrow::field("qseq", arrow::large_utf8()), arrow::field("sseq", arrow::large_utf8())});
-  std::shared_ptr<arrow::StructArray> lengths_struct_array = *arrow::StructArray::Make({qlen_array, slen_array}, {arrow::field("qlen", arrow::int64()), arrow::field("slen", arrow::int64())});
-
-  arrow::Result<std::shared_ptr<arrow::StructArray>> seq_info_array = arrow::StructArray::Make({num_alignment_array,
-                                                                                              seqids_struct_array,
-                                                                                                seqs_struct_array,
-                                                                                                strand_array,
-                                                                                                lengths_struct_array},
-                                                                                               {"num_alignments", "seqids", "seqs", "strands", "lengths"});
-
-  assert(seq_info_array.ok());
-
-  std::shared_ptr<arrow::StructArray> seq_info_array_ = seq_info_array.ValueOrDie();
-
-  // Rprintf("\n%d\n", num_rows); //DEBUG
-  std::shared_ptr<arrow::RecordBatch> alignment_rb = arrow::RecordBatch::Make(arrow_wrapper->GetBLASTSchema(),
-                                                                              num_rows,
-                                                                              {seq_info_array_, aln_struct_array_});
-                 
-   if(alignment_rb->num_rows() <= 0){
-     Rcpp::stop("ExtractHits() - arrow::RecordBatch() - No alignments could be computed.");
-   }
-   
-   arrow::Status align_sts = alignment_rb->ValidateFull();
-   if(!align_sts.ok()){
-     // Rcpp::Rcout << align_sts.message()  << std::endl << align_sts.ToString() << std::endl << "rows:" << alignment_rb->num_rows() << "\ncols:" << alignment_rb->num_columns()  << std::endl << std::flush; //DEBUG
-     Rcpp::stop("ExtractHits() - arrow::RecordBatch() - Alignments failed validation.");
-   }                                                             
+    std::shared_ptr<arrow::Array> sseqid_array;
+    static_cast<void>(sseqid_builder.Finish(&sseqid_array));
   
-  if (alignment_rb)
-  {
-    // Rcpp::Rcout << alignment_rb->ToString() << std::endl << std::flush; //DEBUG
-    if(save_sequences){
+    std::shared_ptr<arrow::Array> qseq_array;
+    static_cast<void>(qseq_builder.Finish(&qseq_array));
+  
+    std::shared_ptr<arrow::Array> sseq_array;
+    static_cast<void>(sseq_builder.Finish(&sseq_array));
+    
+    std::shared_ptr<arrow::Array> qlen_array;
+    static_cast<void>(qlen_builder.Finish(&qlen_array));
+  
+    std::shared_ptr<arrow::Array> slen_array;
+    static_cast<void>(slen_builder.Finish(&slen_array));
+  
+    std::shared_ptr<arrow::Array> strand_array;
+    static_cast<void>(strand_builder.Finish(&strand_array));
+  
+    std::shared_ptr<arrow::Array> num_alignment_array;
+    static_cast<void>(num_alignments_builder.Finish(&num_alignment_array));
+    
+    // Create the seq_info struct array and populate with the arrays
+    // std::shared_ptr<arrow::StructArray> seqtitle_struct_array = *arrow::StructArray::Make({qseq_title_array, sseq_title_array}, {arrow::field("qseq_title", arrow::utf8()), arrow::field("sseq_title", arrow::utf8())});
+    std::shared_ptr<arrow::StructArray> seqids_struct_array = *arrow::StructArray::Make({qseqid_array, sseqid_array}, {arrow::field("qseqid", arrow::utf8()), arrow::field("sseqid", arrow::utf8())});
+    std::shared_ptr<arrow::StructArray> seqs_struct_array = *arrow::StructArray::Make({qseq_array, sseq_array}, {arrow::field("qseq", arrow::large_utf8()), arrow::field("sseq", arrow::large_utf8())});
+    std::shared_ptr<arrow::StructArray> lengths_struct_array = *arrow::StructArray::Make({qlen_array, slen_array}, {arrow::field("qlen", arrow::int64()), arrow::field("slen", arrow::int64())});
+  
+    arrow::Result<std::shared_ptr<arrow::StructArray>> seq_info_array = arrow::StructArray::Make({num_alignment_array,
+                                                                                                seqids_struct_array,
+                                                                                                  seqs_struct_array,
+                                                                                                  strand_array,
+                                                                                                  lengths_struct_array},
+                                                                                                 {"num_alignments", "seqids", "seqs", "strands", "lengths"});
+  
+    assert(seq_info_array.ok());
+  
+    std::shared_ptr<arrow::StructArray> seq_info_array_ = seq_info_array.ValueOrDie();
+  
+    // Rprintf("\n%d\n", num_rows); //DEBUG
+    std::shared_ptr<arrow::RecordBatch> alignment_rb = arrow::RecordBatch::Make(arrow_wrapper->GetBLASTSchema(),
+                                                                                num_rows,
+                                                                                {seq_info_array_, aln_struct_array_});
+                   
+     if(alignment_rb->num_rows() <= 0){
+       Rcpp::stop("ExtractHits() - arrow::RecordBatch() - No alignments could be computed.");
+     }
+     
+     arrow::Status align_sts = alignment_rb->ValidateFull();
+     if(!align_sts.ok()){
+       // Rcpp::Rcout << align_sts.message()  << std::endl << align_sts.ToString() << std::endl << "rows:" << alignment_rb->num_rows() << "\ncols:" << alignment_rb->num_columns()  << std::endl << std::flush; //DEBUG
+       throw std::runtime_error("ExtractHits() - arrow::RecordBatch() - Alignments failed validation.");
+     }                                                             
+    
+    if (alignment_rb)
+    {
+      // Rcpp::Rcout << alignment_rb->ToString() << std::endl << std::flush; //DEBUG
+      // tmp_extracted++;
+      // Rcpp::Rcout << "Extracted: " << tmp_extracted << std::endl << std::flush; //DEBUG
+      
       const auto &wrt_sts = arrow_wrapper->AddRB2Batch(alignment_rb);
-      if (wrt_sts.ok())
+      if (!wrt_sts.ok())
       {
+        throw runtime_error("ExtractHits() - Error adding RecordBatch to write buffer...");
+      }
+      
+      if(return_values){
         return alignment_rb;
       }else{
-        Rcpp::Rcerr << "ExtractHits() - Error writing RecordBatch..." << std::endl << std::flush; //DEBUG 
-        return arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie(); // //ERROR
+        return empty_rb;
       }
-    }else{
-      return alignment_rb;
     }
+    Rcpp::Rcerr << "ExtractHits() - Empty alignment_rb..." << std::endl << std::flush; //DEBUG
+    return empty_rb; //arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie(); // //ERROR RETURN, END
   }
-  Rcpp::Rcerr << "ExtractHits() - Empty alignment_rb..." << std::endl << std::flush; //DEBUG
-  return arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie(); // //ERROR RETURN, END
+  catch(const std::exception &e){
+    Rcpp::stop(std::string("ExtractHits(): C++ Exception : ") + e.what());
+  }
+  catch(const std::runtime_error &e){
+    Rcpp::stop(std::string("ExtractHits(): C++ Runtime Error : ") + e.what());
+  }
+  catch(const Rcpp::exception &e){
+    Rcpp::stop(std::string("ExtractHits() - Rcpp Exception : ") + e.what());
+  }
+  catch(...){
+    Rcpp::stop("ExtractHits(): Unknown Exception");
+  }
 }
 
 
@@ -3870,11 +4120,14 @@ void QuickBLAST::Impl::AddAllAvailableScoresToAlign(CRef<CSeq_align> align,
     
   } catch (const CException& e) {
     // don't let toolkit exceptions propagate uncontrolled into R; log and continue
-    ERR_POST(Warning << "AddAllAvailableScoresToAlign: NCBI Exception: " << e.GetMsg());
+    ERR_POST(Warning << "AddAllAvailableScoresToAlign(): NCBI Exception: " << e.GetMsg());
   } catch (const std::exception& e) {
-    ERR_POST(Warning << "AddAllAvailableScoresToAlign: std::exception: " << e.what());
-  } catch (...) {
-    ERR_POST(Warning << "AddAllAvailableScoresToAlign: unknown exception");
+    ERR_POST(Warning << "AddAllAvailableScoresToAlign(): std::exception: " << e.what());
+  }catch(const Rcpp::exception &e){
+    Rcpp::stop(std::string("AddAllAvailableScoresToAlign(): Rcpp Exception : ") + e.what());
+  }
+  catch (...) {
+    ERR_POST(Warning << "AddAllAvailableScoresToAlign(): unknown exception");
   }
 }
 
@@ -4130,9 +4383,9 @@ void QuickBLAST::Impl::AddAllAvailableScoresToSeqAlignVector(TSeqAlignVector &al
 //   return new SSeqLoc(cseq_loc_obj.GetObject(), parent_scope.GetObject());
 // }
 
-std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::string &queryFile, const std::string &subjectFile, std::string &outFile, unsigned int blast_sequence_limit, int num_threads, const bool show_progress, const bool return_values, int batch_size)
+std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::string &queryFile, const std::string &subjectFile, std::string &outFile, const std::string &outFormat, unsigned int blast_sequence_limit, int num_threads, const bool show_progress, const bool return_values, int batch_size)
 {
-  return pImpl->BLAST_files(queryFile, subjectFile, outFile, blast_sequence_limit, num_threads, show_progress, return_values, batch_size);
+  return pImpl->BLAST_files(queryFile, subjectFile, outFile, outFormat, blast_sequence_limit, num_threads, show_progress, return_values, batch_size);
 }
 
 std::shared_ptr<arrow::RecordBatch> QuickBLAST::BLAST_seqs(const std::string &query, const std::string &subject)
@@ -4140,9 +4393,9 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::BLAST_seqs(const std::string &qu
   return pImpl->BLAST_seqs(query, subject);
 }
 
-auto QuickBLAST::BLAST(const std::string &query, const std::string &subject, std::string &outputFile, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress)
+auto QuickBLAST::BLAST(const std::string &query, const std::string &subject, std::string &outputFile, const std::string &outFormat, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress)
 {
-  return pImpl->BLAST(query, subject, outputFile, input_type, blast_sequence_limit, show_progress);
+  return pImpl->BLAST(query, subject, outputFile, outFormat, input_type, blast_sequence_limit, show_progress);
 }
 
 QuickBLAST::QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand, std::string program, std::string options, bool save_sequences)
