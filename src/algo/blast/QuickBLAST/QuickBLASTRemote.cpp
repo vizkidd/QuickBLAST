@@ -31,7 +31,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_remote(
     const QuickBLAST::EInputType input_type = EInputType::eSequenceString,
     std::string outFile = "",
     const bool return_values = true,
-    const unsigned int max_poll_seconds = 120,
+    const unsigned int max_poll_seconds = 360,
     const unsigned int poll_interval_ms = 4000
 ){
   return pImpl->BLAST_remote(program, database, query_input, input_type, outFile, return_values, max_poll_seconds, poll_interval_ms);
@@ -47,11 +47,17 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_remote(
     const QuickBLAST::EInputType input_type = EInputType::eSequenceString,
     std::string outFile = "",
     const bool return_values = true,
-    const unsigned int max_poll_seconds = 120,
+    const unsigned int max_poll_seconds = 360,
     const unsigned int poll_interval_ms = 4000
 ){
   assert(out_file.empty() || return_values == true);
   assert(!out_file.empty() || return_values == false);
+  
+  assert(max_poll_seconds > 0);
+  assert(poll_interval_ms > 0);
+  
+  if(poll_interval_ms < 4000)
+    Rcpp::Rcerr << "Warning: poll_interval < 4 seconds might not respect rate limits.";
   
   // if(outFile.empty()){
   //   outFile = std::tmpnam(nullptr); 
@@ -344,29 +350,88 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_remote(
   remote.SetQueries(bss); //query_input_list
   remote.SetDatabase(database);
   // 4) Submit synchronously, wait, then get results
-  remote.SubmitSync();
-  CRemoteBlast::ESearchStatus status = remote.CheckStatus();
+  // remote.SubmitSync();
+  try {
+    Rcpp::Rcout << "Max wait time: " << max_poll_seconds << std::endl << std::flush;
+    remote.Submit();                 // may return void or RID; check your version
+  }
+  catch (const CBlastException &e) {
+    // treat as network / submission failure
+    throw std::runtime_error(std::string("Remote submit failed: ") + e.what());
+  }
+  // CRemoteBlast::ESearchStatus status = remote.CheckStatus();
+  // Progress progress_bar(max_poll_seconds, true);
+  // unsigned int waited = 0;
+  // while (status == CRemoteBlast::ESearchStatus::eStatus_Pending) {
+  //   Rcpp::checkUserInterrupt();
+  //   // Check status - example API: remote.GetStatus()
+  //   // Many implementations: remote.CheckStatus() or remote.GetRIDStatus()
+  //   if (status == CRemoteBlast::ESearchStatus::eStatus_Done) break;
+  //   if (status == CRemoteBlast::ESearchStatus::eStatus_Failed) {
+  //     vector<std::string> remoteErrors = remote.GetErrorVector();
+  //     for(const std::string &error : remoteErrors){
+  //       Rcpp::Rcerr << error << std::endl << std::flush; 
+  //     }
+  //     throw std::runtime_error("Remote BLAST reported an error while processing the job");
+  //   }
+  //   std::this_thread::sleep_for(std::chrono::milliseconds(poll_interval_ms));
+  //   waited += poll_interval_ms/1000;
+  //   progress_bar.increment();
+  //   if (waited > max_poll_seconds) {
+  //     // you might want to call remote.Cancel() if API provides it
+  //     throw std::runtime_error("Remote BLAST timed out");
+  //   }
+  //   status = remote.CheckStatus(); // adapt to your header
+  // }
   
-  unsigned int waited = 0;
+  Progress progress_bar(max_poll_seconds, true);
+  
+  // Use ms accumulator to avoid integer-division artifacts
+  unsigned long long waited_ms = 0ULL;
+  unsigned int reported_seconds = 0; // how many seconds we've reported to progress
+  
+  auto status = remote.CheckStatus(); // initial status
+  
   while (status == CRemoteBlast::ESearchStatus::eStatus_Pending) {
     Rcpp::checkUserInterrupt();
-    // Check status - example API: remote.GetStatus()
-    // Many implementations: remote.CheckStatus() or remote.GetRIDStatus()
+    
+    // If remote changed between checks, break early
     if (status == CRemoteBlast::ESearchStatus::eStatus_Done) break;
+    
     if (status == CRemoteBlast::ESearchStatus::eStatus_Failed) {
-      vector<std::string> remoteErrors = remote.GetErrorVector();
-      for(const std::string &error : remoteErrors){
-        Rcpp::Rcerr << error << std::endl << std::flush; 
+      std::vector<std::string> remoteErrors = remote.GetErrorVector();
+      for (const std::string &error : remoteErrors) {
+        Rcpp::Rcerr << error << std::endl << std::flush;
       }
       throw std::runtime_error("Remote BLAST reported an error while processing the job");
     }
+    
+    // Sleep for the requested interval
     std::this_thread::sleep_for(std::chrono::milliseconds(poll_interval_ms));
-    waited += poll_interval_ms/1000;
-    if (waited > max_poll_seconds) {
-      // you might want to call remote.Cancel() if API provides it
+    waited_ms += static_cast<unsigned long long>(poll_interval_ms);
+    
+    // Compute whole seconds elapsed
+    unsigned int seconds_elapsed = static_cast<unsigned int>(waited_ms / 1000ULL);
+    
+    // Increment progress for each whole second that passed since last report
+    while (reported_seconds < seconds_elapsed && reported_seconds < static_cast<unsigned int>(max_poll_seconds)) {
+      progress_bar.increment();
+      ++reported_seconds;
+    }
+    
+    // Time-out check (use seconds_elapsed to compare to max_poll_seconds)
+    if (seconds_elapsed > static_cast<unsigned int>(max_poll_seconds)) {
+      // optionally: remote.Cancel() if available
       throw std::runtime_error("Remote BLAST timed out");
     }
-    status = remote.CheckStatus(); // adapt to your header
+    
+    // Re-check remote status
+    status = remote.CheckStatus();
+  }
+  
+  // If we exit before the bar reached max, you can optionally finish it:
+  while (reported_seconds < static_cast<unsigned int>(max_poll_seconds)) {
+    progress_bar.increment(); ++reported_seconds;
   }
   
   CRef<CSearchResultSet> results = remote.GetResultSet();
@@ -581,44 +646,45 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHitsRemote(co
         if (seq_align->GetSegs().IsDenseg()) {
           const CDense_seg& dseg = seq_align->GetSegs().GetDenseg();
           
-          // Get sequence ids (rows)
-          if (dseg.CanGetIds()) {
-            const auto &ids = dseg.GetIds();
-            // print/inspect id strings:
-            // for (size_t r = 0; r < ids.size(); ++r) {
-            //   if (ids[r]) {
-            //     NcbiCout << "Row " << r << " id: " << ids[r]->GetSeqIdString(true) << NcbiEndl;
-            //   }
-            // }
-          }
+          // // Get sequence ids (rows)
+          // if (dseg.CanGetIds()) {
+          //   const auto &ids = dseg.GetIds();
+          //   // print/inspect id strings:
+          //   for (size_t r = 0; r < ids.size(); ++r) {
+          //     if (ids[r]) {
+          //       NcbiCout << "Row " << r << " id: " << ids[r]->GetSeqIdString(true) << NcbiEndl;
+          //     }
+          //   }
+          // }
           
-          // Full sequences for the two first rows (query, subject)
-          if (dseg.CanGetIds()) {
-            // try to fetch full sequences for rows 0 and 1
-            if (dseg.GetIds().size() > 0) {
-              GetFullSequenceString(const_cast<CRef<CSeq_id>&>(dseg.GetIds()[0]), scope, q_full);
-            }
-            if (dseg.GetIds().size() > 1) {
-              GetFullSequenceString(const_cast<CRef<CSeq_id>&>(dseg.GetIds()[1]), scope, s_full);
-            }
-          }
           
           switch (save_sequences)
           {
           case true:
+            // Full sequences for the two first rows (query, subject)
+            if (dseg.CanGetIds()) {
+              // try to fetch full sequences for rows 0 and 1
+              if (dseg.GetIds().size() > 0) {
+                GetFullSequenceString(const_cast<CRef<CSeq_id>&>(dseg.GetIds()[0]), scope, q_full);
+              }
+              if (dseg.GetIds().size() > 1) {
+                GetFullSequenceString(const_cast<CRef<CSeq_id>&>(dseg.GetIds()[1]), scope, s_full);
+              }
+            }
             qseq = q_full;
             sseq = s_full;
             break;
           }
           
-          // HSP sequences
-          bool ok = GetHSPSequencesFromDenseg(dseg, scope, q_hsp, s_hsp, &q_aligned, &s_aligned);
-          
+          if(save_hsp_sequences){
+            // HSP sequences
+            bool ok = GetHSPSequencesFromDenseg(dseg, scope, q_hsp, s_hsp, &q_aligned, &s_aligned);
+          }
           // NcbiCout << "Full query length: " << q_full.size() << " HSP ungapped length: " << q_hsp.size() << NcbiEndl;
           // NcbiCout << "Full subject length: " << s_full.size() << " HSP ungapped length: " << s_hsp.size() << NcbiEndl;
           // NcbiCout << "Aligned strings length: " << q_aligned.size() << " / " << s_aligned.size() << NcbiEndl;
           // NcbiCout << "Query HSP: " << q_hsp.substr(0, 200) << NcbiEndl;   // print only prefix
-          NcbiCout << "Subject HSP: " << s_hsp.substr(0, 200) << NcbiEndl;
+          // NcbiCout << "Subject HSP: " << s_hsp.substr(0, 200) << NcbiEndl;
         }
         // // handle Std-seg (a sequence of local 'loc' entries)
         // else if (seq_align->GetSegs().IsStd()) {

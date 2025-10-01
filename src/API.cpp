@@ -785,7 +785,7 @@ static Rcpp::List RecordBatchVectorToFlattenedDFList_cpp(const arrow::RecordBatc
   Rcpp::List out(rbv.size());
   for (size_t i = 0; i < rbv.size(); ++i) {
     Rcpp::checkUserInterrupt();
-    Rcpp::Rcout << "Processing RecordBatch: " << i << std::endl << std::flush; //DEBUG
+    // Rcpp::Rcout << "Processing RecordBatch: " << i << std::endl << std::flush; //DEBUG
     // Rcpp::Rcout << (*rbv)[i]->ToString() << std::endl << std::flush; //DEBUG
     // Rcpp::XPtr rb((*rbv)[i].get(), true);
     out[i] = RecordBatchToFlattenedDF(rbv[i]);
@@ -1005,12 +1005,13 @@ unsigned int DetectThreadLimit(unsigned int num_threads){
 //' @param strand (int) 0 - (ePlus) (OR) 1 - (eMinus)
 //' @param program (string) Name of the BLAST program
 //' @param options (string (or) Named List) List of BLAST options - check QuickBLAST::GetAvailableBLASTOptions(). String should be of the format "-option1 value1 -option2 value2". If empty, default values (per program) are used.
-//' @param save_sequences (bool) Save Sequences in the arrow::RecordBatch?.
+//' @param save_sequences (bool) Save Full Sequences to output?. (Default: FALSE)
+//' @param save_hsp_sequences (bool) Save HSP Sequences to output?. (Default: FALSE)
 //' @param num_threads (int) Number of threads.
 //' @return (Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST Instance (Cannot be used in R)
 //' @export
 // [[Rcpp::export]]
-RcppExport SEXP CreateQuickBLASTInstance(const int seq_type, const int strand, SEXP program, SEXP options = R_NilValue, const bool save_sequences = false, const unsigned int num_threads = 0)
+RcppExport SEXP CreateQuickBLASTInstance(const int seq_type, const int strand, SEXP program, SEXP options = R_NilValue, const bool save_sequences = false, const bool save_hsp_sequences = false, const unsigned int num_threads = 0)
 {
     try
     {
@@ -1027,10 +1028,11 @@ RcppExport SEXP CreateQuickBLASTInstance(const int seq_type, const int strand, S
         std::string options_ = options == R_NilValue ? "" : ConvertBLASTOptions2String(options);
         // std::string options_ = options;
         bool save_sequences_ = save_sequences; //static_cast<bool>(save_sequences);
+        bool save_hsp_sequences_ = save_hsp_sequences;
         // Rprintf("DBG: %d %d %s %s %d \n", seq_type_, strand_, program_.c_str(), options_.c_str(), save_sequences_);
         // QuickBLASTHandle handle;
         // std::shared_ptr<QuickBLAST> objPtr = std::make_shared<QuickBLAST>(seq_type_, strand_, program_, options_, save_sequences_);
-        QuickBLAST *objPtr = new QuickBLAST(seq_type_, strand_, program_, options_, save_sequences_);
+        QuickBLAST *objPtr = new QuickBLAST(seq_type_, strand_, program_, options_, save_sequences_, save_hsp_sequences_);
         objPtr->SetThreadCount(threads);
         Rcpp::XPtr<QuickBLAST> ptr(objPtr, true);
         // ptr.attr("class") = "QuickBLAST_XPtr";
@@ -1616,9 +1618,9 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
    
     if(return_values){
       // Rcpp::List ret_vals_ = as<List>(Hits2RList(*ret_vals));
-      Rcpp::Rcout << "here 1.0.0" << std::endl << std::flush; //DEBUG
+      // Rcpp::Rcout << "here 1.0.0" << std::endl << std::flush; //DEBUG
       auto ret_vals_ = RecordBatchVectorToFlattenedDFList_cpp(*ret_vals);
-      Rcpp::Rcout << "here 1.1.0" << std::endl << std::flush; //DEBUG
+      // Rcpp::Rcout << "here 1.1.0" << std::endl << std::flush; //DEBUG
       ret_vals->clear();
       ret_vals->shrink_to_fit();
       return ret_vals_; //rm_null(ret_vals_);
@@ -1642,25 +1644,27 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
 
 
 //' @name RemoteBLAST
- //'
- //' @title BLAST query against remote NCBI DBs
- //'
- //' @description BLAST the input query against remote NCBI DBs (one sequence at a time - to respect rate limits)
- //'
- //' @note Check (BLAST Guide)[https://blast.ncbi.nlm.nih.gov/BLAST_guide.pdf] and (NCBI BLAST)[https://blast.ncbi.nlm.nih.gov/Blast.cgi] (Program -> Choose DB/Search set) for database names.
- //'
- //' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]
- //' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
- //' @param database (string) Name of the remote NCBI DB - Check note for reference and supported values.
- //' @param query_input (Rcpp::List) (Named) List of input queries (Sequences, Files, Folders - type is determined by input_type parameter)
- //' @param input_type (QuickBLAST::EInputType) Input type (Check [QuickBLAST::GetQuickBLASTEnums()])
- //' @param outFile (string) Output file name (Optional)
- //' @param num_threads (unsigned int) Number of threads. (Optional)
- //' @param return_values (bool) Return BLAST Hits as Rcpp::List (Default: TRUE) (Optional)
- //' @return (SEXP) Rcpp::List - if return_values == TRUE, outFile - Otherwise.
- //' @export
- // [[Rcpp::export]]
- RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input_type, SEXP outFile = R_NilValue, bool return_values = true)
+//'
+//' @title BLAST query against remote NCBI DBs
+//'
+//' @description BLAST the input query against remote NCBI DBs (one sequence at a time - to respect rate limits)
+//'
+//' @note Check (BLAST Guide)[https://blast.ncbi.nlm.nih.gov/BLAST_guide.pdf] and (NCBI BLAST)[https://blast.ncbi.nlm.nih.gov/Blast.cgi] (Program -> Choose DB/Search set) for database names.
+//'
+//' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]
+//' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+//' @param database (string) Name of the remote NCBI DB - Check note for reference and supported values.
+//' @param query_input (Rcpp::List) (Named) List of input queries (Sequences, Files, Folders - type is determined by input_type parameter)
+//' @param input_type (QuickBLAST::EInputType) Input type (Check [QuickBLAST::GetQuickBLASTEnums()])
+//' @param outFile (string) Output file name (Optional)
+//' @param num_threads (unsigned int) Number of threads. (Optional)
+//' @param return_values (bool) Return BLAST Hits as Rcpp::List (Default: TRUE) (Optional)
+//' @param max_poll_seconds (int) Max seconds to wait for RemoteBLAST (Default: 360) (Optional)
+//' @param poll_interval_ms (int) Milliseconds wait-time between polling RemoteBLAST service (Default: 4000) (Optional)
+//' @return (SEXP) Rcpp::List - if return_values == TRUE, outFile - Otherwise.
+//' @export
+// [[Rcpp::export]]
+RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input_type, SEXP outFile = R_NilValue, bool return_values = true, unsigned int max_poll_seconds = 360, unsigned int poll_interval_ms = 4000)
  {
     try{
       auto start = std::chrono::high_resolution_clock::now();
@@ -1692,9 +1696,9 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
           // ret_val->insert(ret_val->end(), ret_val_tmp->begin(), ret_val_tmp->end());
           // ret_val_tmp->clear();
           // ret_val_tmp->shrink_to_fit();
-          ret_val = ptr_->BLAST_remote(program_, database_, query_input_, input_type_, outFile_, return_values, 120, 4000);
+          ret_val = ptr_->BLAST_remote(program_, database_, query_input_, input_type_, outFile_, return_values, max_poll_seconds, poll_interval_ms);
         }else{
-          static_cast<void>(ptr_->BLAST_remote(program_, database_, query_input_, input_type_, outFile_, return_values, 120, 4000));
+          static_cast<void>(ptr_->BLAST_remote(program_, database_, query_input_, input_type_, outFile_, return_values, max_poll_seconds, poll_interval_ms));
           ret_val->emplace_back(arrow::RecordBatch::MakeEmpty(ptr_->GetSchema()).ValueOrDie());
         }
         break;

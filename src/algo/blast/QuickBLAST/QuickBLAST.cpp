@@ -1317,8 +1317,8 @@ ncbi::blast::CBlastOptionsHandle *QuickBLAST::Impl::SetQuickBLASTOptions(const s
 // }
 
 // QuickBLAST::QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand, std::string program, std::string options, bool save_sequences)
-QuickBLAST::Impl::Impl(ESeqType seq_type, EStrand strand, std::string program, std::string options, bool save_sequences)
-    : seq_type(seq_type), strand(strand), program(program), blast_options(options), save_sequences(save_sequences)
+QuickBLAST::Impl::Impl(ESeqType seq_type, EStrand strand, std::string program, std::string options, bool save_sequences, bool save_hsp_sequences)
+    : seq_type(seq_type), strand(strand), program(program), blast_options(options), save_sequences(save_sequences), save_hsp_sequences(save_hsp_sequences)
 {
   try
   {
@@ -1342,6 +1342,7 @@ QuickBLAST::Impl::Impl(ESeqType seq_type, EStrand strand, std::string program, s
     // Rcpp::XPtr<ArrowWrapper> arrow_ptr_(arrow_ptr, true);
     // arrow_wrapper.reset(new ArrowWrapper(), true);
     this->save_sequences = save_sequences;
+    this->save_hsp_sequences = save_hsp_sequences;
     this->program = program;
     // Rprintf("DBG2 QB \n");
     // this->opts = CRef<ncbi::blast::CBlastOptionsHandle>(SetQuickBLASTOptions<std::string>(program, options));
@@ -2321,7 +2322,8 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
             
             assert(!Progress::check_abort());
             Rcpp::checkUserInterrupt();
-
+            // progress_bar.increment();
+            
             std::shared_ptr<TSeqLocVector> subjects_loc_vec(new TSeqLocVector());
             std::shared_ptr<vector<CSeq_entry_Handle>> subjects_seqent_vec =  std::make_shared<vector<CSeq_entry_Handle>>();
 
@@ -2388,7 +2390,8 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
                     {
                         assert(!Progress::check_abort());
                         Rcpp::checkUserInterrupt();
-
+                        // progress_bar.increment();
+                        
                         CBl2Seq* blaster;
 
                         try
@@ -2403,9 +2406,8 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
                                 TSeqAlignVector alignments = blaster->Run();
                                 AddAllAvailableScoresToSeqAlignVector(alignments, scope, 0);
                                 
-                                arrow::RecordBatchVector tmp_rbv = { ExtractHits(alignments, *query_loc, *subject_loc, *scope, return_values) }; 
+                                arrow::RecordBatchVector tmp_rbv = { ExtractHits(alignments, *query_loc, *subject_loc, *scope, progress_bar, return_values) }; 
                                 
-                                progress_bar.increment();
                                 scope->RemoveTopLevelSeqEntry(subject_seq_entry);
                                 // subject_seq_entry.Reset();
                                 subject_loc.reset();
@@ -2453,13 +2455,12 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
                                     TSeqAlignVector alignments = blaster->Run();
                                     AddAllAvailableScoresToSeqAlignVector(alignments, scope, 0);
                                     
-                                    std::shared_ptr<arrow::RecordBatchVector> tmp_rbv = ExtractHits(alignments, *query_loc, subjects_buffer_vec, *scope, return_values); 
+                                    std::shared_ptr<arrow::RecordBatchVector> tmp_rbv = ExtractHits(alignments, *query_loc, subjects_buffer_vec, *scope, progress_bar, return_values); 
                                     //return ExtractHits(blaster->Run(), *query_loc, subjects_buffer_vec, *scope);
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
                                     omp_set_lock(&subjects_seqent_vecLock);
 #endif
                                     for(auto s_ent: *subjects_seqent_vec){
-                                      progress_bar.increment();
                                       scope->RemoveTopLevelSeqEntry(s_ent);
                                       // s_ent.Reset();
                                     }
@@ -2539,13 +2540,12 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
                 TSeqAlignVector alignments = blaster.Run();
                 AddAllAvailableScoresToSeqAlignVector(alignments, scope, 0);
                 
-                std::shared_ptr<arrow::RecordBatchVector> ret_vec = ExtractHits(alignments, *query_loc, *subjects_loc_vec, *scope, return_values);
+                std::shared_ptr<arrow::RecordBatchVector> ret_vec = ExtractHits(alignments, *query_loc, *subjects_loc_vec, *scope, progress_bar, return_values);
 
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
                 omp_set_lock(&subjects_seqent_vecLock);
 #endif
                 for(auto s_ent: *subjects_seqent_vec){
-                  progress_bar.increment();
                   scope->RemoveTopLevelSeqEntry(s_ent);
                   // s_ent.Reset();
                 }
@@ -2573,7 +2573,6 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
             omp_destroy_lock(&query_locLock);
             omp_destroy_lock(&subjects_loc_vecLock);
 #endif
-            progress_bar.increment();
             scope->RemoveTopLevelSeqEntry(query_seq_entry);
             // query_seq_entry.Reset();
             query_loc.reset();
@@ -2663,7 +2662,9 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::BLAST_seqs(const std::stri
     // CRef<CScope> scope(new CScope(*CObjectManager::GetInstance()));
     AddAllAvailableScoresToSeqAlignVector(alignments, scope, 0);
     
-    return this->ExtractHits(alignments, *query_seqloc, *subject_seqloc, *scope, true); 
+    Progress progress_bar(1, true);
+    
+    return this->ExtractHits(alignments, *query_seqloc, *subject_seqloc, *scope, progress_bar, true); 
   }
   catch (const ncbi::CException &e) {
     // NCBI toolkit exceptions
@@ -2851,7 +2852,7 @@ SEXP QuickBLAST::Hits2RList(const arrow::RecordBatchVector &rb_vector)
 //   return pImpl->SetQuickBLASTOptions(program_name, options);
 // }
 
-std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const TSeqLocVector &sloc, CScope &scope, const bool &return_values) 
+std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const TSeqLocVector &sloc, CScope &scope, Progress &progress_bar, const bool &return_values) 
 {
   try{
     Rcpp::checkUserInterrupt();
@@ -2879,7 +2880,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHits(const TS
     {
       Rcpp::checkUserInterrupt();
   
-      std::shared_ptr<arrow::RecordBatch> rb = ExtractHits(alignments, qloc, s_it, scope, return_values);
+      std::shared_ptr<arrow::RecordBatch> rb = ExtractHits(alignments, qloc, s_it, scope, progress_bar, return_values);
   
       if(return_values)
         if (rb)
@@ -2941,22 +2942,25 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHits(const TS
   // }
 }
 
-std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const SSeqLoc &sloc, CScope &scope, const bool &return_values) 
+std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const SSeqLoc &sloc, CScope &scope, Progress &progress_bar, const bool &return_values) 
 {
   try{
     Rcpp::checkUserInterrupt();
     // assert(!alignments.empty());
     if (alignments.empty()) {
       // return an empty but typed record batch
+      progress_bar.increment();
       return empty_rb; //arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie();
     }
   
     if (!qloc.seqloc) {
       Rprintf("ERROR: ExtractHits: qloc.seqloc is NULL\n");
+      progress_bar.increment();
       return empty_rb; //arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie();
     }
     if (!sloc.seqloc) {
       Rprintf("ERROR: ExtractHits: sloc.seqloc is NULL\n");
+      progress_bar.increment();
       return empty_rb; //arrow::RecordBatch::MakeEmpty(arrow_wrapper->GetBLASTSchema()).ValueOrDie();
     }
     
@@ -3167,11 +3171,10 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHits(const TSeqAlig
                 }
               }
               
-              // HSP sequences
-              bool ok = GetHSPSequencesFromDenseg(dseg, scope, q_hsp, s_hsp, &q_aligned, &s_aligned);
-              q_hsp = "";//DEBUG
-              s_hsp = ""; //DEBUG
-              
+              if(save_hsp_sequences){
+                // HSP sequences
+                bool ok = GetHSPSequencesFromDenseg(dseg, scope, q_hsp, s_hsp, &q_aligned, &s_aligned);
+              }
               // NcbiCout << "Full query length: " << q_full.size() << " HSP ungapped length: " << q_hsp.size() << NcbiEndl;
               // NcbiCout << "Full subject length: " << s_full.size() << " HSP ungapped length: " << s_hsp.size() << NcbiEndl;
               // NcbiCout << "Aligned strings length: " << q_aligned.size() << " / " << s_aligned.size() << NcbiEndl;
@@ -3569,6 +3572,8 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHits(const TSeqAlig
       {
         throw runtime_error("ExtractHits() - Error adding RecordBatch to write buffer...");
       }
+      
+      progress_bar.increment();
       
       if(return_values){
         return alignment_rb;
@@ -4398,8 +4403,8 @@ auto QuickBLAST::BLAST(const std::string &query, const std::string &subject, std
   return pImpl->BLAST(query, subject, outputFile, outFormat, input_type, blast_sequence_limit, show_progress);
 }
 
-QuickBLAST::QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand, std::string program, std::string options, bool save_sequences)
-    : pImpl(std::make_unique<Impl>(seq_type, strand, program, options, save_sequences)) {}
+QuickBLAST::QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand, std::string program, std::string options, bool save_sequences, bool save_hsp_sequences)
+    : pImpl(std::make_unique<Impl>(seq_type, strand, program, options, save_sequences, save_hsp_sequences)) {}
 
 // Destructor: default implementation (pImpl will automatically clean up)
 QuickBLAST::~QuickBLAST() = default;

@@ -1854,9 +1854,10 @@ std::shared_ptr<arrow::RecordBatchVector> ArrowWrapper::Impl::SplitFilesIntoEntr
       break;
     }
   }
-  if (adjusted_end != file_end) {
-    Rcpp::Rcout << "Trimmed " << (file_end - adjusted_end) << " trailing bytes from file end." << std::endl << std::flush;
-  }
+ 
+  // if (adjusted_end != file_end) { //DEBUG
+  //   Rcpp::Rcout << "Trimmed " << (file_end - adjusted_end) << " trailing bytes from file end." << std::endl << std::flush; //DEBUG
+  // } //DEBUG
   
   char *p = start_of_file;
 

@@ -64,8 +64,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // CreateQuickBLASTInstance
-RcppExport SEXP CreateQuickBLASTInstance(const int seq_type, const int strand, SEXP program, SEXP options, const bool save_sequences, const unsigned int num_threads);
-RcppExport SEXP _QuickBLAST_CreateQuickBLASTInstance(SEXP seq_typeSEXP, SEXP strandSEXP, SEXP programSEXP, SEXP optionsSEXP, SEXP save_sequencesSEXP, SEXP num_threadsSEXP) {
+RcppExport SEXP CreateQuickBLASTInstance(const int seq_type, const int strand, SEXP program, SEXP options, const bool save_sequences, const bool save_hsp_sequences, const unsigned int num_threads);
+RcppExport SEXP _QuickBLAST_CreateQuickBLASTInstance(SEXP seq_typeSEXP, SEXP strandSEXP, SEXP programSEXP, SEXP optionsSEXP, SEXP save_sequencesSEXP, SEXP save_hsp_sequencesSEXP, SEXP num_threadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -74,8 +74,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type program(programSEXP);
     Rcpp::traits::input_parameter< SEXP >::type options(optionsSEXP);
     Rcpp::traits::input_parameter< const bool >::type save_sequences(save_sequencesSEXP);
+    Rcpp::traits::input_parameter< const bool >::type save_hsp_sequences(save_hsp_sequencesSEXP);
     Rcpp::traits::input_parameter< const unsigned int >::type num_threads(num_threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(CreateQuickBLASTInstance(seq_type, strand, program, options, save_sequences, num_threads));
+    rcpp_result_gen = Rcpp::wrap(CreateQuickBLASTInstance(seq_type, strand, program, options, save_sequences, save_hsp_sequences, num_threads));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -174,8 +175,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // RemoteBLAST
-RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input_type, SEXP outFile, bool return_values);
-RcppExport SEXP _QuickBLAST_RemoteBLAST(SEXP ptrSEXP, SEXP databaseSEXP, SEXP query_inputSEXP, SEXP input_typeSEXP, SEXP outFileSEXP, SEXP return_valuesSEXP) {
+RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input_type, SEXP outFile, bool return_values, unsigned int max_poll_seconds, unsigned int poll_interval_ms);
+RcppExport SEXP _QuickBLAST_RemoteBLAST(SEXP ptrSEXP, SEXP databaseSEXP, SEXP query_inputSEXP, SEXP input_typeSEXP, SEXP outFileSEXP, SEXP return_valuesSEXP, SEXP max_poll_secondsSEXP, SEXP poll_interval_msSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -185,7 +186,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type input_type(input_typeSEXP);
     Rcpp::traits::input_parameter< SEXP >::type outFile(outFileSEXP);
     Rcpp::traits::input_parameter< bool >::type return_values(return_valuesSEXP);
-    rcpp_result_gen = Rcpp::wrap(RemoteBLAST(ptr, database, query_input, input_type, outFile, return_values));
+    Rcpp::traits::input_parameter< unsigned int >::type max_poll_seconds(max_poll_secondsSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type poll_interval_ms(poll_interval_msSEXP);
+    rcpp_result_gen = Rcpp::wrap(RemoteBLAST(ptr, database, query_input, input_type, outFile, return_values, max_poll_seconds, poll_interval_ms));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -196,14 +199,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_QuickBLAST_GetInstanceCount", (DL_FUNC) &_QuickBLAST_GetInstanceCount, 0},
     {"_QuickBLAST_GetInstanceID", (DL_FUNC) &_QuickBLAST_GetInstanceID, 1},
     {"_QuickBLAST_GetQuickBLASTInstance", (DL_FUNC) &_QuickBLAST_GetQuickBLASTInstance, 1},
-    {"_QuickBLAST_CreateQuickBLASTInstance", (DL_FUNC) &_QuickBLAST_CreateQuickBLASTInstance, 6},
+    {"_QuickBLAST_CreateQuickBLASTInstance", (DL_FUNC) &_QuickBLAST_CreateQuickBLASTInstance, 7},
     {"_QuickBLAST_DeleteQuickBLASTInstance", (DL_FUNC) &_QuickBLAST_DeleteQuickBLASTInstance, 1},
     {"_QuickBLAST_SetQuickBLASTOptions", (DL_FUNC) &_QuickBLAST_SetQuickBLASTOptions, 3},
     {"_QuickBLAST_BLAST2Seqs", (DL_FUNC) &_QuickBLAST_BLAST2Seqs, 3},
     {"_QuickBLAST_BLAST2Folders", (DL_FUNC) &_QuickBLAST_BLAST2Folders, 9},
     {"_QuickBLAST_BLAST1Folder", (DL_FUNC) &_QuickBLAST_BLAST1Folder, 8},
     {"_QuickBLAST_BLAST2Files", (DL_FUNC) &_QuickBLAST_BLAST2Files, 10},
-    {"_QuickBLAST_RemoteBLAST", (DL_FUNC) &_QuickBLAST_RemoteBLAST, 6},
+    {"_QuickBLAST_RemoteBLAST", (DL_FUNC) &_QuickBLAST_RemoteBLAST, 8},
     {NULL, NULL, 0}
 };
 

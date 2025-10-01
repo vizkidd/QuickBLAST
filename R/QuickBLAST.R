@@ -97,15 +97,12 @@ GetAvailableBLASTOptions <- function() {
 
 #' Load BLAST Hits into a data.frame
 #'
-#' Give the path to a BLAST Hits file to load it into a data.frame(BLAST HITs Table). The column names can be provided as col.names. Rows with NAs are automatically removed.
-#'
-#' Note : If blast.table is enabled, then the functions returns an arrow::RecordBatchStreamReader object. Call wrap it in an iterators::iter() (like batch_iter <- iter(function(){ batch_reader$read_next_batch() })) and call iterators::nextElem(batch_iter) to get each batch of the BLAST Hits.
-#'
+#' Give the path to a BLAST Hits file (table/ipc/parquet) to load it into a tibble (BLAST HITs Table).
 #'
 #' @param infile BLAST hits filename (not a connection) (Gzipped files supported)
 #' @param sep Delimiter of the BLAST File columns. (Only applies when format == 'table'). Default - '\\t'
 #' @param header Does the file have a header? (Only applies when format == 'table'). Default - FALSE
-#' @param format Input Format (Required) - 'table'/'ipc' (arrow::ipc)/'parquet' (arrow::parquet) - Default : 'parquet'
+#' @param format Input Format (Required) - 'table' (CSV/TSV)/'ipc' (arrow::ipc)/'parquet' (arrow::parquet) - Default : 'parquet'
 #' @return Data Frame with BLAST Results
 #' @export
 LoadBLASTHits <- function(infile, sep = "\t", header = F, format = 'parquet') {

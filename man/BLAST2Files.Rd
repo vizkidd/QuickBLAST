@@ -8,7 +8,8 @@ BLAST2Files(
   ptr,
   query,
   subject,
-  out_file,
+  out_file = NULL,
+  out_format = NULL,
   seq_limit = -1L,
   num_threads = 0L,
   show_progress = TRUE,
@@ -23,9 +24,11 @@ BLAST2Files(
 
 \item{subject}{(string) Subject file}
 
-\item{out_file}{(string) Ouput file}
+\item{out_file}{(string) Ouput file (Optional)}
 
-\item{seq_limit}{(int) Batch Size to BLAST at a time. { -1 = Whole File, 0 - One sequence at a time or > 0 } (Optional)}
+\item{out_format}{(string) Ouput Format. 'ipc'/'csv'/'parquet' (Optional) (Default: 'parquet').}
+
+\item{seq_limit}{(int) Batch Size to BLAST at a time. { -1 = Whole File, 0 - One sequence at a time or > 0 } - Size of BLAST sequences buffer (Optional)}
 
 \item{num_threads}{(unsigned int) Number of threads. (Optional)}
 
@@ -33,7 +36,7 @@ BLAST2Files(
 
 \item{return_values}{(bool) Return BLAST Hits as Rcpp::List (Default: TRUE) (Optional)}
 
-\item{min_batch_size}{(unsigned int) Minimum batch size (Optional).}
+\item{min_batch_size}{(unsigned int) Minimum batch size - Size of file write buffer (Optional).}
 }
 \value{
 (SEXP) Rcpp::List - if return_values == TRUE, out_file - Otherwise.
@@ -42,5 +45,5 @@ BLAST2Files(
 BLAST 2 FASTA files containing nucleotide or protein sequences with a QuickBLAST instance.
 }
 \seealso{
-[QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()]
+[QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]
 }

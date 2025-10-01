@@ -161,7 +161,7 @@ public:
     // #ifdef linux
     // QBLIBRARY_API QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand, std::string program, Rcpp::List options, bool save_sequences = false);
     // #endif
-    QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand, std::string program, std::string options, bool save_sequences = false);
+    QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand, std::string program, std::string options, bool save_sequences = false, bool save_hsp_sequences = false);
     ~QuickBLAST();
     // void PrintFastaBlock(FastaSequenceData *data, std::shared_ptr<std::ostringstream> outputStream);
 
@@ -222,7 +222,7 @@ public:
     SEXP Hits2RList(const arrow::RecordBatchVector &rb_vector);
       
     template <typename T>
-    std::conditional_t<std::is_same_v<T, TSeqLocVector>, std::shared_ptr<arrow::RecordBatchVector>, std::shared_ptr<arrow::RecordBatch>> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const T &sloc, CScope &scope, const bool &return_values); 
+    std::conditional_t<std::is_same_v<T, TSeqLocVector>, std::shared_ptr<arrow::RecordBatchVector>, std::shared_ptr<arrow::RecordBatch>> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const T &sloc, CScope &scope, Progress &progress_bar, const bool &return_values); 
     std::shared_ptr<arrow::RecordBatchVector> ExtractHitsRemote(const TSeqAlignVector &alignments, CScope &scope, const bool &return_values);
     
     // private:
@@ -264,7 +264,7 @@ struct QuickBLAST::Impl
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
     omp_lock_t hit_countLock;
 #endif
-    bool save_sequences = false;
+    bool save_sequences = false, save_hsp_sequences = false;
     int blast_sequence_limit = 1000;
     // bool db_scan_mode = false;
     // std::promise<arrow::Status> ok_promise;
@@ -284,7 +284,7 @@ struct QuickBLAST::Impl
     std::string GetQuickBLASTOptionString(void);
     ncbi::blast::CBlastOptionsHandle *SetQuickBLASTOptions(const std::string &program_name, const std::string &options, CBlastOptions::EAPILocality locality);
     // QuickBLAST::QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand, std::string program, std::string options, bool save_sequences)
-    Impl(ESeqType seq_type, EStrand strand, std::string program, std::string options, bool save_sequences);
+    Impl(ESeqType seq_type, EStrand strand, std::string program, std::string options, bool save_sequences, bool save_hsp_sequences);
 
     // QuickBLAST::~QuickBLAST()
     ~Impl();
@@ -322,8 +322,8 @@ struct QuickBLAST::Impl
     // auto QuickBLAST::BLAST(const std::string &query, const std::string &subject, const std::string &outputFile, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress)
     auto BLAST(const std::string &query, const std::string &subject, std::string &outputFile, const std::string &outFormat, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress);
   
-    std::shared_ptr<arrow::RecordBatchVector> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const TSeqLocVector &sloc, CScope &scope, const bool &return_values); 
-    std::shared_ptr<arrow::RecordBatch> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const SSeqLoc &sloc, CScope &scope, const bool &return_values); 
+    std::shared_ptr<arrow::RecordBatchVector> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const TSeqLocVector &sloc, CScope &scope, Progress &progress_bar, const bool &return_values); 
+    std::shared_ptr<arrow::RecordBatch> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const SSeqLoc &sloc, CScope &scope, Progress &progress_bar, const bool &return_values); 
     std::shared_ptr<arrow::RecordBatchVector> ExtractHitsRemote(const TSeqAlignVector &alignments, CScope &scope, const bool &return_values);
 
 private:

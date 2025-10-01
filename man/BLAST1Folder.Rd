@@ -9,6 +9,7 @@ BLAST1Folder(
   input_folder,
   extension,
   out_folder,
+  out_format = NULL,
   num_threads = 0L,
   reciprocal_hits = FALSE,
   min_batch_size = 0L
@@ -21,13 +22,15 @@ BLAST1Folder(
 
 \item{extension}{(string) Extension of files in folder.}
 
-\item{out_folder}{(string) Ouput Folder (Must be empty).}
+\item{out_folder}{(string) Ouput Folder (Required).}
+
+\item{out_format}{(string) Ouput Format. 'ipc'/'csv'/'parquet' (Optional) (Default: 'parquet').}
 
 \item{num_threads}{(unsigned int) Number of threads. (Optional)}
 
 \item{reciprocal_hits}{(bool) Perform Bi-directional (Reciprocal => query <-> subject) BLAST? (Default: FALSE) (Optional)}
 
-\item{min_batch_size}{(unsigned int) Minimum batch size (Optional).}
+\item{min_batch_size}{(unsigned int) Minimum batch size - Size of file write buffer (Optional).}
 }
 \value{
 (bool) TRUE - on success, FALSE - Otherwise. (Results are not returned as R Lists to reduce overhead)
@@ -36,5 +39,5 @@ BLAST1Folder(
 BLAST FASTA files containing nucleotide or protein sequences, within a folder with a QuickBLAST instance. The files from the folder are selected with the extension parameter and BLAST'd against each other.
 }
 \seealso{
-[QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()]
+[QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]
 }

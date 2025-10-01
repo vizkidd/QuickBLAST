@@ -4,23 +4,20 @@
 \alias{LoadBLASTHits}
 \title{Load BLAST Hits into a data.frame}
 \usage{
-LoadBLASTHits(infile, sep = "\\t", header = F, use.feather = F)
+LoadBLASTHits(infile, sep = "\\t", header = F, format = "parquet")
 }
 \arguments{
 \item{infile}{BLAST hits filename (not a connection) (Gzipped files supported)}
 
-\item{sep}{Delimiter of the BLAST File columns. Default - '\\t'}
+\item{sep}{Delimiter of the BLAST File columns. (Only applies when format == 'table'). Default - '\\t'}
 
-\item{header}{Does the file have a header? . Default - FALSE}
+\item{header}{Does the file have a header? (Only applies when format == 'table'). Default - FALSE}
 
-\item{use.feather}{Should feather API be used to read BLAST Hits? - Default - FALSE}
+\item{format}{Input Format (Required) - 'table' (CSV/TSV)/'ipc' (arrow::ipc)/'parquet' (arrow::parquet) - Default : 'parquet'}
 }
 \value{
 Data Frame with BLAST Results
 }
 \description{
-Give the path to a BLAST Hits file to load it into a data.frame(BLAST HITs Table). The column names can be provided as col.names. Rows with NAs are automatically removed.
-}
-\details{
-Note : If use.feather is enabled, then the functions returns an arrow::RecordBatchStreamReader object. Call wrap it in an iterators::iter() (like batch_iter <- iter(function(){ batch_reader$read_next_batch() })) and call iterators::nextElem(batch_iter) to get each batch of the BLAST Hits.
+Give the path to a BLAST Hits file (table/ipc/parquet) to load it into a tibble (BLAST HITs Table).
 }
