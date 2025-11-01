@@ -1,5 +1,5 @@
 #pragma once
-
+#pragma message("Including ArrowWrapper => " __FILE__)
 #include <algo/blast/QuickBLAST/commons.hpp>
 
 #include <iostream>
@@ -14,10 +14,6 @@
 #include <arrow/builder.h>
 #include <arrow/record_batch.h>
 // #include <arrow/util/string.h>
-
-#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
-#include "omp.h"
-#endif
 
 #include <arrow/api.h>
 #include <arrow/filesystem/localfs.h>
@@ -68,20 +64,32 @@ public:
     int CountCharacter(std::string filename, char character, int num_threads);
     // template <typename T1>
     // std::shared_ptr<arrow::RecordBatchVector> SplitFilesIntoEntries(const std::string_view &filename, const char *delim, const int &num_threads, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<T1>)> &Entry_callback, bool return_values = false);
+    std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> MMapFile(const std::string_view &filename, const char *delim);
+    FastaSequenceData FetchRecordByFilePtr(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, const char *delim);
+    FastaSequenceData FetchRecordByNum(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, unsigned int rec_no, const char *delim);
+    std::shared_ptr<std::list<FastaSequenceData>> FetchRecordByBatch(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, unsigned int batch_size, unsigned int from_rec, const char *delim);
+    // void CloseFilePtrs(std::tuple<FILE *, char *, long, char *> &file_ptrs);
+    long GetFileSize(FILE *file_ptr);
     std::shared_ptr<arrow::RecordBatchVector> SplitFilesIntoEntries(const std::string_view &filename, const char *delim, const int &num_threads, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<FastaSequenceData>)> &Entry_callback, bool return_values = false);
     // std::string CastToType(const std::string &full_entry);
     // FastaSequenceData CastToType(const std::string &full_entry);
     FastaSequenceData CastToType(const std::string_view &full_entry_sv);
     // template <typename T>
     // T CastToType(const std::string &full_entry);
-    int GetRecordCount();
+    unsigned int GetRecordCount();
     void ResetRecordCount();
     void AddRecordCount();
+    unsigned int GetProcRecordCount();
+    void ResetProcRecordCount();
+    void AddProcRecordCount();
+    unsigned int GetPendingRecordCount();
+    void SetBLASTSeqLimit(unsigned int);
+    unsigned int GetBLASTSeqLimit();
     void SetThreadCount(int num_threads);
     // arrow::Result<std::shared_ptr<arrow::RecordBatch>> AddRB2Batch(std::shared_ptr<arrow::RecordBatch> rb_);
     // arrow::Result<std::shared_ptr<arrow::RecordBatchVector>> AddRBV2Batch(arrow::RecordBatchVector &rbv_);
     arrow::Status AddRB2Batch(std::shared_ptr<arrow::RecordBatch> rb_);
-    arrow::Status AddRBV2Batch(arrow::RecordBatchVector &rbv_);
+    // arrow::Status AddRBV2Batch(arrow::RecordBatchVector &rbv_);
     arrow::Status CreateOutputStream(std::string &outFile, const std::string& outputFormat);
 
     std::string GetOutputFormat(void);
@@ -114,7 +122,7 @@ struct ArrowWrapper::Impl
     // std::shared_ptr<arrow::io::FileOutputStream> outFileStream; 
     // std::shared_ptr<arrow::io::CompressedOutputStream> compressed_outstream;
     std::shared_ptr<arrow::ipc::RecordBatchWriter> rec_writer;
-    // std::unique_ptr<parquet::arrow::FileWriter> parquet_writer;
+    std::unique_ptr<parquet::arrow::FileWriter> parquet_writer;
     std::shared_ptr<arrow::RecordBatchVector> rbv_batch;
     // std::shared_ptr<std::deque<std::shared_ptr<arrow::RecordBatch>>> rbv_batch;
     std::vector<std::thread> writer_threads;
@@ -122,12 +130,14 @@ struct ArrowWrapper::Impl
     std::string output_filename, output_format;
     bool save2file;
 
-    unsigned int parquet_batch_size = 1024, rec_count = 1, n_threads = 1, max_records = 1024; //max_writer_threads = 2
-
-    std::atomic<unsigned int> rb_batch_size{1024};     // signal to stop/wakeup waits
+    unsigned int parquet_batch_size = 1024, rec_count = 1, blast_sequence_limit = 0, proc_rec_count = 0, n_threads = 1, max_records = 1024; //max_writer_threads = 2
+    std::atomic<unsigned int> itr_add{1};
+    std::atomic<unsigned int> itr_mul{1};
+    std::atomic<unsigned int> rb_batch_size{1024};
     
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
     omp_lock_t rec_countLock;
+    omp_lock_t proc_rec_countLock;
     omp_lock_t writer_threadsLock;
     omp_lock_t rec_writerLock;
     omp_lock_t rbv_batchLock;
@@ -139,6 +149,7 @@ struct ArrowWrapper::Impl
     // // size_t max_pending_batches = 8;         // tune: max number of batches kept in memory
     std::atomic<bool> writer_running{false};     // signal to stop/wakeup waits
     std::atomic<bool> writer_writing{false};     // signal to stop/wakeup waits
+    std::atomic<bool> writer_waiting{false};     // signal to stop/wakeup waits
     std::atomic<bool> writer_finishing{false};     // signal to stop/wakeup waits
     // // writer_loop() CODE
     // std::thread writer_thread;
@@ -150,6 +161,8 @@ struct ArrowWrapper::Impl
     std::mutex writer_threads_mutex;
     std::condition_variable finishing_cond; 
     std::mutex finishing_mutex;
+    std::condition_variable waiting4writer_cond;
+    std::mutex waiting4writer_mutex;
     
     // unsigned int tmp_added = 0, tmp_written = 0;
     
@@ -165,7 +178,10 @@ struct ArrowWrapper::Impl
     // Rcpp::XPtr<std::ostringstream> outputStream;
 
     std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> MMapFile(const std::string_view &filename, const char *delim);
-    void CloseFilePtrs(std::tuple<FILE *, char *, long, char *> &file_ptrs);
+    FastaSequenceData FetchRecordByFilePtr(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, const char *delim);
+    FastaSequenceData FetchRecordByNum(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, unsigned int rec_no, const char *delim);
+    std::shared_ptr<std::list<FastaSequenceData>> FetchRecordByBatch(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, unsigned int batch_size, unsigned int from_rec, const char *delim);
+    // void CloseFilePtrs(std::tuple<FILE *, char *, long, char *> &file_ptrs);
     long GetFileSize(FILE *file_ptr);
 
     void SetBatchSize(unsigned int batch_size);
@@ -174,7 +190,7 @@ struct ArrowWrapper::Impl
     arrow::Status WriteBatch2File();
     void writer_loop(void);
     int GetColumnCount(const std::string_view &filename, char delim = '\t');
-    int CountCharacter(std::string filename, char character, int num_threads);
+    int CountCharacter(std::string filename, char character, unsigned int num_threads);
     // void CountCharacter_thread(const std::string &filename, char character, std::atomic<int> &count, size_t start, size_t end);
     // template <typename T1>
     // std::shared_ptr<arrow::RecordBatchVector> SplitFilesIntoEntries(const std::string_view &filename, const char *delim, const int &num_threads, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<T1>)> &Entry_callback, bool return_values = false);
@@ -184,14 +200,20 @@ struct ArrowWrapper::Impl
     // FastaSequenceData CastToType(const std::string &full_entry);
     FastaSequenceData CastToType(const std::string_view &full_entry_sv);
     // T CastToType(const std::string &full_entry);
-    int GetRecordCount();
+    unsigned int GetRecordCount();
     void ResetRecordCount();
     void AddRecordCount();
+    unsigned int GetProcRecordCount();
+    void ResetProcRecordCount();
+    void AddProcRecordCount();
+    unsigned int GetPendingRecordCount();
+    void SetBLASTSeqLimit(unsigned int);
+    unsigned int GetBLASTSeqLimit();
     void SetThreadCount(int num_threads);
     // arrow::Result<std::shared_ptr<arrow::RecordBatch>> AddRB2Batch(std::shared_ptr<arrow::RecordBatch> rb_);
     // arrow::Result<std::shared_ptr<arrow::RecordBatchVector>> AddRBV2Batch(arrow::RecordBatchVector &rbv_);
     arrow::Status AddRB2Batch(std::shared_ptr<arrow::RecordBatch> rb_);
-    arrow::Status AddRBV2Batch(arrow::RecordBatchVector &rbv_);
+    // arrow::Status AddRBV2Batch(arrow::RecordBatchVector &rbv_);
     arrow::Status CreateOutputStream(std::string &outFile, const std::string& outputFormat);
     ArrowWrapper::EOutputFormat OutputFormat2Enum(const std::string& str);
     std::string GetOutputFormat(void);

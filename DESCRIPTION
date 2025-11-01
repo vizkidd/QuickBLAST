@@ -24,7 +24,7 @@ Imports:
   stringi (>= 1.7.1),
   tools (>= 4.3.1),
   parallel(>= 4.4.1)
-LinkingTo: Rcpp, RcppProgress
+LinkingTo: Rcpp, RcppProgress, RcppThread
 Encoding: UTF-8
 StagedInstall: no
 UseLTO: yes

@@ -22,3 +22,5 @@ old/
 *.dll
 inst/doc
 .gitignore
+tmp/*
+*.arrow

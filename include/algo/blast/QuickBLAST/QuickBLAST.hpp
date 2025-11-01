@@ -1,5 +1,5 @@
 #pragma once
-
+#pragma message("Including QuickBLAST => " __FILE__)
 // // #include "arrow_wrapper.hpp"
 // #include <inttypes.h>
 // #include <cstdint>
@@ -14,10 +14,6 @@
 //// #define long int int64_t;
 
 #include <objmgr/bioseq_ci.hpp>
-
-#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
-#include "omp.h"
-#endif
 
 // TO make sure gcc doesnt interpret int64_t as long
 // #ifdef MINGW32
@@ -67,9 +63,14 @@
 #include <objects/biblio/Title.hpp>   // CTitle (only required if you explicitly create a CTitle)
 #include <objmgr/seqdesc_ci.hpp>
 
+#include <algo/blast/api/blast_results.hpp>
+#include <objtools/blast/seqdb_reader/seqdb.hpp>
 #include <algo/align/util/score_builder.hpp> // CScoreBuilder, AddScore, AddSplignScores
 #include <algo/blast/api/blast_options_handle.hpp>
 #include <algo/blast/format/blastfmtutil.hpp>
+#include <algo/blast/api/local_blast.hpp>
+#include <algo/blast/blastinput/blast_input.hpp>
+#include <algo/blast/api/objmgr_query_data.hpp>
 #include <objtools/align_format/align_format_util.hpp>
 #include <objects/seqset/Seq_entry.hpp>
 #include <serial/iterator.hpp>
@@ -104,6 +105,10 @@ namespace arrow
 #ifndef QUICKBLAST_HPP
 #define QUICKBLAST_HPP
 
+ struct InterruptContext {
+   std::atomic<bool> stop{false};
+ };
+ 
 class QuickBLAST
 {
 public:
@@ -126,7 +131,8 @@ public:
     {
         eFile = 0,
         eSequenceString = 1,
-        eFolder = 2
+        eFolder = 2,
+        eBLASTDB = 3
     };
 
     // int num_threads = 4;
@@ -136,7 +142,6 @@ public:
 private:
     struct Impl;                 // Forward declaration of the implementation struct
     std::unique_ptr<Impl> pImpl; // Pointer to the implementation
-
     //     std::string program;
     //     ncbi::CRef<ncbi::blast::CBlastOptionsHandle> opts;
     //     // Rcpp::List blast_options_list;
@@ -195,11 +200,14 @@ public:
     //     void ResetHitCount() { hit_count = 0; }
 
     std::shared_ptr<arrow::Schema> GetSchema();
+    QuickBLAST::ESeqType GetSeqType();
     std::string GetProgram(void);
     void SetThreadCount(unsigned int num_threads);
     unsigned int GetThreadCount(void);
     int GetHitCount(void);
     void AddHitCount(int val = 1);
+    unsigned int GetProcRecordCount();
+    // void InitProgressBar(const unsigned int totalIterations, bool show_progress);
     ncbi::blast::CBlastOptionsHandle &GetQuickBLASTOptions();
     void ResetHitCount();
 
@@ -211,19 +219,22 @@ public:
     // template <typename OptionsType>
     // ncbi::blast::CBlastOptionsHandle *SetQuickBLASTOptions(const std::string &program_name, const OptionsType &options);
     // // ncbi::blast::CBlastOptionsHandle* SetQuickBLASTOptions(const std::string& program_name, const std::string& options);
-    ncbi::blast::CBlastOptionsHandle *SetQuickBLASTOptions(const std::string &program_name, const std::string &options, CBlastOptions::EAPILocality locality );
+    CRef<ncbi::blast::CBlastOptionsHandle> SetQuickBLASTOptions(const std::string &program_name, const std::string &options, CBlastOptions::EAPILocality locality );
 
     // Rcpp::List BLAST(const std::string &query, const std::string &subject, const std::string &outputFile, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress = true);
-    auto BLAST(const std::string &query, const std::string &subject, std::string &outputFile, const std::string &outFormat, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress = true);
-    std::shared_ptr<arrow::RecordBatchVector> BLAST_files(const std::string &queryFile, const std::string &subjectFile, std::string &outFile, const std::string &outFormat, unsigned int blast_sequence_limit, int num_threads, const bool show_progress = true, const bool return_values = false, int batch_size = 0); // = 1024
+    auto BLAST(const std::string &query, const std::string &subject, std::string &outputFile, const std::string &outFormat, QuickBLAST::EInputType input_type); //const bool show_progress = true
+    std::shared_ptr<arrow::RecordBatchVector> BLAST_files(const std::string &queryFile, const std::string &subjectFile, std::string &outFile, const std::string &outFormat, unsigned int num_threads, const bool return_values = false, int batch_size = 0); // const bool show_progress = true
+    std::shared_ptr<arrow::RecordBatchVector> BLAST_f2db(const std::string &queryFile, const std::string &subjectDB, std::string &outFile, const std::string &outFormat, unsigned int num_threads, const bool return_values = false, unsigned int batch_size = 0);
+    std::shared_ptr<arrow::RecordBatchVector> BLAST_dbs(const std::string &queryFile, const std::string &subjectFile, std::string &outFile, const std::string &outFormat, unsigned int num_threads, const bool return_values = false, unsigned int batch_size = 0); // const bool show_progress = true
     std::shared_ptr<arrow::RecordBatch> BLAST_seqs(const std::string &query, const std::string &subject);
-    std::shared_ptr<arrow::RecordBatchVector> BLAST_remote(const std::string &program, const std::string &database, const Rcpp::List &query_input, const QuickBLAST::EInputType input_type, std::string outFile, const bool return_values, const unsigned int max_poll_seconds, const unsigned int poll_interval_ms); //const unsigned int max_results
+    std::shared_ptr<arrow::RecordBatchVector> BLAST_remote(const std::string &program, const std::string &database, const Rcpp::List &query_input, const QuickBLAST::EInputType input_type, std::string outFile, std::string outFormat,const bool return_values, const unsigned int max_poll_seconds, const unsigned int poll_interval_ms); //const unsigned int max_results
+    unsigned int SizeOfDB(const std::string &dbName);
     SEXP Hits2RList(const std::shared_ptr<arrow::RecordBatch> &rb);
     SEXP Hits2RList(const arrow::RecordBatchVector &rb_vector);
       
     template <typename T>
-    std::conditional_t<std::is_same_v<T, TSeqLocVector>, std::shared_ptr<arrow::RecordBatchVector>, std::shared_ptr<arrow::RecordBatch>> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const T &sloc, CScope &scope, Progress &progress_bar, const bool &return_values); 
-    std::shared_ptr<arrow::RecordBatchVector> ExtractHitsRemote(const TSeqAlignVector &alignments, CScope &scope, const bool &return_values);
+    std::conditional_t<std::is_same_v<T, TSeqLocVector>, std::shared_ptr<arrow::RecordBatchVector>, std::shared_ptr<arrow::RecordBatch>> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const T &sloc, CScope &scope, const bool &return_values); // RcppThread::ProgressBar& progress_bar //Progress &progress_bar //std::vector<CSeq_entry_Handle>& sseq_entry_vec
+    std::shared_ptr<arrow::RecordBatchVector> ExtractHitsRemote(const TSeqAlignVector &alignments, std::vector<CSeq_entry_Handle>& sseq_entry_vec, CScope &scope, const bool &return_values);
     
     // private:
     // std::vector<std::pair<std::string, std::string>> BLASTOptionsFromString(const std::string &input);
@@ -245,7 +256,13 @@ struct QuickBLAST::Impl
     int num_threads = 4;
     std::string_view run_name;
     unsigned int obj_id;
-
+    std::atomic<bool> quickblast_running{false};
+    std::mutex cbl2seq_mutex;
+    std::mutex builder_mutex;
+    // std::condition_variable quickblast_interrupt
+    // std::condition_variable should_inc_progress;
+    // std::mutex progress_mutex;
+    // std::shared_ptr<Progress> progress_bar;
     // unsigned int tmp_extracted = 0;
     
     std::string program;
@@ -263,26 +280,31 @@ struct QuickBLAST::Impl
     int hit_count = 0;
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
     omp_lock_t hit_countLock;
+    omp_lock_t cleaner_threadsLock;
 #endif
     bool save_sequences = false, save_hsp_sequences = false;
-    int blast_sequence_limit = 1000;
+    // int blast_sequence_limit = 1000;
     // bool db_scan_mode = false;
     // std::promise<arrow::Status> ok_promise;
-
+    std::vector<std::thread> cleaner_threads;
+    
     std::shared_ptr<ArrowWrapper> GetArrowWrapper(void);
     
     std::shared_ptr<arrow::Schema> GetSchema(void);
+    QuickBLAST::ESeqType GetSeqType();
     std::string GetProgram(void);
     void SetThreadCount(unsigned int num_threads);
     unsigned int GetThreadCount(void);
     int GetHitCount(void);
     void AddHitCount(int val = 1);
+    unsigned int GetProcRecordCount();
+    // void InitProgressBar(const unsigned int totalIterations, bool show_progress);
     ncbi::blast::CBlastOptionsHandle &GetQuickBLASTOptions(void);
     void ResetHitCount(void);
     unsigned int GetObjectID(void);
     void SetObjectID(unsigned int id);
     std::string GetQuickBLASTOptionString(void);
-    ncbi::blast::CBlastOptionsHandle *SetQuickBLASTOptions(const std::string &program_name, const std::string &options, CBlastOptions::EAPILocality locality);
+    CRef<ncbi::blast::CBlastOptionsHandle> SetQuickBLASTOptions(const std::string &program_name, const std::string &options, CBlastOptions::EAPILocality locality);
     // QuickBLAST::QuickBLAST(QuickBLAST::ESeqType seq_type, QuickBLAST::EStrand strand, std::string program, std::string options, bool save_sequences)
     Impl(ESeqType seq_type, EStrand strand, std::string program, std::string options, bool save_sequences, bool save_hsp_sequences);
 
@@ -308,31 +330,34 @@ struct QuickBLAST::Impl
     SEXP Hits2RList(const arrow::RecordBatchVector &rb_vector);
 
     // std::vector<std::pair<std::string, std::string>> QuickBLAST::BLASTOptionsFromString(const std::string &input)
-    std::vector<std::pair<std::string, std::string>> BLASTOptionsFromString(const std::string &input);
+    // std::vector<std::pair<std::string, std::string>> BLASTOptionsFromString(const std::string &input);
 
     // template <typename T1>
     // std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::StreamFile(const std::string_view &filename, const char *delim, const int &num_threads, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<T1>)> &Entry_callback, bool return_values)
     // template <typename T1>
     std::shared_ptr<arrow::RecordBatchVector> StreamFile(const std::string_view &filename, const char *delim, const int &num_threads, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<FastaSequenceData>)> &Entry_callback, bool return_values);
 
-    // std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::string &queryFile, const std::string &subjectFile, const std::string &outFile, unsigned int blast_sequence_limit, int num_threads, const bool show_progress, const bool return_values, int batch_size)
-    std::shared_ptr<arrow::RecordBatchVector> BLAST_files(const std::string &queryFile, const std::string &subjectFile, std::string &outFile, const std::string &outFormat, unsigned int blast_sequence_limit, int num_threads, const bool show_progress, const bool return_values, int batch_size = 0); // = 1024
+    // std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_files(const std::string &queryFile, const std::string &subjectFile, const std::string &outFile, int blast_sequence_limit, int num_threads, const bool show_progress, const bool return_values, int batch_size)
+    std::shared_ptr<arrow::RecordBatchVector> BLAST_files(const std::string &queryFile, const std::string &subjectFile, std::string &outFile, const std::string &outFormat, unsigned int num_threads, const bool return_values, int batch_size = 0); // const bool show_progress
+    std::shared_ptr<arrow::RecordBatchVector> BLAST_f2db(const std::string &queryFile, const std::string &subjectDB, std::string &outFile, const std::string &outFormat, unsigned int num_threads, const bool return_values = false, unsigned int batch_size = 0);
+    std::shared_ptr<arrow::RecordBatchVector> BLAST_dbs(const std::string &queryFile, const std::string &subjectFile, std::string &outFile, const std::string &outFormat, unsigned int num_threads, const bool return_values = false, unsigned int batch_size = 0); // const bool show_progress = true
     std::shared_ptr<arrow::RecordBatch> BLAST_seqs(const std::string &query, const std::string &subject);
-    std::shared_ptr<arrow::RecordBatchVector> BLAST_remote(const std::string &program, const std::string &database, const Rcpp::List &query_input, const QuickBLAST::EInputType input_type, std::string outFile, const bool return_values,  const unsigned int max_poll_seconds, const unsigned int poll_interval_ms); //const unsigned int max_results
+    std::shared_ptr<arrow::RecordBatchVector> BLAST_remote(const std::string &program, const std::string &database, const Rcpp::List &query_input, const QuickBLAST::EInputType input_type, std::string outFile, std::string outFormat, const bool return_values,  const unsigned int max_poll_seconds, const unsigned int poll_interval_ms); //const unsigned int max_results
+    unsigned int SizeOfDB(const std::string &dbName);
     // auto QuickBLAST::BLAST(const std::string &query, const std::string &subject, const std::string &outputFile, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress)
-    auto BLAST(const std::string &query, const std::string &subject, std::string &outputFile, const std::string &outFormat, QuickBLAST::EInputType input_type, int blast_sequence_limit, const bool show_progress);
+    auto BLAST(const std::string &query, const std::string &subject, std::string &outputFile, const std::string &outFormat, QuickBLAST::EInputType input_type); //const bool show_progress
   
-    std::shared_ptr<arrow::RecordBatchVector> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const TSeqLocVector &sloc, CScope &scope, Progress &progress_bar, const bool &return_values); 
-    std::shared_ptr<arrow::RecordBatch> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const SSeqLoc &sloc, CScope &scope, Progress &progress_bar, const bool &return_values); 
-    std::shared_ptr<arrow::RecordBatchVector> ExtractHitsRemote(const TSeqAlignVector &alignments, CScope &scope, const bool &return_values);
+    std::shared_ptr<arrow::RecordBatchVector> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const TSeqLocVector &sloc, CScope &scope, const bool &return_values); // RcppThread::ProgressBar& progress_bar //Progress &progress_bar //std::vector<CSeq_entry_Handle>& sseq_entry_vec
+    std::shared_ptr<arrow::RecordBatch> ExtractHits(const TSeqAlignVector &alignments, const SSeqLoc &qloc, const SSeqLoc &sloc, CScope &scope, const bool &return_values); // RcppThread::ProgressBar& progress_bar //Progress &progress_bar // CSeq_entry_Handle& sseq_entry
+    std::shared_ptr<arrow::RecordBatchVector> ExtractHitsRemote(const TSeqAlignVector &alignments, std::vector<CSeq_entry_Handle>& sseq_entry_vec, CScope &scope, const bool &return_values);
 
 private:
     // SSeqLoc *CreateSSeqLocFromType(FastaSequenceData fasta_data, CRef<ncbi::CScope> parent_scope);
     std::pair<std::shared_ptr<SSeqLoc>, CSeq_entry_Handle> CreateSSeqLocFromType(FastaSequenceData fasta_data, CRef<ncbi::CScope> parent_scope);
-  void AddAllAvailableScoresToAlign(CRef<CSeq_align> align, CRef<CScope> scope, double effective_search_space);
-  void AddAllAvailableScoresToAlignList(std::list< CRef<CSeq_align> >& aligns, CRef<CScope> scope, double effective_search_space);
-  void AddAllAvailableScoresToAlignSet(CRef<CSeq_align_set> alnset, CRef<CScope> scope, double effective_search_space);
-  void AddAllAvailableScoresToSeqAlignVector(TSeqAlignVector &alnvec, CRef<CScope> scope, double effective_search_space);
+  // void AddAllAvailableScoresToAlign(CRef<CSeq_align> align, CRef<CScope> scope, double effective_search_space);
+  // void AddAllAvailableScoresToAlignList(std::list< CRef<CSeq_align> >& aligns, CRef<CScope> scope, double effective_search_space);
+  // void AddAllAvailableScoresToAlignSet(CRef<CSeq_align_set> alnset, CRef<CScope> scope, double effective_search_space);
+  // void AddAllAvailableScoresToSeqAlignVector(TSeqAlignVector &alnvec, CRef<CScope> scope, double effective_search_space);
   bool IsProteinBioseq(const CBioseq_Handle &bh);
   bool GetFullSequenceString(CRef<CSeq_id> id, CScope &scope, std::string &out_seq);
   bool GetHSPSequencesFromDenseg(const CDense_seg& dseg, CScope &scope, std::string &q_hsp_ungapped, std::string &s_hsp_ungapped, std::string *q_aligned_with_gaps = nullptr, std::string *s_aligned_with_gaps = nullptr);

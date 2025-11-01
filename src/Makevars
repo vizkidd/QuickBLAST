@@ -2,15 +2,15 @@ CXXSTD = CXX17
 
 #LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.8
 
-PKG_LIBS = -Wl,-rpath='$$ORIGIN' -L../BUILD/arrow/cpp/BUILD/release/ -L../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ -L../BUILD/arrow/cpp/BUILD/release/ -L/usr/local/lib/ -L/usr/lib/ -larrow -lparquet -lrt -lxncbi -lgeneral -lseqcode -lseq -lseqset -lseqsplit -lseqedit -lgenome_collection -lxobjmgr -lsequtil -lxutil -lxser -lscoremat -lxnetblast -lxconnect -lxobjutil -lbiblio -lmedline -lpub -lxlogging -lsubmit -lxobjread -lsqlitewrapp -llmdb -lseqdb -ltables -lconnect -lcomposition_adjustment -lutrtprof -lxnetblastcli -lblastdb -lseqmasks_io -lxalgowinmask -lxalgodustmask -lblast -lxalgoblastdbindex -lxblast -lxalnmgr -lxalgoalignutil -lQuickBLASTcpp `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` `$(R_HOME)/bin/Rscript -e "Rcpp:::LdFlags()"` $(SHLIB_OPENMP_CXXFLAGS) -O3 -fdiagnostics-color=always
+PKG_LIBS = -Wl,-rpath='$$ORIGIN' -L../BUILD/arrow/cpp/BUILD/release/ -L../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ -L../BUILD/arrow/cpp/BUILD/release/ -L/usr/local/lib/ -L/usr/lib/ -larrow -lparquet -lrt -lxncbi -lgeneral -lseqcode -lseq -lseqset -lseqsplit -lseqedit -lgenome_collection -lxobjmgr -lsequtil -lxutil -lxser -lscoremat -lxnetblast -lxconnect -lxobjutil -lbiblio -lmedline -lpub -lxlogging -lsubmit -lxobjread -lsqlitewrapp -llmdb -lseqdb -ltables -lconnect -lcomposition_adjustment -lutrtprof -lxnetblastcli -lblastdb -lseqmasks_io -lxalgowinmask -lxalgodustmask -lblast -lxalgoblastdbindex -lxblast -lxalnmgr -lxalgoalignutil -lQuickBLASTcpp `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` `$(R_HOME)/bin/Rscript -e "Rcpp:::LdFlags()"` $(SHLIB_OPENMP_CXXFLAGS) -O2 -fdiagnostics-color=always
 
 #-fsanitize=undefined -fno-omit-frame-pointer -g -O1
 
-PKG_CXXFLAGS = -fdiagnostics-color=always -O3 -fPIC -Wextra -shared -Ilibsrc `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` $(SHLIB_OPENMP_CXXFLAGS) -pthread -I/usr/local/src/ -I/usr/include/ -I../include/ -I../BUILD/arrow/cpp/src/ -I../BUILD/arrow/cpp/BUILD/src/ -I../BUILD/ncbi-cxx-toolkit-public/include/ -I../BUILD/ncbi-cxx-toolkit-public/src/ -I../BUILD/ncbi-cxx-toolkit-public/BUILD/inc/
+PKG_CXXFLAGS = -fdiagnostics-color=always -O2 -fPIC -Wextra -shared -Ilibsrc `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` $(SHLIB_OPENMP_CXXFLAGS) -pthread -I/usr/local/src/ -I/usr/include/ -I../include/ -I../BUILD/arrow/cpp/src/ -I../BUILD/arrow/cpp/BUILD/src/ -I../BUILD/ncbi-cxx-toolkit-public/include/ -I../BUILD/ncbi-cxx-toolkit-public/src/ -I../BUILD/ncbi-cxx-toolkit-public/BUILD/inc/
 
 #-D_GLIBCXX_DEBUG -fsanitize=undefined -fno-omit-frame-pointer -g -O1
 
-#-O3 $(SHLIB_OPENMP_CXXFLAGS) #-fopenmp
+#-O2 $(SHLIB_OPENMP_CXXFLAGS) #-fopenmp
 
 #-I/usr/local/include/ncbi-tools++/ -I/usr/include/arrow/ -I/usr/include/parquet/ 
 
@@ -50,6 +50,8 @@ install_libs:
 	(mkdir -p ../inst/libs/$(R_ARCH) ; \
 	cd ../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ ; \
 	cp -uf *.so ../../../../inst/libs/$(R_ARCH)/ ; \
+	cd ../bin ; \
+	cp -uf makeblastdb ../../../../inst/libs/$(R_ARCH)/ ; \
 	cd ../../../arrow/cpp/BUILD/release/ ; \
 	cp -uf *.so* ../../../../../inst/libs/$(R_ARCH)/ ; \
 	cd ../../../../../src; \
@@ -63,11 +65,12 @@ fix-rpath:
 	@cd ../ ; command -v $(PATCHELF) >/dev/null 2>&1 || { echo "patchelf not found; install it or set PATCHELF variable"; exit 1; }
 	@echo "Patching rpath to '\$$ORIGIN' for .so files under inst/libs"
 	@cd ../ ; \
-	find "inst/libs" -type f -name '*.so*' -print0 | \
-		while IFS= read -r -d $$'\0' f; do \
+	find "inst/libs" -type f -iname '*.so*' -or -type f -iname "makeblastdb" | \
+		while IFS= read -r -d $$'\n' f; do \
 			echo "patching $$f"; \
 			$(PATCHELF) --set-rpath '$$ORIGIN' "$$f"; \
 		done
-		
+
+#find "inst/libs" -type f -name '*.so*' -print0 		
 #Rscript install.libs.R; \
 #cp -uf libct_ftds100.so libefetch.so liblmdb.so libncbi_algo.so libncbi_align_format.so libncbi_core.so libncbi_dbapi_driver.so libncbi_eutils.so libncbi_general.so libncbi_misc.so libncbi_pub.so libncbi_seq.so libncbi_seqext.so libncbi_trackmgr.so libncbi_web.so libncbi_xdbapi_ftds.so libncbi_xloader_blastdb.so libncbi_xloader_blastdb_rmt.so libncbi_xloader_genbank.so libncbi_xobjsimple.so libncbi_xreader.so libncbi_xreader_cache.so libncbi_xreader_id1.so libncbi_xreader_id2.so libpsg_client.so libsqlitewrapp.so libutrtprof.so libxflatfile.so libxxconnect2.so libncbi_blastinput.so libQuickBLASTcpp.so ../../../../inst/libs/$(R_ARCH)/ ; \

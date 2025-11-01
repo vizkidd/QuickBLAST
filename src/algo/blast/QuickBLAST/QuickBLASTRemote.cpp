@@ -30,11 +30,12 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_remote(
     const Rcpp::List &query_input,  // FASTA header+sequence or just sequence per your wrapper's expectations
     const QuickBLAST::EInputType input_type = EInputType::eSequenceString,
     std::string outFile = "",
+    std::string outFormat = "parquet",
     const bool return_values = true,
     const unsigned int max_poll_seconds = 360,
     const unsigned int poll_interval_ms = 4000
 ){
-  return pImpl->BLAST_remote(program, database, query_input, input_type, outFile, return_values, max_poll_seconds, poll_interval_ms);
+  return pImpl->BLAST_remote(program, database, query_input, input_type, outFile, outFormat, return_values, max_poll_seconds, poll_interval_ms);
 }
 
 // wrapper that submits query/subject pair remotely and returns a TSeqAlignVector
@@ -46,6 +47,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_remote(
     const Rcpp::List &query_input,  // FASTA header+sequence or just sequence per your wrapper's expectations
     const QuickBLAST::EInputType input_type = EInputType::eSequenceString,
     std::string outFile = "",
+    std::string outFormat = "parquet",
     const bool return_values = true,
     const unsigned int max_poll_seconds = 360,
     const unsigned int poll_interval_ms = 4000
@@ -63,6 +65,10 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_remote(
   //   outFile = std::tmpnam(nullptr); 
   // }
   
+  arrow_wrapper->AddFASTAMetadata("BLAST locality", "CBlastOptions::eRemote");
+  arrow_wrapper->AddFASTAMetadata("Input source", "sequence");
+  arrow::Status outfile_sts = arrow_wrapper->CreateOutputStream(outFile, outFormat);
+  
   // 1) Create options handle (use the same options factory you use for local BLAST)
   // CRef<CBlastOptionsHandle> opts = CBlastOptionsFactory::Create(ProgramNameToEnum(program),  CBlastOptions::eRemote);
   
@@ -78,8 +84,14 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_remote(
   // Many remote helpers accept a simple query string.
   // if (!database.empty()) remote.SetDatabase(database);
   
+  CBlastServices blast_service;
+  if(!blast_service.IsValidBlastDb(database, (seq_type == ESeqType::eProtein))){
+    Rcpp::stop("BLAST_reomte: Not a valid NCBI database.");
+  }
+  
   // list<CRef<ncbi::objects::CBioseq>> query_input_list = {}; //list<CRef<CSeq_loc>> 
   CRef<objects::CBioseq_set> bss(new objects::CBioseq_set());
+  std::vector<CSeq_entry_Handle> subject_ent_vec;
   bss->SetClass(objects::CBioseq_set::eClass_nuc_prot); //EClass - https://www.ncbi.nlm.nih.gov/IEB/ToolBox/CPP_DOC/lxr/source/include/objects/seqset/Bioseq_set_.hpp
   
   CRef<CObjectManager> objMgr(CObjectManager::GetInstance());
@@ -93,7 +105,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_remote(
     Rcpp::checkUserInterrupt();
     auto q_type = this->arrow_wrapper->CastToType(query);
     if (q_type.header.empty() || q_type.seq.empty()) {
-      Rcpp::stop("BLAST_seqs: query header/sequence is empty.");
+      Rcpp::stop("BLAST_remote: query header/sequence is empty.");
     }
     
     assert(!q_type.header.empty());
@@ -291,8 +303,8 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_remote(
     CRef<CSeq_entry> ret_entry(new CSeq_entry());
     ret_entry->SetSeq(*bioseq);
     
-    scope->AddTopLevelSeqEntry(*ret_entry);
-    
+    CSeq_entry_Handle tse_handle = scope->AddTopLevelSeqEntry(*ret_entry);
+    subject_ent_vec.emplace_back(tse_handle);
     //DEBUG
     // for (auto &id0 : ret_entry->GetSeq().GetId()) {
     //   Rcpp::Rcout << "Added seq id: " << id0->AsFastaString() << std::endl;
@@ -455,7 +467,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_remote(
     }
     
     // CRef<ncbi::CScope> scope(new ncbi::CScope(*CObjectManager::GetInstance()));
-    AddAllAvailableScoresToSeqAlignVector(alignments, scope, 0);
+    // AddAllAvailableScoresToSeqAlignVector(alignments, scope, 0);
     
     CBlastServices::TSeqIdVector seqids;
     seqids.reserve(256);
@@ -528,21 +540,24 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_remote(
       // }
     }
     
-    return ExtractHitsRemote(alignments, *scope, return_values);
+    return ExtractHitsRemote(alignments, subject_ent_vec, *scope, return_values);
     // Rcpp::stop("CSeq_align_set - No alignments could be computed.");
   }
   catch (const std::exception &e) {
-    throw std::runtime_error(std::string("Blast_remote(): Failed fetching remote results: ") + e.what());
+    throw std::runtime_error(std::string("Blast_remote(): C++ Exception : Failed fetching remote results: ") + e.what());
+  }catch(const std::runtime_error &e){
+    Rcpp::Rcerr << std::string("Blast_remote(): C++ Runtime Error : Failed fetching remote results: ") + e.what() << std::endl << std::flush; 
+    return std::make_shared<arrow::RecordBatchVector>();
   }
   
   // return ExtractHitsRemote(alignments);
 }
 
-std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::ExtractHitsRemote(const TSeqAlignVector &alignments, CScope &scope, const bool &return_values){
-  return pImpl->ExtractHitsRemote(alignments, scope, return_values);
+std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::ExtractHitsRemote(const TSeqAlignVector &alignments, std::vector<CSeq_entry_Handle>& sseq_entry_vec, CScope &scope, const bool &return_values){
+  return pImpl->ExtractHitsRemote(alignments, sseq_entry_vec, scope, return_values);
 }
 
-std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHitsRemote(const TSeqAlignVector &alignments, CScope &scope, const bool &return_values) 
+std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHitsRemote(const TSeqAlignVector &alignments, std::vector<CSeq_entry_Handle>& sseq_entry_vec, CScope &scope, const bool &return_values) 
 {
  try{
    std::shared_ptr<arrow::RecordBatchVector> ret_val = std::make_shared<arrow::RecordBatchVector>();
@@ -554,6 +569,35 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHitsRemote(co
       return ret_val;
     }
     
+    CScoreBuilder scorer;
+    // if (effective_search_space > 0.0) scorer.SetEffectiveSearchSpace(effective_search_space);
+    
+    // Compute batch scores (AddScore has an overload for list)
+    // We'll ask for a set of scores in a loop to leverage internal batching
+    std::vector<CSeq_align::EScoreType> score_types = {
+      CSeq_align::EScoreType::eScore_AlignLength,
+      CSeq_align::EScoreType::eScore_BitScore,
+      CSeq_align::EScoreType::eScore_Blast,
+      CSeq_align::EScoreType::eScore_PercentIdentity_Ungapped,
+      CSeq_align::EScoreType::eScore_PercentIdentity,
+      CSeq_align::EScoreType::eScore_GapCount,
+      CSeq_align::EScoreType::eScore_EValue,
+      CSeq_align::EScoreType::eScore_IdentityCount,
+      CSeq_align::EScoreType::eScore_MismatchCount,
+      CSeq_align::EScoreType::eScore_PercentCoverage,
+      CSeq_align::EScoreType::eScore_Score,
+      CSeq_align::EScoreType::eScore_PositiveCount,
+      CSeq_align::EScoreType::eScore_Splices,
+      CSeq_align::EScoreType::eScore_SumEValue,
+      CSeq_align::EScoreType::eScore_ProductCoverage,
+      CSeq_align::EScoreType::eScore_OverallIdentity,
+      CSeq_align::EScoreType::eScore_NegativeCount,
+      CSeq_align::EScoreType::eScore_Matches,
+      CSeq_align::EScoreType::eScore_HighQualityPercentCoverage,
+      CSeq_align::EScoreType::eScore_ExonIdentity,
+      CSeq_align::EScoreType::eScore_ConsensusSplices,
+      CSeq_align::EScoreType::eScore_CompAdjMethod
+    };
     
     // Arrow builders for the columns (match columns in your schema)
     std::string qseq = "", sseq = "", frame = "*/*", strand, qseq_id, sseq_id; 
@@ -576,8 +620,16 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHitsRemote(co
       if (!align_set_ref) continue;
       Rcpp::checkUserInterrupt();
       // seq_aligns (list) inside seq_align_set
-      const auto &seq_align_list = align_set_ref->Get();
-      for (const auto &seq_align : seq_align_list) {
+      auto &seq_align_list = align_set_ref->Get(); //const
+      // for (auto st : score_types) {
+      //   try {
+      //     scorer.ComputeScore(scope, seq_aligns, st); //scorer.AddScore(scope, seq_align_list, st);
+      //   } catch (const CException& e) {
+      //     // non-fatal; continue with others
+      //     ERR_POST(Warning << "AddScore for type " << static_cast<int>(st) << " failed: " << e.GetMsg());
+      //   }
+      // }
+      for (auto &seq_align : seq_align_list) { //const
         try
         {
         if (!seq_align) continue;
@@ -590,7 +642,8 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHitsRemote(co
         
         assert(seq_align->IsSet());
         assert(seq_align->CanGet());
-        Rcpp::checkUserInterrupt();
+        seq_align->Validate(true);
+        RcppThread::checkUserInterrupt();
         // Get seq ids of the two sequences involved in the alignment
         std::string qid = "(unknown)";
         std::string sid = "(unknown)";
@@ -625,7 +678,9 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHitsRemote(co
         // const auto& seq_titles = GetTitlesFromSeqAlign(it, scope);
         // std::string qseq_title = seq_titles.first();
         // std::string sseq_title = seq_titles.second();
-              
+        
+        // scorer.AddSplignScores(seq_align);
+        
         ENa_strand q_strand = seq_align->GetSeqStrand(0); // query row
         ENa_strand s_strand = seq_align->GetSeqStrand(1); // subject row
         strand = q_strand + "/" + s_strand;
@@ -712,18 +767,26 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHitsRemote(co
                 std::string frames = "*/*";
                 
                 bool ok;
-                ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_AlignLength, aln_len);
+                bool haslen = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_AlignLength, aln_len);
                 
                 ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_BitScore, bits); 
                 ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_Blast, blast_score);
-                ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_IdentityCount, num_ident);
-                ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity_Ungapped, pident); 
+                bool hasid = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_IdentityCount, num_ident);
+                bool hasp = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity_Ungapped, pident); 
                 
-                if(!ok)
-                  if (aln_len > 0){
-                    pident = 100.0 * (double)num_ident / (double)aln_len;
-                    // Rcpp::Rcout << "computed pident = " << pident << std::endl;
-                  }
+                // if(!ok)
+                //   if (aln_len > 0){
+                //     pident = 100.0 * (double)num_ident / (double)aln_len;
+                //     // Rcpp::Rcout << "computed pident = " << pident << std::endl;
+                //   }
+                  
+                // compute percent identity fallback per alignment if missing
+                
+                if (!hasp && haslen && hasid && aln_len > 0) {
+                  double computed = 100.0 * double(num_ident) / double(aln_len);
+                  // a->SetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity, computed);
+                  pident = computed;
+                }
                   
                 ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity, pident_gap); 
                 ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_GapCount, gaps); 
@@ -966,6 +1029,14 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHitsRemote(co
     std::shared_ptr<arrow::RecordBatch> alignment_rb = arrow::RecordBatch::Make(arrow_wrapper->GetBLASTSchema(),
                                                                                 num_rows,
                                                                                 {seq_info_array_, aln_struct_array_});
+    
+    for(auto s_ent: sseq_entry_vec){
+      scope.RemoveTopLevelSeqEntry(s_ent);
+      // s_ent.Reset();
+    }
+    sseq_entry_vec.clear();
+    sseq_entry_vec.shrink_to_fit();
+    
     if(alignment_rb->num_rows() <= 0){
       Rcpp::stop("ExtractHitsRemote() - arrow::RecordBatch() - No alignments could be computed.");
     }

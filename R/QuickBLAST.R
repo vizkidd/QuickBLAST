@@ -1,4 +1,10 @@
 #' Globals
+
+.GetLibsPath <- function(file_name = ""){
+  libs_path <- file.path("libs", Sys.getenv("R_ARCH"), file_name)
+  return(system.file(libs_path, package = "QuickBLAST", mustWork = T))
+}
+
 # arrow_lfs <- arrow::LocalFileSystem$create()
 ## internal single-file-system getter for the package
 .arrow_fs_singleton <- local({
@@ -74,7 +80,7 @@ GetQuickBLASTEnums <- function() {
 #' @return A List of Available BLAST options
 #' @export
 GetAvailableBLASTOptions <- function() {
-  warning("These are Defaults, CREATE a NEW LIST with ONLY the OPTIONS THAT YOU NEED (or) Use this function in blast_options to set BLAST defaults for the chosen BLAST program.")
+  warning("These are Defaults, CREATE a NEW LIST with ONLY the OPTIONS THAT YOU NEED (or) Use this function in blast_options to set BLAST defaults for the chosen BLAST program. (Options can also be given as a string '-evalue 1 -hit_list_size 10000')")
   blastOptions <- list(
     "evalue" = double(),
     "pident" = double(),
@@ -332,7 +338,7 @@ dll_obj_list <-  list()
   # require(Rcpp)
   # require(RcppProgress)
   # require(remotes)
-  Sys.setenv("ARROW_DEFAULT_MEMORY_POOL"="system")
+  Sys.setenv("ARROW_DEFAULT_MEMORY_POOL"="jemalloc") #="system")
   Sys.setenv("ARROW_DEBUG_MEMORY_POOL"="warn")
   Sys.setenv("OMP_NUM_THREADS"=parallel::detectCores(all.tests = T, logical = T))
   Sys.setenv("OMP_DYNAMIC"="TRUE")
