@@ -1,6 +1,6 @@
 Package: QuickBLAST
 Type: Package
-Title: BLAST Files/Sequences from R
+Title: BLAST Files/Sequences/DBs from R
 Version: 1.2.4
 Date: 2025-10-01
 Author: Vishvesh Karthik

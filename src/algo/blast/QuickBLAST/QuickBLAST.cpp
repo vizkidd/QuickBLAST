@@ -4385,7 +4385,11 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_dbs(const std:
                // For each requested score, call GetNamedScore and check result
                bool ok;
                bool haslen = it->GetNamedScore(CSeq_align::EScoreType::eScore_AlignLength, aln_len);
-               // std::cout << "AlignLength present: " << ok << " value: " << aln_len << std::endl;
+               if(!haslen){
+                 aln_len = it->GetAlignLength(/*include_gaps*/ true);
+                 haslen = true;
+               }
+               // std::cout << "AlignLength present: " << haslen << " value: " << aln_len << std::endl;
                
                ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_BitScore, bits);
                // std::cout << "BitScore present: " << ok << " value: " << bits << std::endl;
@@ -4394,36 +4398,48 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_dbs(const std:
                // std::cout << "Blast score present: " << ok << " value: " << blast_score << std::endl;
                
                bool hasid = it->GetNamedScore(CSeq_align::EScoreType::eScore_IdentityCount, num_ident);
-               // std::cout << "IdentityCount present: " << ok << " value: " << num_ident << std::endl;
+               // std::cout << "IdentityCount present: " << hasid << " value: " << num_ident << std::endl;
                
                bool hasp = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity_Ungapped, pident);
-               // std::cout << "PercentIdentity_Ungapped present: " << ok << " value: " << pident << std::endl;
-
-               if (!hasp && haslen && hasid && aln_len > 0) {
-                 double computed = 100.0 * double(num_ident) / double(aln_len);
+               if (!hasp && hasid) {
+                 double computed = 100.0 * double(num_ident) / it->GetAlignLength(/*include_gaps*/ false); //double(aln_len);
                  // a->SetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity, computed);
                  pident = computed;
+                 hasp = true;
                }
-               // if(!ok){
-               //   if (aln_len > 0){
-               //     pident = 100.0 * (double)num_ident / (double)aln_len;
-               //     // std::cout << "computed pident = " << pident << std::endl;
-               //   }
-               //   }
+               // std::cout << "PercentIdentity_Ungapped present: " << hasp << " value: " << pident << std::endl;
                  
-                 ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity, pident_gap);
-                 // std::cout << "PercentIdentity (gapped) present: " << ok << " value: " << pident_gap << std::endl;
+                 bool hasp_gap = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity_Gapped, pident_gap);
+                 if (!hasp_gap && hasid) {
+                   double computed = 100.0 * double(num_ident) / it->GetAlignLength(/*include_gaps*/ true); //double(aln_len);
+                   // a->SetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity, computed);
+                   pident_gap = computed;
+                   hasp_gap = true;
+                 }
+                 // std::cout << "PercentIdentity (gapped) present: " << hasp_gap << " value: " << pident_gap << std::endl;
                  
-                 ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_GapCount, gaps);
-                 // std::cout << "GapCount present: " << ok << " value: " << gaps << std::endl;
+                 bool hasgaps = it->GetNamedScore(CSeq_align::EScoreType::eScore_GapCount, gaps);
+                 if(!hasgaps){
+                   gaps = it->GetTotalGapCount(-1); //it->GetTotalGapCount(0) + it->GetTotalGapCount(1);
+                   hasgaps = true;
+                 }
+                 // std::cout << "GapCount present: " << hasgaps << " value: " << gaps << std::endl;
                  
                  ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_EValue, evalue);
                  // std::cout << "EValue present: " << ok << " value: " << evalue << std::endl;
                  
-                 ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_MismatchCount, mismatches);
-                 // std::cout << "MismatchCount present: " << ok << " value: " << mismatches << std::endl;
+                 bool hasmismatches = it->GetNamedScore(CSeq_align::EScoreType::eScore_MismatchCount, mismatches);
+                 if(!hasmismatches){
+                   mismatches = it->GetAlignLength(/*include_gaps*/ true) - num_ident - gaps;
+                   hasmismatches = true;
+                 }
+                 // std::cout << "MismatchCount present: " << hasmismatches << " value: " << mismatches << std::endl;
                  
-                 ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentCoverage, qcovhsp);
+                 bool hasqcovhsp = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentCoverage, qcovhsp);
+                 if(!hasqcovhsp){
+                   qcovhsp = double(it->GetAlignLength(/*include_gaps*/ false) / q_full.length()); // * 100;
+                   hasqcovhsp = true;
+                 }
                  // std::cout << "PercentCoverage present: " << ok << " value: " << qcovhsp << std::endl;
                  
                  ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_Score, score);
@@ -4484,7 +4500,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_dbs(const std:
                    static_cast<void>(qend_builder.Append(qend));
                    static_cast<void>(sstart_builder.Append(sstart));
                    static_cast<void>(send_builder.Append(send));
-                   static_cast<void>(pident_builder.Append(pident));
+                   static_cast<void>(pident_builder.Append(pident)); //pident_gap
                    static_cast<void>(evalue_builder.Append(evalue));
                    static_cast<void>(length_builder.Append(aln_len));
                    static_cast<void>(aln_len01_builder.Append(aln_len01));
@@ -4492,7 +4508,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_dbs(const std:
                    static_cast<void>(score_builder.Append(score));
                    static_cast<void>(qcovhsp_builder.Append(qcovhsp));
                    static_cast<void>(blast_score_builder.Append(blast_score));
-                   static_cast<void>(pident_gap_builder.Append(pident_gap));
+                   static_cast<void>(pident_gap_builder.Append(pident_gap)); 
                    static_cast<void>(gaps_builder.Append(gaps));
                    static_cast<void>(nident_builder.Append(num_ident));
                    static_cast<void>(mismatch_builder.Append(mismatches));
@@ -5235,7 +5251,7 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHits(const TSeqAlig
       CSeq_align::EScoreType::eScore_BitScore,
       CSeq_align::EScoreType::eScore_Blast,
       CSeq_align::EScoreType::eScore_PercentIdentity_Ungapped,
-      CSeq_align::EScoreType::eScore_PercentIdentity,
+      CSeq_align::EScoreType::eScore_PercentIdentity_Gapped,
       CSeq_align::EScoreType::eScore_GapCount,
       CSeq_align::EScoreType::eScore_EValue,
       CSeq_align::EScoreType::eScore_IdentityCount,
@@ -5499,6 +5515,10 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHits(const TSeqAlig
             // For each requested score, call GetNamedScore and check result
             bool ok;
             bool haslen = it->GetNamedScore(CSeq_align::EScoreType::eScore_AlignLength, aln_len);
+            if(!haslen){
+              aln_len = it->GetAlignLength(/*include_gaps*/ true);
+              haslen = true;
+            }
             // std::cout << "AlignLength present: " << ok << " value: " << aln_len << std::endl;
             
             ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_BitScore, bits);
@@ -5513,33 +5533,45 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHits(const TSeqAlig
             bool hasp = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity_Ungapped, pident);
             // std::cout << "PercentIdentity_Ungapped present: " << ok << " value: " << pident << std::endl;
             
-            // if(!ok)
-            //   if (aln_len > 0){
-            //     pident = 100.0 * (double)num_ident / (double)aln_len;
-            //     // std::cout << "computed pident = " << pident << std::endl;
-            //   }
-            
             // compute percent identity fallback per alignment if missing
-
-            if (!hasp && haslen && hasid && aln_len > 0) {
-              double computed = 100.0 * double(num_ident) / double(aln_len);
+            if (!hasp && hasid) {
+              double computed = 100.0 * double(num_ident) / it->GetAlignLength(/*include_gaps*/ false); //double(aln_len);
               // a->SetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity, computed);
               pident = computed;
+              hasp = true;
             }
             
-            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity, pident_gap);
-            // std::cout << "PercentIdentity (gapped) present: " << ok << " value: " << pident_gap << std::endl;
+            bool hasp_gap = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity, pident_gap);
+            if (!hasp_gap && hasid) {
+              double computed = 100.0 * double(num_ident) / it->GetAlignLength(/*include_gaps*/ true); //double(aln_len);
+              // a->SetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity, computed);
+              pident_gap = computed;
+              hasp_gap = true;
+            }
+            // std::cout << "PercentIdentity (gapped) present: " << hasp_gap << " value: " << pident_gap << std::endl;
             
-            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_GapCount, gaps);
+            bool hasgaps = it->GetNamedScore(CSeq_align::EScoreType::eScore_GapCount, gaps);
+            if(!hasgaps){
+              gaps = it->GetTotalGapCount(-1); //it->GetTotalGapCount(0) + it->GetTotalGapCount(1);
+              hasgaps = true;
+            }
             // std::cout << "GapCount present: " << ok << " value: " << gaps << std::endl;
             
             ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_EValue, evalue);
             // std::cout << "EValue present: " << ok << " value: " << evalue << std::endl;
             
-            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_MismatchCount, mismatches);
+            bool hasmismatches = it->GetNamedScore(CSeq_align::EScoreType::eScore_MismatchCount, mismatches);
+            if(!hasmismatches){
+              mismatches = it->GetAlignLength(/*include_gaps*/ true) - num_ident - gaps;
+              hasmismatches = true;
+            }
             // std::cout << "MismatchCount present: " << ok << " value: " << mismatches << std::endl;
             
-            ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentCoverage, qcovhsp);
+            bool hasqcovhsp = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentCoverage, qcovhsp);
+            if(!hasqcovhsp){
+              qcovhsp = double(it->GetAlignLength(/*include_gaps*/ false) / q_full.length()); // * 100;
+              hasqcovhsp = true;
+            }
             // std::cout << "PercentCoverage present: " << ok << " value: " << qcovhsp << std::endl;
             
             ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_Score, score);
@@ -5598,7 +5630,7 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHits(const TSeqAlig
             static_cast<void>(qend_builder.Append(qend));
             static_cast<void>(sstart_builder.Append(sstart));
             static_cast<void>(send_builder.Append(send));
-            static_cast<void>(pident_builder.Append(pident));
+            static_cast<void>(pident_builder.Append(pident)); 
             static_cast<void>(evalue_builder.Append(evalue));
             static_cast<void>(length_builder.Append(aln_len));
             static_cast<void>(aln_len01_builder.Append(aln_len01));

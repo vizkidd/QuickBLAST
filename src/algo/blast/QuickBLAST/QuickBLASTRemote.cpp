@@ -768,32 +768,52 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHitsRemote(co
                 
                 bool ok;
                 bool haslen = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_AlignLength, aln_len);
+                if(!haslen){
+                  aln_len = seq_align->GetAlignLength(/*include_gaps*/ true);
+                  haslen = true;
+                }
                 
                 ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_BitScore, bits); 
                 ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_Blast, blast_score);
                 bool hasid = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_IdentityCount, num_ident);
                 bool hasp = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity_Ungapped, pident); 
-                
-                // if(!ok)
-                //   if (aln_len > 0){
-                //     pident = 100.0 * (double)num_ident / (double)aln_len;
-                //     // Rcpp::Rcout << "computed pident = " << pident << std::endl;
-                //   }
                   
                 // compute percent identity fallback per alignment if missing
-                
-                if (!hasp && haslen && hasid && aln_len > 0) {
-                  double computed = 100.0 * double(num_ident) / double(aln_len);
+                if (!hasp && hasid) {
+                  double computed = 100.0 * double(num_ident) / seq_align->GetAlignLength(/*include_gaps*/ false); //double(aln_len);
                   // a->SetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity, computed);
                   pident = computed;
+                  hasp = true;
                 }
                   
-                ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity, pident_gap); 
-                ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_GapCount, gaps); 
+                bool hasp_gap = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity, pident_gap); 
+                if (!hasp_gap && hasid) {
+                  double computed = 100.0 * double(num_ident) / seq_align->GetAlignLength(/*include_gaps*/ true); //double(aln_len);
+                  // a->SetNamedScore(CSeq_align::EScoreType::eScore_PercentIdentity, computed);
+                  pident_gap = computed;
+                  hasp_gap = true;
+                }
+                
+                bool hasgaps = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_GapCount, gaps); 
+                if(!hasgaps){
+                  gaps = seq_align->GetTotalGapCount(-1); //seq_align->GetTotalGapCount(0) + seq_align->GetTotalGapCount(1);
+                  hasgaps = true;
+                }
+                
                 ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_EValue, evalue); 
               
-                ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_MismatchCount, mismatches);
-                ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_PercentCoverage, qcovhsp); 
+                bool hasmismatches = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_MismatchCount, mismatches);
+                if(!hasmismatches){
+                  mismatches = seq_align->GetAlignLength(/*include_gaps*/ true) - num_ident - gaps;
+                  hasmismatches = true;
+                }
+                
+                bool hasqcovhsp = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_PercentCoverage, qcovhsp); 
+                if(!hasqcovhsp){
+                  qcovhsp = double(seq_align->GetAlignLength(/*include_gaps*/ false) / q_full.length()); //* 100;
+                  hasqcovhsp = true;
+                }
+                
                 ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_Score, score); 
                 ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_PositiveCount, positive);
                 ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_Splices, n_splices); 
@@ -823,7 +843,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHitsRemote(co
                 static_cast<void>(qend_builder.Append(qend));
                 static_cast<void>(sstart_builder.Append(sstart));
                 static_cast<void>(send_builder.Append(send));
-                static_cast<void>(pident_builder.Append(pident));
+                static_cast<void>(pident_builder.Append(pident)); //pident
                 static_cast<void>(evalue_builder.Append(evalue));
                 static_cast<void>(length_builder.Append(aln_len));
                 static_cast<void>(aln_len01_builder.Append(aln_len01));
