@@ -149,8 +149,8 @@ if(NOT WIN32)
   	)
   	message("R flags:" ${R_FLAGS})
 
-    set(ARROW_CXX_FLAGS "-std=gnu++20 -fdiagnostics-color=always -march=native -fopenmp -fpermissive -fPIC -O2 -Wall ${R_FLAGS}")
-set(ARROW_C_FLAGS  "-std=gnu2x -fdiagnostics-color=always -march=native -fopenmp -fpermissive -fPIC -O2 -Wall ${R_FLAGS}")
+    set(ARROW_CXX_FLAGS "-std=gnu++20 -fdiagnostics-color=always -march=native -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS}")
+set(ARROW_C_FLAGS  "-std=gnu2x -fdiagnostics-color=always -march=native -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS}")
 
 
     execute_process(

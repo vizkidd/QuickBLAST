@@ -2868,6 +2868,18 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
     Rcpp::stop("BLAST_files(): Unknown exception");
   }
 }
+
+static inline int GetSubjectOID(const CSeqDB& db,
+                                const CSeq_id& id)
+{
+    vector<int> oids;
+    db.SeqidToOids(id, oids);
+    if (oids.empty())
+        NCBI_THROW(CException, eUnknown, "Seq-id not in DB");
+    return oids.front();
+}
+
+
 std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::BLAST_dbs(const std::string &queryFile, const std::string &subjectFile, std::string &outFile, const std::string &outFormat, unsigned int num_threads, const bool return_values, unsigned int batch_size){ //const bool show_progress
   return pImpl->BLAST_dbs(queryFile, subjectFile, outFile, outFormat, num_threads, return_values, batch_size); //show_progress
 }
@@ -3285,6 +3297,12 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_f2db(const std
           qseq_id = it->GetSeq_id(0).GetSeqIdString(true); 
           sseq_id = it->GetSeq_id(1).GetSeqIdString(true);
           
+          int subject_oid = GetSubjectOID(*s_seqdb_, it->GetSeq_id(1));
+          if (subject_oid < 0)
+              continue;
+
+          TSeqPos slen = s_seqdb_->GetSeqLength(subject_oid);
+
           // For each requested score, call GetNamedScore and check result
           bool ok;
           ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_AlignLength, aln_len);
@@ -3411,7 +3429,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_f2db(const std
           static_cast<void>(qseq_builder.Append(qseq));
           static_cast<void>(sseq_builder.Append(sseq));
           static_cast<void>(qlen_builder.Append(q_full.length()));
-          static_cast<void>(slen_builder.Append(s_full.length()));
+          static_cast<void>(slen_builder.Append(slen)); //(s_full.length()));
           static_cast<void>(num_alignments_builder.Append(seq_aligns.size()));
           
           static_cast<void>(strand_builder.Append(strand));
@@ -4205,7 +4223,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_dbs(const std:
        CLocalBlast lcl_blaster(query_factory, lcl_blast_opts, s_db_adapter);
        lcl_blaster.SetBatchNumber(q_start);
        lcl_blaster.SetInterruptCallback(&BlastInterruptFn, static_cast<void*>(blast_interrupt_ctx.get()));
-       std::thread lcl_blaster_thread([this, &lcl_blaster, &scorer, &score_types, &scope, &local_ret, &return_values](){
+       std::thread lcl_blaster_thread([this, &lcl_blaster, &s_seqdb_, &scorer, &score_types, &scope, &local_ret, &return_values](){
          CRef<CSearchResultSet> results = lcl_blaster.Run();
          auto num_results = results->GetNumResults();
          if(!results->empty()){
@@ -4382,6 +4400,12 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_dbs(const std:
                // qseq_id = it->GetSeq_id(0).GetSeqIdString(true); 
                sseq_id = it->GetSeq_id(1).GetSeqIdString(true);
                
+              int subject_oid = GetSubjectOID(*s_seqdb_, it->GetSeq_id(1));
+              if (subject_oid < 0)
+                  continue;
+
+              TSeqPos slen = s_seqdb_->GetSeqLength(subject_oid);
+
                // For each requested score, call GetNamedScore and check result
                bool ok;
                bool haslen = it->GetNamedScore(CSeq_align::EScoreType::eScore_AlignLength, aln_len);
@@ -4435,11 +4459,13 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_dbs(const std:
                  }
                  // std::cout << "MismatchCount present: " << hasmismatches << " value: " << mismatches << std::endl;
                  
-                 bool hasqcovhsp = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentCoverage, qcovhsp);
-                 if(!hasqcovhsp){
-                   qcovhsp = double(it->GetAlignLength(/*include_gaps*/ false) / q_full.length()); // * 100;
-                   hasqcovhsp = true;
-                 }
+                //  bool hasqcovhsp = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentCoverage, qcovhsp);
+                //  if(!hasqcovhsp){
+                   qcovhsp = (static_cast<double>(it->GetAlignLength(false)) / static_cast<double>(q_full.length())); // * 100.0; //double(it->GetAlignLength(/*include_gaps*/ false) / q_full.length()) * 100;
+                  //  hasqcovhsp = true;
+                  //  std::cout << "qcovhsp (GAPPED): " << it->GetAlignLength(/*include_gaps*/ true) << " / " << q_full.length() << std::endl << it->GetAlignLength(/*include_gaps*/ true) / q_full.length() << std::endl;
+                  //  std::cout << "qcovhsp: " << it->GetAlignLength(/*include_gaps*/ false) << " / " << q_full.length() << std::endl << qcovhsp << std::endl;
+                //  }
                  // std::cout << "PercentCoverage present: " << ok << " value: " << qcovhsp << std::endl;
                  
                  ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_Score, score);
@@ -4531,7 +4557,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_dbs(const std:
                    static_cast<void>(qseq_builder.Append(qseq));
                    static_cast<void>(sseq_builder.Append(sseq));
                    static_cast<void>(qlen_builder.Append(q_full.length()));
-                   static_cast<void>(slen_builder.Append(s_full.length()));
+                   static_cast<void>(slen_builder.Append(slen)); //(s_full.length()));
                    static_cast<void>(num_alignments_builder.Append(seq_aligns.size()));
                    
                    static_cast<void>(strand_builder.Append(strand));
@@ -5567,11 +5593,13 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHits(const TSeqAlig
             }
             // std::cout << "MismatchCount present: " << ok << " value: " << mismatches << std::endl;
             
-            bool hasqcovhsp = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentCoverage, qcovhsp);
-            if(!hasqcovhsp){
-              qcovhsp = double(it->GetAlignLength(/*include_gaps*/ false) / q_full.length()); // * 100;
-              hasqcovhsp = true;
-            }
+            // bool hasqcovhsp = it->GetNamedScore(CSeq_align::EScoreType::eScore_PercentCoverage, qcovhsp);
+            // if(!hasqcovhsp){
+              qcovhsp = (static_cast<double>(it->GetAlignLength(false)) / static_cast<double>(q_full.length())); //* 100.0; //(double(it->GetAlignLength(/*include_gaps*/ false)) / q_full.length()) * 100;
+              // hasqcovhsp = true;
+              // std::cout << "qcovhsp (GAPPED): " << (double)it->GetAlignLength(/*include_gaps*/ true) << " / " << q_full.length() << std::endl << (double)it->GetAlignLength(/*include_gaps*/ true) / q_full.length() << std::endl;
+              // std::cout << "no qcovhsp: " << (double)it->GetAlignLength(/*include_gaps*/ false) << " / " << q_full.length() << std::endl << qcovhsp << std::endl;
+            // }
             // std::cout << "PercentCoverage present: " << ok << " value: " << qcovhsp << std::endl;
             
             ok = it->GetNamedScore(CSeq_align::EScoreType::eScore_Score, score);

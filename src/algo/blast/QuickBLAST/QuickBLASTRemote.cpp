@@ -808,11 +808,11 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHitsRemote(co
                   hasmismatches = true;
                 }
                 
-                bool hasqcovhsp = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_PercentCoverage, qcovhsp); 
-                if(!hasqcovhsp){
-                  qcovhsp = double(seq_align->GetAlignLength(/*include_gaps*/ false) / q_full.length()); //* 100;
-                  hasqcovhsp = true;
-                }
+                // bool hasqcovhsp = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_PercentCoverage, qcovhsp); 
+                // if(!hasqcovhsp){
+                  qcovhsp = (static_cast<double>(seq_align->GetAlignLength(false)) / static_cast<double>(q_full.length())); //* 100.0; //double(seq_align->GetAlignLength(/*include_gaps*/ false) / q_full.length()) * 100;
+                  // hasqcovhsp = true;
+                // }
                 
                 ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_Score, score); 
                 ok = seq_align->GetNamedScore(CSeq_align::EScoreType::eScore_PositiveCount, positive);
