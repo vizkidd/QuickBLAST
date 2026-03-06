@@ -7,11 +7,17 @@
 GetInstanceID(ptr)
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr<QuickBLAST>) Pointer of QuickBLAST instance from the R side.}
+\item{ptr}{(Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance}
 }
 \value{
 (unsigned int) ID/Index of the QuickBLAST instance pointer, FALSE otherwise
 }
 \description{
 This function fetches the ID/Index of a QuickBLAST instance of a Rcpp::XPtr<QuickBLAST> stored in C++ side.
+}
+\examples{
+\dontrun{
+blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F, num_threads=24)
+QuickBLAST::GetInstanceID(blastp_inst)
+}
 }

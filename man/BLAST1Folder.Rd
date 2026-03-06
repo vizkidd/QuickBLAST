@@ -12,7 +12,8 @@ BLAST1Folder(
   out_format = NULL,
   num_threads = 0L,
   reciprocal_hits = FALSE,
-  min_batch_size = 0L
+  min_batch_size = 0L,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -31,12 +32,17 @@ BLAST1Folder(
 \item{reciprocal_hits}{(bool) Perform Bi-directional (Reciprocal => query <-> subject) BLAST? (Default: FALSE) (Optional)}
 
 \item{min_batch_size}{(unsigned int) Minimum batch size - Size of file write buffer (Optional).}
+
+\item{verbose}{(bool) Verbosity (Defulat: TRUE).}
 }
 \value{
 (bool) TRUE - on success, FALSE - Otherwise. (Results are not returned as R Lists to reduce overhead)
 }
 \description{
 BLAST FASTA files containing nucleotide or protein sequences, within a folder with a QuickBLAST instance. The files from the folder are selected with the extension parameter and BLAST'd against each other.
+}
+\note{
+Only FASTA files are supported by this function, use [QuickBLAST::BLAST2DBs()] if inputs are BLAST DBs.
 }
 \seealso{
 [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]

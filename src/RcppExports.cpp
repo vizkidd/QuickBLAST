@@ -116,21 +116,22 @@ BEGIN_RCPP
 END_RCPP
 }
 // BLAST2Seqs
-RcppExport SEXP BLAST2Seqs(SEXP ptr, SEXP query, SEXP subject);
-RcppExport SEXP _QuickBLAST_BLAST2Seqs(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP) {
+RcppExport SEXP BLAST2Seqs(SEXP ptr, SEXP query, SEXP subject, bool verbose);
+RcppExport SEXP _QuickBLAST_BLAST2Seqs(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type ptr(ptrSEXP);
     Rcpp::traits::input_parameter< SEXP >::type query(querySEXP);
     Rcpp::traits::input_parameter< SEXP >::type subject(subjectSEXP);
-    rcpp_result_gen = Rcpp::wrap(BLAST2Seqs(ptr, query, subject));
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(BLAST2Seqs(ptr, query, subject, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 // BLAST2Folders
-RcppExport bool BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension, SEXP out_folder, SEXP out_format, unsigned int num_threads, bool reciprocal_hits, unsigned int min_batch_size);
-RcppExport SEXP _QuickBLAST_BLAST2Folders(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP, SEXP extensionSEXP, SEXP out_folderSEXP, SEXP out_formatSEXP, SEXP num_threadsSEXP, SEXP reciprocal_hitsSEXP, SEXP min_batch_sizeSEXP) {
+RcppExport bool BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension, SEXP out_folder, SEXP out_format, unsigned int num_threads, bool reciprocal_hits, unsigned int min_batch_size, bool verbose);
+RcppExport SEXP _QuickBLAST_BLAST2Folders(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP, SEXP extensionSEXP, SEXP out_folderSEXP, SEXP out_formatSEXP, SEXP num_threadsSEXP, SEXP reciprocal_hitsSEXP, SEXP min_batch_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -143,13 +144,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< unsigned int >::type num_threads(num_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type reciprocal_hits(reciprocal_hitsSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type min_batch_size(min_batch_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(BLAST2Folders(ptr, query, subject, extension, out_folder, out_format, num_threads, reciprocal_hits, min_batch_size));
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(BLAST2Folders(ptr, query, subject, extension, out_folder, out_format, num_threads, reciprocal_hits, min_batch_size, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 // BLAST1Folder
-RcppExport bool BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP out_folder, SEXP out_format, unsigned int num_threads, bool reciprocal_hits, unsigned int min_batch_size);
-RcppExport SEXP _QuickBLAST_BLAST1Folder(SEXP ptrSEXP, SEXP input_folderSEXP, SEXP extensionSEXP, SEXP out_folderSEXP, SEXP out_formatSEXP, SEXP num_threadsSEXP, SEXP reciprocal_hitsSEXP, SEXP min_batch_sizeSEXP) {
+RcppExport bool BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP out_folder, SEXP out_format, unsigned int num_threads, bool reciprocal_hits, unsigned int min_batch_size, bool verbose);
+RcppExport SEXP _QuickBLAST_BLAST1Folder(SEXP ptrSEXP, SEXP input_folderSEXP, SEXP extensionSEXP, SEXP out_folderSEXP, SEXP out_formatSEXP, SEXP num_threadsSEXP, SEXP reciprocal_hitsSEXP, SEXP min_batch_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -161,13 +163,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< unsigned int >::type num_threads(num_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type reciprocal_hits(reciprocal_hitsSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type min_batch_size(min_batch_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(BLAST1Folder(ptr, input_folder, extension, out_folder, out_format, num_threads, reciprocal_hits, min_batch_size));
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(BLAST1Folder(ptr, input_folder, extension, out_folder, out_format, num_threads, reciprocal_hits, min_batch_size, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 // BLAST2Files
-RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, SEXP out_format, unsigned int num_threads, bool return_values, unsigned int min_batch_size);
-RcppExport SEXP _QuickBLAST_BLAST2Files(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP, SEXP out_fileSEXP, SEXP out_formatSEXP, SEXP num_threadsSEXP, SEXP return_valuesSEXP, SEXP min_batch_sizeSEXP) {
+RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, SEXP out_format, unsigned int num_threads, bool return_values, unsigned int min_batch_size, bool verbose);
+RcppExport SEXP _QuickBLAST_BLAST2Files(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP, SEXP out_fileSEXP, SEXP out_formatSEXP, SEXP num_threadsSEXP, SEXP return_valuesSEXP, SEXP min_batch_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -179,13 +182,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< unsigned int >::type num_threads(num_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type return_values(return_valuesSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type min_batch_size(min_batch_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(BLAST2Files(ptr, query, subject, out_file, out_format, num_threads, return_values, min_batch_size));
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(BLAST2Files(ptr, query, subject, out_file, out_format, num_threads, return_values, min_batch_size, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 // RemoteBLAST
-RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input_type, SEXP outFile, SEXP outFormat, bool return_values, unsigned int max_poll_seconds, unsigned int poll_interval_ms);
-RcppExport SEXP _QuickBLAST_RemoteBLAST(SEXP ptrSEXP, SEXP databaseSEXP, SEXP query_inputSEXP, SEXP input_typeSEXP, SEXP outFileSEXP, SEXP outFormatSEXP, SEXP return_valuesSEXP, SEXP max_poll_secondsSEXP, SEXP poll_interval_msSEXP) {
+RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input_type, SEXP outFile, SEXP outFormat, bool return_values, unsigned int max_poll_seconds, unsigned int poll_interval_ms, bool verbose);
+RcppExport SEXP _QuickBLAST_RemoteBLAST(SEXP ptrSEXP, SEXP databaseSEXP, SEXP query_inputSEXP, SEXP input_typeSEXP, SEXP outFileSEXP, SEXP outFormatSEXP, SEXP return_valuesSEXP, SEXP max_poll_secondsSEXP, SEXP poll_interval_msSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -198,7 +202,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type return_values(return_valuesSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type max_poll_seconds(max_poll_secondsSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type poll_interval_ms(poll_interval_msSEXP);
-    rcpp_result_gen = Rcpp::wrap(RemoteBLAST(ptr, database, query_input, input_type, outFile, outFormat, return_values, max_poll_seconds, poll_interval_ms));
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(RemoteBLAST(ptr, database, query_input, input_type, outFile, outFormat, return_values, max_poll_seconds, poll_interval_ms, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -215,15 +220,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // MakeBLASTDB
-RcppExport SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name);
-RcppExport SEXP _QuickBLAST_MakeBLASTDB(SEXP ptrSEXP, SEXP input_fileSEXP, SEXP database_nameSEXP) {
+RcppExport SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool parse_seqids);
+RcppExport SEXP _QuickBLAST_MakeBLASTDB(SEXP ptrSEXP, SEXP input_fileSEXP, SEXP database_nameSEXP, SEXP parse_seqidsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type ptr(ptrSEXP);
     Rcpp::traits::input_parameter< SEXP >::type input_file(input_fileSEXP);
     Rcpp::traits::input_parameter< SEXP >::type database_name(database_nameSEXP);
-    rcpp_result_gen = Rcpp::wrap(MakeBLASTDB(ptr, input_file, database_name));
+    Rcpp::traits::input_parameter< bool >::type parse_seqids(parse_seqidsSEXP);
+    rcpp_result_gen = Rcpp::wrap(MakeBLASTDB(ptr, input_file, database_name, parse_seqids));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -286,13 +292,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_QuickBLAST_DeleteQuickBLASTInstance", (DL_FUNC) &_QuickBLAST_DeleteQuickBLASTInstance, 1},
     {"_QuickBLAST_GetQuickBLASTOptions", (DL_FUNC) &_QuickBLAST_GetQuickBLASTOptions, 1},
     {"_QuickBLAST_SetQuickBLASTOptions", (DL_FUNC) &_QuickBLAST_SetQuickBLASTOptions, 3},
-    {"_QuickBLAST_BLAST2Seqs", (DL_FUNC) &_QuickBLAST_BLAST2Seqs, 3},
-    {"_QuickBLAST_BLAST2Folders", (DL_FUNC) &_QuickBLAST_BLAST2Folders, 9},
-    {"_QuickBLAST_BLAST1Folder", (DL_FUNC) &_QuickBLAST_BLAST1Folder, 8},
-    {"_QuickBLAST_BLAST2Files", (DL_FUNC) &_QuickBLAST_BLAST2Files, 8},
-    {"_QuickBLAST_RemoteBLAST", (DL_FUNC) &_QuickBLAST_RemoteBLAST, 9},
+    {"_QuickBLAST_BLAST2Seqs", (DL_FUNC) &_QuickBLAST_BLAST2Seqs, 4},
+    {"_QuickBLAST_BLAST2Folders", (DL_FUNC) &_QuickBLAST_BLAST2Folders, 10},
+    {"_QuickBLAST_BLAST1Folder", (DL_FUNC) &_QuickBLAST_BLAST1Folder, 9},
+    {"_QuickBLAST_BLAST2Files", (DL_FUNC) &_QuickBLAST_BLAST2Files, 9},
+    {"_QuickBLAST_RemoteBLAST", (DL_FUNC) &_QuickBLAST_RemoteBLAST, 10},
     {"_QuickBLAST_isBLASTDB", (DL_FUNC) &_QuickBLAST_isBLASTDB, 2},
-    {"_QuickBLAST_MakeBLASTDB", (DL_FUNC) &_QuickBLAST_MakeBLASTDB, 3},
+    {"_QuickBLAST_MakeBLASTDB", (DL_FUNC) &_QuickBLAST_MakeBLASTDB, 4},
     {"_QuickBLAST_BLAST2DBs", (DL_FUNC) &_QuickBLAST_BLAST2DBs, 8},
     {"_QuickBLAST_GetFASTAHeaders", (DL_FUNC) &_QuickBLAST_GetFASTAHeaders, 2},
     {"_QuickBLAST_BLASTFile2DB", (DL_FUNC) &_QuickBLAST_BLASTFile2DB, 8},

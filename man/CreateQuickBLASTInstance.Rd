@@ -10,7 +10,7 @@ CreateQuickBLASTInstance(
   program,
   options = NULL,
   save_sequences = FALSE,
-  num_threads = 0L
+  save_hsp_sequences = FALSE
 )
 }
 \arguments{
@@ -22,15 +22,20 @@ CreateQuickBLASTInstance(
 
 \item{options}{(string (or) Named List) List of BLAST options - check QuickBLAST::GetAvailableBLASTOptions(). String should be of the format "-option1 value1 -option2 value2". If empty, default values (per program) are used.}
 
-\item{save_sequences}{(bool) Save Sequences in the arrow::RecordBatch?.}
+\item{save_sequences}{(bool) Save Full Sequences to output?. (Default: FALSE)}
 
-\item{num_threads}{(int) Number of threads.}
+\item{save_hsp_sequences}{(bool) Save HSP Sequences to output?. (Default: FALSE)}
 }
 \value{
 (Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST Instance (Cannot be used in R)
 }
 \description{
 Create a new QuickBLAST C++ object with seq_type, strand, program and BLAST options, which can be used in QuickBLAST::BLAST2Files() and QuickBLAST::BLAST2Seqs()
+}
+\examples{
+\dontrun{
+blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
+}
 }
 \seealso{
 [QuickBLAST::GetAvailableBLASTOptions()], [QuickBLAST::GetQuickBLASTEnums()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]

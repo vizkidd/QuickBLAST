@@ -1,5 +1,5 @@
 #pragma once
-#pragma message("Including commons => " __FILE__)
+//#pragma message("Including commons => " __FILE__)
 #define RCPPTHREAD_OVERRIDE_COUT 1    // std::cout override
 #define RCPPTHREAD_OVERRIDE_CERR 1    // std::cerr override
 // #define RCPPTHREAD_OVERRIDE_THREAD 1  // std::thread override
@@ -17,7 +17,7 @@
 #include <stdexcept>
 
 // #include <R_ext/Print.h>
-#include <R.h>
+// #include <R.h>
 #include <RcppCommon.h>
 #include <Rcpp.h>
 #include <progress.hpp> //RcppProgress

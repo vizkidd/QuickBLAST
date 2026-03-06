@@ -4,7 +4,7 @@
 \alias{BLAST2Seqs}
 \title{BLAST 2 Sequence strings}
 \usage{
-BLAST2Seqs(ptr, query, subject)
+BLAST2Seqs(ptr, query, subject, verbose = TRUE)
 }
 \arguments{
 \item{ptr}{(Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance}
@@ -12,12 +12,20 @@ BLAST2Seqs(ptr, query, subject)
 \item{query}{(string) Query sequence}
 
 \item{subject}{(string) Subject sequence.}
+
+\item{verbose}{(bool) Verbosity (Default: TRUE).}
 }
 \value{
 (Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST Instance (Cannot be used in R)
 }
 \description{
 BLAST 2 nucleotide or protein strings with a QuickBLAST instance.
+}
+\examples{
+\dontrun{
+blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
+QuickBLAST::BLAST2Seqs(blastp_inst, "MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", "MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE")
+}
 }
 \seealso{
 [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]

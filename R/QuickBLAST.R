@@ -420,3 +420,31 @@ dll_obj_list <-  list()
   #   }
   # }
 }
+
+LoadBLASTHits <- compiler::cmpfun(LoadBLASTHits)
+GetAvailableBLASTOptions <- compiler::cmpfun(GetAvailableBLASTOptions)
+GetQuickBLASTEnums <- compiler::cmpfun(GetQuickBLASTEnums)
+one2one <- compiler::cmpfun(one2one)
+all2all <- compiler::cmpfun(all2all)
+
+BLAST2Seqs <- compiler::cmpfun(BLAST2Seqs)
+BLAST2Folders <- compiler::cmpfun(BLAST2Folders)
+BLAST1Folder <- compiler::cmpfun(BLAST1Folder)
+BLAST2Files <- compiler::cmpfun(BLAST2Files)
+RemoteBLAST <- compiler::cmpfun(RemoteBLAST)
+BLAST2DBs <- compiler::cmpfun(BLAST2DBs)
+GetFASTAHeaders <- compiler::cmpfun(GetFASTAHeaders)
+BLASTFile2DB <- compiler::cmpfun(BLASTFile2DB)
+MakeBLASTDB <- compiler::cmpfun(MakeBLASTDB)
+isBLASTDB <- compiler::cmpfun(isBLASTDB)
+SetQuickBLASTOptions <- compiler::cmpfun(SetQuickBLASTOptions)
+GetQuickBLASTOptions <- compiler::cmpfun(GetQuickBLASTOptions)
+DeleteQuickBLASTInstance <- compiler::cmpfun(DeleteQuickBLASTInstance)
+GetQuickBLASTInstance <- compiler::cmpfun(GetQuickBLASTInstance)
+GetInstanceID <- compiler::cmpfun(GetInstanceID)
+GetInstanceCount <- compiler::cmpfun(GetInstanceCount)
+CreateQuickBLASTInstance <- compiler::cmpfun(CreateQuickBLASTInstance)
+RecordBatchVectorToFlattenedDFList <- compiler::cmpfun(RecordBatchVectorToFlattenedDFList)
+isQuickBLASTLoaded <- compiler::cmpfun(isQuickBLASTLoaded)
+
+NULL

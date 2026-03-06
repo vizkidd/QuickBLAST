@@ -4,14 +4,20 @@
 \alias{DeleteQuickBLASTInstance}
 \title{Delete a QuickBLAST instance stored in C++ side}
 \usage{
-DeleteQuickBLASTInstance(ptr_id)
+DeleteQuickBLASTInstance(ptr)
 }
 \arguments{
-\item{ptr_id}{(unsigned int) ID/Index of stored QuickBLAST instance.}
+\item{ptr}{(Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance}
 }
 \value{
-TRUE - if the instance is deleted successfully, FALSE otherwise
+TRUE - if the instance is deleted successfully, throws error otherwise
 }
 \description{
 This function deletes a QuickBLAST instance based on the instance ID
+}
+\examples{
+\dontrun{
+blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
+QuickBLAST::DeleteQuickBLASTInstance(QuickBLAST::GetInstanceID(blastp_inst))
+}
 }

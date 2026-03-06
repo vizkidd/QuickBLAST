@@ -35,7 +35,7 @@ NULL
 #'
 #' @title BLAST File to a on-disk BLAST DB
 #'
-#' @description 
+#' @description Runs BLAST using the ptr
 #' @note Calls makeblastdb to create a BLAST DB of subject if it is not a DB
 #'
 #' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::MakeBLASTDB()], [QuickBLAST::isBLASTDB()]
@@ -194,6 +194,7 @@ SetQuickBLASTOptions <- function(ptr, program_name, options) {
 #' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
 #' @param query (string) Query sequence
 #' @param subject (string) Subject sequence.
+#' @param verbose (bool) Verbosity (Default: TRUE).
 #' @return (Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST Instance (Cannot be used in R)
 #' @examples
 #' \dontrun{
@@ -201,8 +202,8 @@ SetQuickBLASTOptions <- function(ptr, program_name, options) {
 #' QuickBLAST::BLAST2Seqs(blastp_inst, "MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", "MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE")
 #' }
 #' @export
-BLAST2Seqs <- function(ptr, query, subject) {
-    .Call(`_QuickBLAST_BLAST2Seqs`, ptr, query, subject)
+BLAST2Seqs <- function(ptr, query, subject, verbose = TRUE) {
+    .Call(`_QuickBLAST_BLAST2Seqs`, ptr, query, subject, verbose)
 }
 
 #' @name BLAST2Folders
@@ -223,10 +224,11 @@ BLAST2Seqs <- function(ptr, query, subject) {
 #' @param num_threads (unsigned int) Number of threads. (Optional)
 #' @param reciprocal_hits (bool) Perform Bi-directional (Reciprocal => query <-> subject) BLAST? (Default: FALSE) (Optional)
 #' @param min_batch_size (unsigned int) Minimum batch size - Size of file write buffer (Optional).
+#' @param verbose (bool) Verbosity (Defaut: TRUE).
 #' @return (bool) TRUE - on success, FALSE - Otherwise. (Results are not returned as R Lists to reduce overhead)
 #' @export
-BLAST2Folders <- function(ptr, query, subject, extension, out_folder, out_format = NULL, num_threads = 0L, reciprocal_hits = FALSE, min_batch_size = 0L) {
-    .Call(`_QuickBLAST_BLAST2Folders`, ptr, query, subject, extension, out_folder, out_format, num_threads, reciprocal_hits, min_batch_size)
+BLAST2Folders <- function(ptr, query, subject, extension, out_folder, out_format = NULL, num_threads = 0L, reciprocal_hits = FALSE, min_batch_size = 0L, verbose = TRUE) {
+    .Call(`_QuickBLAST_BLAST2Folders`, ptr, query, subject, extension, out_folder, out_format, num_threads, reciprocal_hits, min_batch_size, verbose)
 }
 
 #' @name BLAST1Folder
@@ -246,15 +248,17 @@ BLAST2Folders <- function(ptr, query, subject, extension, out_folder, out_format
 #' @param num_threads (unsigned int) Number of threads. (Optional)
 #' @param reciprocal_hits (bool) Perform Bi-directional (Reciprocal => query <-> subject) BLAST? (Default: FALSE) (Optional)
 #' @param min_batch_size (unsigned int) Minimum batch size - Size of file write buffer (Optional).
+#' @param verbose (bool) Verbosity (Defulat: TRUE).
 #' @return (bool) TRUE - on success, FALSE - Otherwise. (Results are not returned as R Lists to reduce overhead)
 #' @export
-BLAST1Folder <- function(ptr, input_folder, extension, out_folder, out_format = NULL, num_threads = 0L, reciprocal_hits = FALSE, min_batch_size = 0L) {
-    .Call(`_QuickBLAST_BLAST1Folder`, ptr, input_folder, extension, out_folder, out_format, num_threads, reciprocal_hits, min_batch_size)
+BLAST1Folder <- function(ptr, input_folder, extension, out_folder, out_format = NULL, num_threads = 0L, reciprocal_hits = FALSE, min_batch_size = 0L, verbose = TRUE) {
+    .Call(`_QuickBLAST_BLAST1Folder`, ptr, input_folder, extension, out_folder, out_format, num_threads, reciprocal_hits, min_batch_size, verbose)
 }
 
 #' @param num_threads (unsigned int) Number of threads. (Optional)
 #' @param return_values (bool) Return BLAST Hits as Rcpp::List (Default: TRUE) (Optional)
 #' @param min_batch_size (unsigned int) Minimum batch size - Size of file write buffer (Optional).
+#' @param verbose (bool) Verbosity (Default: TRUE).
 #' @return (SEXP) Rcpp::List - if return_values == TRUE, out_file - Otherwise.
 #' @examples
 #' \dontrun{
@@ -263,8 +267,8 @@ BLAST1Folder <- function(ptr, input_folder, extension, out_folder, out_format = 
 #' QuickBLAST::BLAST2Files(ptr = blastp_inst, query = system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), subject = system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), out_file = "test.arrow",return_values = T, min_batch_size = 0, seq_limit = 0)
 #' }
 #' @export
-BLAST2Files <- function(ptr, query, subject, out_file = NULL, out_format = NULL, num_threads = 0L, return_values = TRUE, min_batch_size = 0L) {
-    .Call(`_QuickBLAST_BLAST2Files`, ptr, query, subject, out_file, out_format, num_threads, return_values, min_batch_size)
+BLAST2Files <- function(ptr, query, subject, out_file = NULL, out_format = NULL, num_threads = 0L, return_values = TRUE, min_batch_size = 0L, verbose = TRUE) {
+    .Call(`_QuickBLAST_BLAST2Files`, ptr, query, subject, out_file, out_format, num_threads, return_values, min_batch_size, verbose)
 }
 
 #' @name RemoteBLAST
@@ -286,6 +290,7 @@ BLAST2Files <- function(ptr, query, subject, out_file = NULL, out_format = NULL,
 #' @param return_values (bool) Return BLAST Hits as Rcpp::List (Default: TRUE) (Optional)
 #' @param max_poll_seconds (int) Max seconds to wait for RemoteBLAST (Default: 360) (Optional)
 #' @param poll_interval_ms (int) Milliseconds wait-time between polling RemoteBLAST service (Default(4s): 4000) (Optional)
+#' @param verbose (bool) Verbosity (Default: TRUE).
 #' @return (SEXP) Rcpp::List - if return_values == TRUE, outFile - Otherwise.
 #' @examples
 #' \dontrun{
@@ -293,8 +298,8 @@ BLAST2Files <- function(ptr, query, subject, out_file = NULL, out_format = NULL,
 #' QuickBLAST::RemoteBLAST(blastp_inst, query_input="MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", database= "pdb", input_type=1, return_values=T)
 #' }
 #' @export
-RemoteBLAST <- function(ptr, database, query_input, input_type, outFile = NULL, outFormat = NULL, return_values = TRUE, max_poll_seconds = 360L, poll_interval_ms = 4000L) {
-    .Call(`_QuickBLAST_RemoteBLAST`, ptr, database, query_input, input_type, outFile, outFormat, return_values, max_poll_seconds, poll_interval_ms)
+RemoteBLAST <- function(ptr, database, query_input, input_type, outFile = NULL, outFormat = NULL, return_values = TRUE, max_poll_seconds = 360L, poll_interval_ms = 4000L, verbose = TRUE) {
+    .Call(`_QuickBLAST_RemoteBLAST`, ptr, database, query_input, input_type, outFile, outFormat, return_values, max_poll_seconds, poll_interval_ms, verbose)
 }
 
 #' @name isBLASTDB
@@ -333,6 +338,7 @@ isBLASTDB <- function(ptr, input_db) {
 #' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
 #' @param input_file (string) Path to FASTA file.
 #' @param database_name (string) Name of the output DB.
+#' @param parse_seqids (bool) TRUE - Checks FASTA headers for malformations (Default: FALSE)
 #' @return (bool) DB name on success, FALSE - Otherwise.
 #' @examples
 #' \dontrun{
@@ -344,8 +350,8 @@ isBLASTDB <- function(ptr, input_db) {
 #' #tools::file_path_sans_ext(system.file("extdata","protein_subject.db.pin", package = "QuickBLAST", mustWork = T))
 #' }
 #' @export
-MakeBLASTDB <- function(ptr, input_file, database_name) {
-    .Call(`_QuickBLAST_MakeBLASTDB`, ptr, input_file, database_name)
+MakeBLASTDB <- function(ptr, input_file, database_name, parse_seqids = FALSE) {
+    .Call(`_QuickBLAST_MakeBLASTDB`, ptr, input_file, database_name, parse_seqids)
 }
 
 #' @param num_threads (unsigned int) Number of threads. (Optional)

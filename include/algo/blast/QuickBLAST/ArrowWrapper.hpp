@@ -1,5 +1,5 @@
 #pragma once
-#pragma message("Including ArrowWrapper => " __FILE__)
+//#pragma message("Including ArrowWrapper => " __FILE__)
 #include <algo/blast/QuickBLAST/commons.hpp>
 
 #include <iostream>
@@ -57,6 +57,7 @@ public:
     ~ArrowWrapper();
     ArrowWrapper();
     void SetBatchSize(unsigned int batch_size);
+    void SetVerbosity(bool verbose);
     unsigned int GetBatchSize(void);
     arrow::Status FinishOutputStream();
     // arrow::Status WriteBatch2File();
@@ -65,8 +66,8 @@ public:
     // template <typename T1>
     // std::shared_ptr<arrow::RecordBatchVector> SplitFilesIntoEntries(const std::string_view &filename, const char *delim, const int &num_threads, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<T1>)> &Entry_callback, bool return_values = false);
     std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> MMapFile(const std::string_view &filename, const char *delim);
-    FastaSequenceData FetchRecordByFilePtr(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, const char *delim);
-    FastaSequenceData FetchRecordByNum(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, unsigned int rec_no, const char *delim);
+    // FastaSequenceData FetchRecordByFilePtr(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, const char *delim);
+    // FastaSequenceData FetchRecordByNum(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, unsigned int rec_no, const char *delim);
     std::shared_ptr<std::list<FastaSequenceData>> FetchRecordByBatch(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, unsigned int batch_size, unsigned int from_rec, const char *delim);
     // void CloseFilePtrs(std::tuple<FILE *, char *, long, char *> &file_ptrs);
     long GetFileSize(FILE *file_ptr);
@@ -129,6 +130,7 @@ struct ArrowWrapper::Impl
     std::thread finisher_thread;
     std::string output_filename, output_format;
     bool save2file;
+    bool verbose;
 
     unsigned int parquet_batch_size = 1024, rec_count = 1, blast_sequence_limit = 0, proc_rec_count = 0, n_threads = 1, max_records = 1024; //max_writer_threads = 2
     std::atomic<unsigned int> itr_add{1};
@@ -178,13 +180,14 @@ struct ArrowWrapper::Impl
     // Rcpp::XPtr<std::ostringstream> outputStream;
 
     std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> MMapFile(const std::string_view &filename, const char *delim);
-    FastaSequenceData FetchRecordByFilePtr(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, const char *delim);
-    FastaSequenceData FetchRecordByNum(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, unsigned int rec_no, const char *delim);
+    // FastaSequenceData FetchRecordByFilePtr(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, const char *delim);
+    // FastaSequenceData FetchRecordByNum(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, unsigned int rec_no, const char *delim);
     std::shared_ptr<std::list<FastaSequenceData>> FetchRecordByBatch(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, unsigned int batch_size, unsigned int from_rec, const char *delim);
     // void CloseFilePtrs(std::tuple<FILE *, char *, long, char *> &file_ptrs);
     long GetFileSize(FILE *file_ptr);
 
     void SetBatchSize(unsigned int batch_size);
+    void SetVerbosity(bool verbose);
     unsigned int GetBatchSize(void);
     arrow::Status FinishOutputStream();
     arrow::Status WriteBatch2File();

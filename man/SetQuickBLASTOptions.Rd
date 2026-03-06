@@ -7,7 +7,7 @@
 SetQuickBLASTOptions(ptr, program_name, options)
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST Instance}
+\item{ptr}{(Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance}
 
 \item{program_name}{(string) Name of the BLAST program}
 
@@ -18,6 +18,12 @@ SetQuickBLASTOptions(ptr, program_name, options)
 }
 \description{
 Set/Modify the BLAST options for a QuickBLAST instance.
+}
+\examples{
+\dontrun{
+blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "tblastn", save_sequences = F, save_hsp_sequences = F)
+QuickBLAST::SetQuickBLASTOptions(blastp_inst, "blastp", "-evalue 1")
+}
 }
 \seealso{
 [QuickBLAST::GetAvailableBLASTOptions()], [QuickBLAST::GetQuickBLASTEnums()]

@@ -10,7 +10,11 @@ RemoteBLAST(
   query_input,
   input_type,
   outFile = NULL,
-  return_values = TRUE
+  outFormat = NULL,
+  return_values = TRUE,
+  max_poll_seconds = 360L,
+  poll_interval_ms = 4000L,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -24,7 +28,15 @@ RemoteBLAST(
 
 \item{outFile}{(string) Output file name (Optional)}
 
+\item{outFormat}{(string) Format of Output File (Required for outFile) (Default: 'parquet')}
+
 \item{return_values}{(bool) Return BLAST Hits as Rcpp::List (Default: TRUE) (Optional)}
+
+\item{max_poll_seconds}{(int) Max seconds to wait for RemoteBLAST (Default: 360) (Optional)}
+
+\item{poll_interval_ms}{(int) Milliseconds wait-time between polling RemoteBLAST service (Default(4s): 4000) (Optional)}
+
+\item{verbose}{(bool) Verbosity (Default: TRUE).}
 
 \item{num_threads}{(unsigned int) Number of threads. (Optional)}
 }
@@ -36,6 +48,12 @@ BLAST the input query against remote NCBI DBs (one sequence at a time - to respe
 }
 \note{
 Check (BLAST Guide)[https://blast.ncbi.nlm.nih.gov/BLAST_guide.pdf] and (NCBI BLAST)[https://blast.ncbi.nlm.nih.gov/Blast.cgi] (Program -> Choose DB/Search set) for database names.
+}
+\examples{
+\dontrun{
+blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
+QuickBLAST::RemoteBLAST(blastp_inst, query_input="MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", database= "pdb", input_type=1, return_values=T)
+}
 }
 \seealso{
 [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]

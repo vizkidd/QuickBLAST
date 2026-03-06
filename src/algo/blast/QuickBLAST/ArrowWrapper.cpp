@@ -208,17 +208,18 @@ ArrowWrapper::Impl::Impl()
     // // Rprintf("DBG4 AW \n");
     // std::cout <<"DBG4 AW " << std::endl;
     std::cout << std::flush;
-  }catch(const Rcpp::exception &e){
-    Rcpp::stop(std::string("ArrowWrapper::Impl(): Rcpp Exception : ") + e.what());
-  }
-  catch(const std::exception &e){
-    Rcpp::stop(std::string("ArrowWrapper::Impl(): C++ Exception : ") + e.what());
   }
   catch(const std::runtime_error &e){
-    Rcpp::stop(std::string("ArrowWrapper::Impl(): C++ Runtime Error : ") + e.what());
+    Rcpp::Rcerr << std::string("[ArrowWrapper::Impl()]: C++ Runtime Error : ") + e.what() << std::endl << std::flush;
+  }
+  catch(const Rcpp::exception &e){
+    Rcpp::Rcerr << std::string("[ArrowWrapper::Impl()]: Rcpp Exception : ") + e.what() << std::endl << std::flush;
+  }
+  catch(const std::exception &e){
+    Rcpp::Rcerr << std::string("[ArrowWrapper::Impl()]: C++ Exception : ") + e.what() << std::endl << std::flush;
   }
   catch(...){
-    Rcpp::stop( "ArrowWrapper::Impl(): Unknown Exception" );
+    Rcpp::Rcerr << "[ArrowWrapper::Impl()]: Unknown Exception"  << std::endl << std::flush;
   }
 }
 
@@ -256,6 +257,15 @@ void ArrowWrapper::Impl::SetBatchSize(unsigned int batch_size)
 void ArrowWrapper::SetBatchSize(unsigned int batch_size)
 {
   pImpl->SetBatchSize(batch_size);
+}
+
+void ArrowWrapper::Impl::SetVerbosity(bool verbose)
+{
+  this->verbose = verbose;
+}
+void ArrowWrapper::SetVerbosity(bool verbose)
+{
+  pImpl->SetVerbosity(verbose);
 }
 
 unsigned int ArrowWrapper::Impl::GetBatchSize()
@@ -718,35 +728,32 @@ arrow::Status ArrowWrapper::Impl::AddRB2Batch(std::shared_ptr<arrow::RecordBatch
                 writer_writing.store(false, std::memory_order_release);
                 // rbv_not_full.notify_one();
                 // rbv_not_full.notify_all();
+              }catch(const std::runtime_error &e){
+                // Rcpp::stop(std::string("thread::WriteBatch2File(): C++ Runtime Exception : ") + e.what());
+                {
+                  std::lock_guard<std::mutex> lk(writer_error_mtx);
+                  writer_error_msg = std::string("[thread::WriteBatch2File()]: C++ Runtime Exception : ") + e.what();
+                }
+                writer_failed.store(true, std::memory_order_release);
               }catch(const Rcpp::exception &e){
                 // Rcpp::stop(std::string("thread::WriteBatch2File(): Rcpp Exception : ") + e.what());
                 {
                   std::lock_guard<std::mutex> lk(writer_error_mtx);
-                  writer_error_msg = std::string("thread::WriteBatch2File(): Rcpp Exception : ") + e.what();
+                  writer_error_msg = std::string("[thread::WriteBatch2File()]: Rcpp Exception : ") + e.what();
                 }
                 writer_failed.store(true, std::memory_order_release);
-              }
-              catch(const std::exception &e){
+              }catch(const std::exception &e){
                 // Rcpp::stop(std::string("thread::WriteBatch2File(): C++ Exception : ") + e.what());
                 {
                   std::lock_guard<std::mutex> lk(writer_error_mtx);
-                  writer_error_msg = std::string("thread::WriteBatch2File(): C++ Exception : ") + e.what();
+                  writer_error_msg = std::string("[thread::WriteBatch2File()]: C++ Exception : ") + e.what();
                 }
                 writer_failed.store(true, std::memory_order_release);
-              }
-              catch(const std::runtime_error &e){
-                // Rcpp::stop(std::string("thread::WriteBatch2File(): C++ Runtime Exception : ") + e.what());
-                {
-                  std::lock_guard<std::mutex> lk(writer_error_mtx);
-                  writer_error_msg = std::string("thread::WriteBatch2File(): C++ Runtime Exception : ") + e.what();
-                }
-                writer_failed.store(true, std::memory_order_release);
-              }
-              catch(...){
+              }catch(...){
                 // Rcpp::stop("thread::WriteBatch2File(): Unknown Exception");
                 {
                   std::lock_guard<std::mutex> lk(writer_error_mtx);
-                  writer_error_msg = "thread::WriteBatch2File(): Unknown Exception";
+                  writer_error_msg = "[thread::WriteBatch2File()]: Unknown Exception";
                 }
                 writer_failed.store(true, std::memory_order_release);
               }
@@ -790,18 +797,17 @@ arrow::Status ArrowWrapper::Impl::AddRB2Batch(std::shared_ptr<arrow::RecordBatch
     
     return arrow::Status::OK();
     //return error_sts; //arrow::Result<std::shared_ptr<arrow::RecordBatch>>(error_sts);
+  }catch(const std::runtime_error &e){
+    Rcpp::Rcerr << std::string("[AddRB2Batch()]: C++ Runtime Exception : ") + e.what() << std::endl << std::flush;
   }catch(const Rcpp::exception &e){
-    Rcpp::stop(std::string("AddRB2Batch(): Rcpp Exception : ") + e.what());
-  }
-  catch(const std::exception &e){
-    Rcpp::stop(std::string("AddRB2Batch(): C++ Exception : ") + e.what() );
-  }
-  catch(const std::runtime_error &e){
-    Rcpp::stop(std::string("AddRB2Batch(): C++ Runtime Exception : ") + e.what() );
+    Rcpp::Rcerr << std::string("[AddRB2Batch()]: Rcpp Exception : ") + e.what() << std::endl << std::flush;
+  }catch(const std::exception &e){
+    Rcpp::Rcerr << std::string("[AddRB2Batch()]: C++ Exception : ") + e.what() << std::endl << std::flush;
   }
   catch(...){
-    Rcpp::stop("AddRB2Batch(): Unknown Exception");
+    Rcpp::Rcerr << "[AddRB2Batch()]: Unknown Exception" << std::endl << std::flush;
   }
+  return arrow::Status::Invalid("[AddRB2Batch()]: Caught an Exception.");
 }
 // arrow::Result<std::shared_ptr<arrow::RecordBatch>> ArrowWrapper::AddRB2Batch(std::shared_ptr<arrow::RecordBatch> rb_)
 arrow::Status ArrowWrapper::AddRB2Batch(std::shared_ptr<arrow::RecordBatch> rb_)
@@ -992,9 +998,10 @@ arrow::Status ArrowWrapper::Impl::CreateOutputStream(std::string &outFile, const
     }else{
       save2file = true;
       output_filename = outFile;
-      std::cout << "Writing to : " << output_filename << std::endl << std::flush; //DEBUG
-      std::cout << "Output Format : " << output_format << std::endl << std::flush; //DEBUG
-    
+      if(verbose){
+        Rcpp::Rcout << "Writing to : " << output_filename << std::endl << std::flush; //DEBUG
+        Rcpp::Rcout << "Output Format : " << output_format << std::endl << std::flush; //DEBUG
+      }
       // // writer_loop() CODE
       writer_running.store(true);
       writer_writing.store(false);
@@ -1109,31 +1116,28 @@ arrow::Status ArrowWrapper::Impl::CreateOutputStream(std::string &outFile, const
           // finishing_cond.notify_all();
           writer_finishing.store(true, std::memory_order_release);
           finishing_cond.notify_all();
-        } catch(const Rcpp::exception &e){
-          // throw std::runtime_error(std::string("finisher_thread(): Rcpp Exception : ") + e.what());
-          {
-            std::lock_guard<std::mutex> lk(writer_error_mtx);
-            writer_error_msg = std::string("finisher_thread(): Rcpp Exception : ") + e.what();
-          }
-          writer_failed.store(true, std::memory_order_release);
-        }
-        catch(const std::exception &e){
-          // throw std::runtime_error(std::string("finisher_thread(): C++ Exception : ") + e.what());
-          {
-            std::lock_guard<std::mutex> lk(writer_error_mtx);
-            writer_error_msg = std::string("finisher_thread(): C++ Exception : ") + e.what();
-          }
-          writer_failed.store(true, std::memory_order_release);
-        }
-        catch(const std::runtime_error &e){
+        }catch(const std::runtime_error &e){
           // throw std::runtime_error(std::string("finisher_thread(): C++ Runtime Error : ") + e.what());
           {
             std::lock_guard<std::mutex> lk(writer_error_mtx);
             writer_error_msg = std::string("finisher_thread(): C++ Runtime Error : ") + e.what();
           }
           writer_failed.store(true, std::memory_order_release);
-        }
-        catch(...){
+        }catch(const Rcpp::exception &e){
+          // throw std::runtime_error(std::string("finisher_thread(): Rcpp Exception : ") + e.what());
+          {
+            std::lock_guard<std::mutex> lk(writer_error_mtx);
+            writer_error_msg = std::string("finisher_thread(): Rcpp Exception : ") + e.what();
+          }
+          writer_failed.store(true, std::memory_order_release);
+        }catch(const std::exception &e){
+          // throw std::runtime_error(std::string("finisher_thread(): C++ Exception : ") + e.what());
+          {
+            std::lock_guard<std::mutex> lk(writer_error_mtx);
+            writer_error_msg = std::string("finisher_thread(): C++ Exception : ") + e.what();
+          }
+          writer_failed.store(true, std::memory_order_release);
+        }catch(...){
           // throw std::runtime_error("finisher_thread(): Unknown Exception");
           {
             std::lock_guard<std::mutex> lk(writer_error_mtx);
@@ -1188,17 +1192,18 @@ arrow::Status ArrowWrapper::Impl::CreateOutputStream(std::string &outFile, const
       
     }
   
+  }catch(const std::runtime_error &e){
+    Rcpp::Rcerr << std::string("[CreateOutputStream()]: C++ Runtime Error : ") + e.what() << std::endl << std::flush;
+    return arrow::Status::Invalid("[AddRB2Batch()]: Caught an Exception.");
   }catch(const Rcpp::exception &e){
-    Rcpp::stop(std::string("CreateOutputStream(): Rcpp Exception : ") + e.what());
-  }
-  catch(const std::exception &e){
-    Rcpp::stop(std::string("CreateOutputStream(): C++ Exception : ") + e.what());
-  }
-  catch(const std::runtime_error &e){
-    Rcpp::stop(std::string("CreateOutputStream(): C++ Runtime Error : ") + e.what());
-  }
-  catch(...){
-    Rcpp::stop("CreateOutputStream(): Unknown Exception");
+    Rcpp::Rcerr << std::string("[CreateOutputStream()]: Rcpp Exception : ") + e.what() << std::endl << std::flush;
+    return arrow::Status::Invalid("[AddRB2Batch()]: Caught an Exception.");
+  }catch(const std::exception &e){
+    Rcpp::Rcerr << std::string("[CreateOutputStream()]: C++ Exception : ") + e.what() << std::endl << std::flush;
+    return arrow::Status::Invalid("[AddRB2Batch()]: Caught an Exception.");
+  }catch(...){
+    Rcpp::Rcerr << "[CreateOutputStream()]: Unknown Exception" << std::endl << std::flush;
+    return arrow::Status::Invalid("[AddRB2Batch()]: Caught an Exception.");
   }
   return arrow::Status::OK();
 }
@@ -1497,12 +1502,16 @@ std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> ArrowWr
   
   // Quick encoding checks:
   if (has_utf8_bom(file_start, file_end)) {
-    std::cout << "Detected UTF-8 BOM; skipping BOM bytes." << std::endl << std::flush;
+    if(verbose){
+      Rcpp::Rcout << "Detected UTF-8 BOM; skipping BOM bytes." << std::endl << std::flush;
+    }
     file_start += 3; // skip BOM for parsing
   } else if (has_utf16le_bom(file_start, file_end) || has_utf16be_bom(file_start, file_end) ||
     looks_like_utf16(file_start, file_end)) {
     // UTF-16: do NOT try to parse as ASCII. Convert the file to UTF-8 (iconv/boost/ICU) or fail.
-    std::cerr << "Detected UTF-16 (or many NULs) - convert file to UTF-8 before processing." << std::endl << std::flush;
+    if(verbose){
+      Rcpp::Rcerr << "Detected UTF-16 (or many NULs) - convert file to UTF-8 before processing." << std::endl << std::flush;
+    }
     // You can either call a converter here (iconv) or bail out.
     // return error / throw / log for the caller.
   }
@@ -1548,21 +1557,21 @@ long ArrowWrapper::Impl::GetFileSize(FILE *file_ptr)
 }
 
 
-FastaSequenceData ArrowWrapper::FetchRecordByFilePtr(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, const char *delim){
-  return pImpl->FetchRecordByFilePtr(file_ptr, delim);
-}
+// FastaSequenceData ArrowWrapper::FetchRecordByFilePtr(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, const char *delim){
+//   return pImpl->FetchRecordByFilePtr(file_ptr, delim);
+// }
+// 
+// FastaSequenceData ArrowWrapper::Impl::FetchRecordByFilePtr(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, const char *delim){
+//   //Fetches the first record from the pointer 
+// }
 
-FastaSequenceData ArrowWrapper::Impl::FetchRecordByFilePtr(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, const char *delim){
-  //Fetches the first record from the pointer 
-}
-
-FastaSequenceData ArrowWrapper::FetchRecordByNum(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, unsigned int rec_no, const char *delim){
-  return pImpl->FetchRecordByNum(file_ptr, rec_no, delim);
-}
-
-FastaSequenceData ArrowWrapper::Impl::FetchRecordByNum(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, unsigned int rec_no, const char *delim){
-  //Fetches the first record from the pointer (file start)
-}
+// FastaSequenceData ArrowWrapper::FetchRecordByNum(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, unsigned int rec_no, const char *delim){
+//   return pImpl->FetchRecordByNum(file_ptr, rec_no, delim);
+// }
+// 
+// FastaSequenceData ArrowWrapper::Impl::FetchRecordByNum(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, unsigned int rec_no, const char *delim){
+//   //Fetches the first record from the pointer (file start)
+// }
 
 std::shared_ptr<std::list<FastaSequenceData>> ArrowWrapper::FetchRecordByBatch(const std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> &file_ptr, unsigned int batch_size, unsigned int from_rec, const char *delim){
   return pImpl->FetchRecordByBatch(file_ptr, batch_size, from_rec, delim);
@@ -1853,7 +1862,8 @@ arrow::Status ArrowWrapper::Impl::FinishOutputStream()
   #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
     omp_unset_lock(&rbv_batchLock);
   #endif
-    std::cout << "Done writing to file." << std::endl <<std::flush; //DEBUG
+    if(verbose)
+      std::cout << "Done writing to file." << std::endl <<std::flush; //DEBUG
 
     if(outFileStream)
       ARROW_RETURN_NOT_OK(outFileStream->Flush());
@@ -1906,25 +1916,26 @@ arrow::Status ArrowWrapper::Impl::FinishOutputStream()
       {
         arrow::Status st2 = outFileStream->Close();
         if (!st2.ok()) {
-          throw std::runtime_error(std::string("FinishOutputStream(): Error closing outFileStream: ") + st2.ToString());
+          throw std::runtime_error(std::string("[FinishOutputStream()]: Error closing outFileStream: ") + st2.ToString());
         }
       }
       outFileStream.reset();
     }
     // writer_writing.store(false);
     return arrow::Status::OK();
-  }
-  catch(const Rcpp::exception &e){
-    Rcpp::stop(std::string("FinishOutputStream(): Rcpp Exception : ") + e.what());
+  }catch(const std::runtime_error &e){
+    Rcpp::Rcerr << std::string("[FinishOutputStream()]: C++ Runtime Error : ") + e.what() << std::endl << std::flush;
+    return arrow::Status::Invalid("[FinishOutputStream()]: Caught an Exception.");
+  }catch(const Rcpp::exception &e){
+    Rcpp::Rcerr << std::string("[FinishOutputStream()]: Rcpp Exception : ") + e.what() << std::endl << std::flush;
+    return arrow::Status::Invalid("[FinishOutputStream()]: Caught an Exception.");
   }
   catch(const std::exception &e){
-    Rcpp::stop(std::string("FinishOutputStream(): C++ Exception : ") + e.what());
-  }
-  catch(const std::runtime_error &e){
-    Rcpp::stop(std::string("FinishOutputStream(): C++ Runtime Error : ") + e.what());
-  }
-  catch(...){
-    Rcpp::stop("FinishOutputStream(): Unknown Exception");
+    Rcpp::Rcerr << std::string("[FinishOutputStream()]: C++ Exception : ") + e.what() << std::endl << std::flush;
+    return arrow::Status::Invalid("[FinishOutputStream()]: Caught an Exception.");
+  }catch(...){
+    Rcpp::Rcerr << "[FinishOutputStream()]: Unknown Exception" << std::endl << std::flush;
+    return arrow::Status::Invalid("[FinishOutputStream()]: Caught an Exception.");
   }
   // std::thread fin_thread([this]()
   //                        {
@@ -2220,7 +2231,7 @@ arrow::Status ArrowWrapper::Impl::WriteBatch2File()
                   omp_set_lock(&rec_writerLock);
     #endif
                   arrow::Status sts = rec_writer->WriteRecordBatch(*rb);
-                  outFileStream->Flush();
+                  static_cast<void>(outFileStream->Flush());
     #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
                   omp_unset_lock(&rec_writerLock);
     #endif
@@ -2281,7 +2292,7 @@ arrow::Status ArrowWrapper::Impl::WriteBatch2File()
               writer_error_msg = std::string("WriteBatch2File(): Error writing table to file (Parquet): ") + st1.message() + std::string(" : ") + st1.detail()->ToString();
             }
             writer_failed.store(true, std::memory_order_release);
-            std::cerr << writer_error_msg << std::endl << std::flush; //DEBUG
+            Rcpp::Rcerr << writer_error_msg << std::endl << std::flush; //DEBUG
             // throw std::runtime_error(std::string("WriteBatch2File(): Error writing table to file (Parquet): ") + st1.message() + std::string(" : ") + st1.detail()->ToString());
             break;
           }
@@ -2344,32 +2355,28 @@ arrow::Status ArrowWrapper::Impl::WriteBatch2File()
     finishing_cond.notify_all();
       
   return arrow::Status::OK();
-  }
-  catch(const Rcpp::exception &e){
-    // Rcpp::stop(std::string("WriteBatch2File() - Rcpp Exception : ") + e.what());
-    {
-      std::lock_guard<std::mutex> lk(writer_error_mtx);
-      writer_error_msg = std::string("WriteBatch2File() - Rcpp Exception : ") + e.what();
-    }
-    writer_failed.store(true, std::memory_order_release);
-  }
-  catch(const std::exception &e){
-    // Rcpp::stop(std::string("WriteBatch2File() - C++ Exception : ") + e.what());
-    {
-      std::lock_guard<std::mutex> lk(writer_error_mtx);
-      writer_error_msg = std::string("WriteBatch2File() - C++ Exception : ") + e.what();
-    }
-    writer_failed.store(true, std::memory_order_release);
-  }
-  catch(const std::runtime_error &e){
+  }catch(const std::runtime_error &e){
     // Rcpp::stop(std::string("WriteBatch2File(): C++ Runtime Error : ") + e.what());
     {
       std::lock_guard<std::mutex> lk(writer_error_mtx);
       writer_error_msg = std::string("WriteBatch2File(): C++ Runtime Error : ") + e.what();
     }
     writer_failed.store(true, std::memory_order_release);
-  }
-  catch(...){
+  }catch(const Rcpp::exception &e){
+    // Rcpp::stop(std::string("WriteBatch2File() - Rcpp Exception : ") + e.what());
+    {
+      std::lock_guard<std::mutex> lk(writer_error_mtx);
+      writer_error_msg = std::string("WriteBatch2File() - Rcpp Exception : ") + e.what();
+    }
+    writer_failed.store(true, std::memory_order_release);
+  }catch(const std::exception &e){
+    // Rcpp::stop(std::string("WriteBatch2File() - C++ Exception : ") + e.what());
+    {
+      std::lock_guard<std::mutex> lk(writer_error_mtx);
+      writer_error_msg = std::string("WriteBatch2File() - C++ Exception : ") + e.what();
+    }
+    writer_failed.store(true, std::memory_order_release);
+  }catch(...){
     // Rcpp::stop( "WriteBatch2File() - Unknown Exception" );
     {
       std::lock_guard<std::mutex> lk(writer_error_mtx);
@@ -3128,15 +3135,18 @@ std::shared_ptr<arrow::RecordBatchVector> ArrowWrapper::Impl::SplitFilesIntoEntr
 
   
   return std::make_shared<arrow::RecordBatchVector>(ret_results);
-}
-  catch (const std::exception &e) {
-    Rcpp::stop(std::string("SplitFilesIntoEntries() - C++ exception : ") + e.what());
-  }
-  catch(const Rcpp::exception &e){
-    Rcpp::stop(std::string("SplitFilesIntoEntries() - Rcpp Exception : ") + e.what());
-  }
-  catch (...) {
-    Rcpp::stop("SplitFilesIntoEntries(): Unknown exception");
+  }catch(const std::runtime_error &e){
+    Rcpp::Rcerr << std::string("[SplitFilesIntoEntries()] - C++ Runtime Exception : ") + e.what() << std::endl << std::flush;
+    return std::make_shared<arrow::RecordBatchVector>();
+  }catch(const Rcpp::exception &e){
+    Rcpp::Rcerr << std::string("[SplitFilesIntoEntries()] - Rcpp Exception : ") + e.what() << std::endl << std::flush;
+    return std::make_shared<arrow::RecordBatchVector>();
+  }catch (const std::exception &e) {
+    Rcpp::Rcerr << std::string("[SplitFilesIntoEntries()] - C++ exception : ") + e.what() << std::endl << std::flush;
+    return std::make_shared<arrow::RecordBatchVector>();
+  }catch (...) {
+    Rcpp::Rcerr << "[SplitFilesIntoEntries()]: Unknown exception" << std::endl << std::flush;
+    return std::make_shared<arrow::RecordBatchVector>();
   }
 }
 std::shared_ptr<arrow::RecordBatchVector> ArrowWrapper::SplitFilesIntoEntries(const std::string_view &filename, const char *delim, const int &num_threads, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<FastaSequenceData>)> &Entry_callback, bool return_values)
