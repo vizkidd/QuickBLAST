@@ -7,16 +7,14 @@
 all2all(
   first_list,
   second_list,
-  input_type,
-  seq_info,
+  blast_fun,
+  seq_type,
+  strand,
   blast_program,
   file_ext = ".fa",
-  blast_options = "",
-  output_dir = "./",
   input_prefix_path = NULL,
-  blast.sequence.limit = 1000,
-  n_threads = 8,
-  verbose = T
+  output_dir = "./",
+  ...
 )
 }
 \arguments{
@@ -24,32 +22,64 @@ all2all(
 
 \item{second_list}{Vector of FASTA Filenames or Strings}
 
-\item{input_type}{(integer) 0 for Files, 1 for Sequences - QuickBLAST::GetQuickBLASTEnums()$EInputType}
+\item{blast_fun}{One of QuickBLAST::BLAST2Seqs, QuickBLAST::BLAST2Files, QuickBLAST::BLAST2Folders, QuickBLAST::BLAST2DBs}
 
-\item{seq_info}{Ordered List of 1) (int) Sequence Type, 2) (int) Strand (bool), 3) Save Sequences in BLAST Hits? : TRUE - BLAST Hits have sequences, FALSE - FASTA sequences are not stored in BLAST Hits. Check QuickBLAST::GetQuickBLASTEnums() for available enums}
+\item{seq_type}{(int) Sequence Type. Check QuickBLAST::GetQuickBLASTEnums()$ESeqType for available enums.}
 
-\item{blast_program}{Give the name of the BLAST program to use (if in $PATH) or give the absolute path to the BLAST program. Default is tempdir(). Can also be NULL}
+\item{strand}{(int) Strand. Check QuickBLAST::GetQuickBLASTEnums()$EStrand for available enums.}
 
-\item{file_ext}{(Optional) File extension of input files. eg- ".cds" or ".fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString}
+\item{blast_program}{BLAST Program to use.}
 
-\item{blast_options}{Extra Options to be passed to the BLAST program}
-
-\item{output_dir}{Path to BLAST output}
+\item{file_ext}{File extension of input files. eg- ".cds" or ".fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString}
 
 \item{input_prefix_path}{If input lists/vectors are filenames, then provide input folder to prefix path}
 
-\item{blast.sequence.limit}{Maximum number of sequences allowed in each BLAST file. Default - 0. If the query FASTA sequences > blast.sequence.limit, the sequences are split into multiple files and BLASTed. Use 0 to not split & copy the files into temporary files}
+\item{output_dir}{Path to BLAST output}
 
-\item{n_threads}{Number of Threads}
+\item{...}{Extended options blast_options, save_sequences, save_hsp_sequences, return_values, min_batch_size, n_threads, out_format, extension, reciprocal_hits, verbose}
 
-\item{verbose}{Print Debug Messages?}
+\item{n_threads}{Number of threads. Default - 8}
+
+\item{save_sequences}{(bool) Save full sequences to result?}
+
+\item{save_hsp_sequences}{(bool) Save HSP sequences to result?}
+
+\item{return_values}{(bool) Return values back to R? (Only valid for QuickBLAST::BLAST2Seqs(),QuickBLAST::BLAST2Files() and QuickBLAST::BLAST2DBs())}
+
+\item{min_batch_size}{Minimum batch size. (Default:256)}
+
+\item{out_format}{Output format. ipc/csv/parquet (Default: "parquet")}
+
+\item{extension}{File extension. (Only for QuickBLAST::BLAST2Folders())}
+
+\item{reciprocal_hits}{(bool) Reciprocal (Bi-directional) Hits? (Only valid for QuickBLAST::BLAST2Folders())}
+
+\item{blast_options}{BLAST Options to use - QuickBLAST::GetAvailableBLASTOptions()}
+
+\item{verbose}{Print DEBUG Messages?}
 }
 \description{
 Executes All-to-All QuickBLAST between two lists of organisms/genes/clusters. Output BLAST files are bi-directional and are stored in the filename filename1.filename2.all2all under output_dir. (All-to-All is simply Many-to-Many association)
 }
 \examples{
 \dontrun{
-all2all("ungrouped.cds", "ungrouped.cds", seq_info = list(GetQuickBLASTEnums()$ESeqType$eNucleotide, GetQuickBLASTEnums()$EStrand$ePlus, F), file_ext = "fa", blast.sequence.limit = 200, input_type = GetQuickBLASTEnums()$EInputType$eFile, n_threads = 8, blast_program = "tblastx", output_dir = "./", blast_options = QuickBLAST::GetAvailableBLASTOptions(), verbose = T)
+QuickBLAST::all2all(
+  first_list="ungrouped.cds",
+  second_list="ungrouped.cds", 
+  blast_fun=QuickBLAST::BLAST2Files
+  seq_type = 0, 
+  strand=0,
+  output_dir = "./",
+  n_threads = 8,
+  blast_program = "tblastx",
+  save_sequences=F,
+  save_hsp_sequences=F,
+  return_values=T,
+  min_batch_size=256,
+  out_format="parquet",
+  blast_options="",
+  verbose = T
+ )
 }
 
 }

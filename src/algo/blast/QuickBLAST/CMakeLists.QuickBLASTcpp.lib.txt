@@ -82,23 +82,23 @@ find_library(PARQUET_LIB
 	)
 
 	message("R INC:" ${R_INC})
-	execute_process(
-    COMMAND Rscript -e "cat(system.file(package = 'Rcpp'))" ;
-    OUTPUT_VARIABLE RCPP_FOLDER
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
+	#execute_process(
+  #  COMMAND Rscript -e "cat(system.file(package = 'Rcpp'))" ;
+  #  OUTPUT_VARIABLE RCPP_FOLDER
+  #  OUTPUT_STRIP_TRAILING_WHITESPACE
+	#)
 	message("Rcpp :" ${RCPP_FOLDER})
-	execute_process(
-    COMMAND Rscript -e "cat(system.file(package = 'RcppProgress'))" ;
-    OUTPUT_VARIABLE RCPPPROG_FOLDER
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
+	#execute_process(
+  #  COMMAND Rscript -e "cat(system.file(package = 'RcppProgress'))" ;
+  #  OUTPUT_VARIABLE RCPPPROG_FOLDER
+  #  OUTPUT_STRIP_TRAILING_WHITESPACE
+	#)
 	message("RcppProgress :" ${RCPPPROG_FOLDER})
-  execute_process(
-    COMMAND Rscript -e "cat(system.file(package = 'RcppThread'))" ;
-    OUTPUT_VARIABLE RCPPTHREAD_FOLDER
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
+  #execute_process(
+  #  COMMAND Rscript -e "cat(system.file(package = 'RcppThread'))" ;
+  #  OUTPUT_VARIABLE RCPPTHREAD_FOLDER
+  #  OUTPUT_STRIP_TRAILING_WHITESPACE
+	#)
 	message("RcppThread :" ${RCPPTHREAD_FOLDER})
 
 
@@ -111,8 +111,8 @@ find_library(PARQUET_LIB
 		*.h
 		*.hpp
 	)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=gnu++20 -fdiagnostics-color=always -march=native -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=gnu2x -fdiagnostics-color=always -march=native -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TOOLKIT_CPPFLAGS} --std=gnu++20 -fdiagnostics-color=always -march=native -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLKIT_CPPFLAGS} --std=gnu2x -fdiagnostics-color=always -march=native -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
 	NCBI_add_include_directories(
 		"${RCPP_FOLDER}/include"
 		"${RCPPPROG_FOLDER}/include"
@@ -327,27 +327,27 @@ elseif(MINGW32)
 	)
 	message("R INC (SRC) : " ${R_INC_UNIX})
 
-	execute_process(
-    	COMMAND ${R_HOME}/bin/Rscript -e "cat(system.file(package = 'Rcpp'))" ;
-    	OUTPUT_VARIABLE RCPP_FOLDER
-    	OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
+	#execute_process(
+  #  	COMMAND ${R_HOME}/bin/Rscript -e "cat(system.file(package = 'Rcpp'))" ;
+  #  	OUTPUT_VARIABLE RCPP_FOLDER
+  #  	OUTPUT_STRIP_TRAILING_WHITESPACE
+	#)
 	cygpath_cmd(RCPP_FOLDER ${RCPP_FOLDER})
 	message("Rcpp : " ${RCPP_FOLDER})
 
-	execute_process(
-    	COMMAND ${R_HOME}/bin/Rscript -e "cat(system.file(package = 'RcppProgress'))" ;
-    	OUTPUT_VARIABLE RCPPPROG_FOLDER
-    	OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
+	#execute_process(
+  #  	COMMAND ${R_HOME}/bin/Rscript -e "cat(system.file(package = 'RcppProgress'))" ;
+  #  	OUTPUT_VARIABLE RCPPPROG_FOLDER
+  #  	OUTPUT_STRIP_TRAILING_WHITESPACE
+	#)
 	cygpath_cmd(RCPPPROG_FOLDER ${RCPPPROG_FOLDER})
 	message("RcppProgress : " ${RCPPPROG_FOLDER})
 	
-	execute_process(
-    	COMMAND ${R_HOME}/bin/Rscript -e "cat(system.file(package = 'RcppThread'))" ;
-    	OUTPUT_VARIABLE RCPPTHREAD_FOLDER
-    	OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
+	#execute_process(
+  #  	COMMAND ${R_HOME}/bin/Rscript -e "cat(system.file(package = 'RcppThread'))" ;
+  #  	OUTPUT_VARIABLE RCPPTHREAD_FOLDER
+  #  	OUTPUT_STRIP_TRAILING_WHITESPACE
+	#)
 	cygpath_cmd(RCPPTHREAD_FOLDER ${RCPPTHREAD_FOLDER})
 	message("RcppThread : " ${RCPPTHREAD_FOLDER})
 
@@ -400,10 +400,10 @@ elseif(MINGW32)
 		*.h
 		*.hpp
 	)
-#   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
-#   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
+#   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TOOLKIT_CPPFLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
+#   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLKIT_CPPFLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TOOLKIT_CPPFLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLKIT_CPPFLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
 	NCBI_add_include_directories(
 		"${R_INC_UNIX}"
 		"${R_INC}"

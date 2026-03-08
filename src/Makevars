@@ -1,12 +1,20 @@
 CXXSTD = CXX17
 
 #LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.8
+TOOLKIT_CPPFLAGS = "$(CLINK_CPPFLAGS) $(PKG_CPPFLAGS)"
+RCPP_FOLDER = $(shell $(R_HOME)/bin/Rscript -e "cat(system.file(package='Rcpp'))")
+RCPPPROG_FOLDER = $(shell $(R_HOME)/bin/Rscript -e "cat(system.file(package='RcppProgress'))")
+RCPPTHREAD_FOLDER = $(shell $(R_HOME)/bin/Rscript -e "cat(system.file(package='RcppThread'))")
 
-PKG_LIBS = -Wl,-rpath='$$ORIGIN' -L../BUILD/arrow/cpp/BUILD/release/ -L../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ -L../BUILD/arrow/cpp/BUILD/release/ -L/usr/local/lib/ -L/usr/lib/ -larrow -lparquet -lrt -lxncbi -lgeneral -lseqcode -lseq -lseqset -lseqsplit -lseqedit -lgenome_collection -lxobjmgr -lsequtil -lxutil -lxser -lscoremat -lxnetblast -lxconnect -lxobjutil -lbiblio -lmedline -lpub -lxlogging -lsubmit -lxobjread -lsqlitewrapp -llmdb -lseqdb -ltables -lconnect -lcomposition_adjustment -lutrtprof -lxnetblastcli -lblastdb -lseqmasks_io -lxalgowinmask -lxalgodustmask -lblast -lxalgoblastdbindex -lxblast -lxalnmgr -lxalgoalignutil -lQuickBLASTcpp `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` `$(R_HOME)/bin/Rscript -e "Rcpp:::LdFlags()"` $(SHLIB_OPENMP_CXXFLAGS) -O3 -fdiagnostics-color=always
+PKG_LIBS = -Wl,-rpath='$$ORIGIN' -L../BUILD/arrow/cpp/BUILD/release/ -L../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ -L../BUILD/arrow/cpp/BUILD/release/ -L/usr/local/lib/ -L/usr/lib/ -larrow -lparquet -lrt -lxncbi -lgeneral -lseqcode -lseq -lseqset -lseqsplit -lseqedit -lgenome_collection -lxobjmgr -lsequtil -lxutil -lxser -lscoremat -lxnetblast -lxconnect -lxobjutil -lbiblio -lmedline -lpub -lxlogging -lsubmit -lxobjread -lsqlitewrapp -llmdb -lseqdb -ltables -lconnect -lcomposition_adjustment -lutrtprof -lxnetblastcli -lblastdb -lseqmasks_io -lxalgowinmask -lxalgodustmask -lblast -lxalgoblastdbindex -lxblast -lxalnmgr -lxalgoalignutil -lQuickBLASTcpp $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) -O3 -fdiagnostics-color=always
+
+# `$(R_HOME)/bin/Rscript -e "cat(Rcpp:::RcppCxxFlags())"` `$(R_HOME)/bin/Rscript -e "cat(Rcpp:::LdFlags())"`
 
 #-fsanitize=undefined -fno-omit-frame-pointer -g -O1
 
-PKG_CXXFLAGS = -fdiagnostics-color=always -O3 -fPIC -Wextra -shared -Ilibsrc `$(R_HOME)/bin/Rscript -e "Rcpp:::CxxFlags()"` $(SHLIB_OPENMP_CXXFLAGS) -pthread -I/usr/local/src/ -I/usr/include/ -I../include/ -I../BUILD/arrow/cpp/src/ -I../BUILD/arrow/cpp/BUILD/src/ -I../BUILD/ncbi-cxx-toolkit-public/include/ -I../BUILD/ncbi-cxx-toolkit-public/src/ -I../BUILD/ncbi-cxx-toolkit-public/BUILD/inc/
+PKG_CXXFLAGS = -fdiagnostics-color=always -O3 -fPIC -Wextra -shared -Ilibsrc $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) -pthread -I/usr/local/src/ -I/usr/include/ -I../include/ -I../BUILD/arrow/cpp/src/ -I../BUILD/arrow/cpp/BUILD/src/ -I../BUILD/ncbi-cxx-toolkit-public/include/ -I../BUILD/ncbi-cxx-toolkit-public/src/ -I../BUILD/ncbi-cxx-toolkit-public/BUILD/inc/
+
+#`$(R_HOME)/bin/Rscript -e "cat(Rcpp:::RcppCxxFlags())"`
 
 #-D_GLIBCXX_DEBUG -fsanitize=undefined -fno-omit-frame-pointer -g -O1
 
@@ -35,7 +43,11 @@ builddeps:
 	-DBUILD_SHARED_LIBS:bool=OFF \
 	-DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON \
 	-DR_SHELL=1 \
-	-DRTOOLS_DIR=""; \
+	-DRTOOLS_DIR="" \
+	-DTOOLKIT_CPPFLAGS=$(TOOLKIT_CPPFLAGS) \
+	-DRCPP_FOLDER=$(RCPP_FOLDER) \
+	-DRCPPPROG_FOLDER=$(RCPPPROG_FOLDER) \
+	-DRCPPTHREAD_FOLDER=$(RCPPTHREAD_FOLDER); \
 	$(MAKE))
 	
 build_patchelf:

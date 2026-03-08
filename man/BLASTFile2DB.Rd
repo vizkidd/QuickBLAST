@@ -43,10 +43,48 @@ Calls makeblastdb to create a BLAST DB of subject if it is not a DB
 }
 \examples{
 \dontrun{
-blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-QuickBLAST::BLASTFile2DB(ptr=blastp_inst, query=system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), subject=system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), num_threads=24, out_file="test.db.arrow", return_values = T)
-QuickBLAST::MakeBLASTDB(blastp_inst, system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), "protein_subject.db")
-QuickBLAST::BLASTFile2DB(ptr=blastp_inst, query="protein_query.fasta", subject="protein_subject.db", num_threads=24, out_file="test.db.arrow", return_values = T)
+blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+  seq_type = 1,
+  strand = 0,
+  program = "blastp",
+  save_sequences = F,
+  save_hsp_sequences = F
+)
+QuickBLAST::BLASTFile2DB(
+  ptr=blastp_inst,
+  query=system.file(
+    "extdata","protein_query.fasta",
+    package = "QuickBLAST",
+    mustWork = T
+  ),
+  subject=system.file(
+    "extdata",
+    "protein_subject.fasta",
+    package = "QuickBLAST",
+    mustWork = T
+  ),
+  num_threads=24,
+  out_file="test.db.arrow",
+  return_values = T
+)
+QuickBLAST::MakeBLASTDB(
+  blastp_inst,
+  system.file(
+    "extdata",
+    "protein_subject.fasta",
+    package = "QuickBLAST",
+    mustWork = T
+  ),
+  "protein_subject.db"
+)
+QuickBLAST::BLASTFile2DB(
+  ptr=blastp_inst,
+  query="protein_query.fasta",
+  subject="protein_subject.db",
+  num_threads=24,
+  out_file="test.db.arrow",
+  return_values = T
+)
 }
 }
 \seealso{

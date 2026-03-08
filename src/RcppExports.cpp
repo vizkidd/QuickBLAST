@@ -234,8 +234,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // BLAST2DBs
-RcppExport SEXP BLAST2DBs(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, SEXP out_format, unsigned int num_threads, bool return_values, unsigned int min_batch_size);
-RcppExport SEXP _QuickBLAST_BLAST2DBs(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP, SEXP out_fileSEXP, SEXP out_formatSEXP, SEXP num_threadsSEXP, SEXP return_valuesSEXP, SEXP min_batch_sizeSEXP) {
+RcppExport SEXP BLAST2DBs(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, SEXP out_format, unsigned int num_threads, bool return_values, unsigned int min_batch_size, bool verbose);
+RcppExport SEXP _QuickBLAST_BLAST2DBs(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP, SEXP out_fileSEXP, SEXP out_formatSEXP, SEXP num_threadsSEXP, SEXP return_valuesSEXP, SEXP min_batch_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -247,7 +247,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< unsigned int >::type num_threads(num_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type return_values(return_valuesSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type min_batch_size(min_batch_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(BLAST2DBs(ptr, query, subject, out_file, out_format, num_threads, return_values, min_batch_size));
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(BLAST2DBs(ptr, query, subject, out_file, out_format, num_threads, return_values, min_batch_size, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -299,7 +300,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_QuickBLAST_RemoteBLAST", (DL_FUNC) &_QuickBLAST_RemoteBLAST, 10},
     {"_QuickBLAST_isBLASTDB", (DL_FUNC) &_QuickBLAST_isBLASTDB, 2},
     {"_QuickBLAST_MakeBLASTDB", (DL_FUNC) &_QuickBLAST_MakeBLASTDB, 4},
-    {"_QuickBLAST_BLAST2DBs", (DL_FUNC) &_QuickBLAST_BLAST2DBs, 8},
+    {"_QuickBLAST_BLAST2DBs", (DL_FUNC) &_QuickBLAST_BLAST2DBs, 9},
     {"_QuickBLAST_GetFASTAHeaders", (DL_FUNC) &_QuickBLAST_GetFASTAHeaders, 2},
     {"_QuickBLAST_BLASTFile2DB", (DL_FUNC) &_QuickBLAST_BLASTFile2DB, 8},
     {NULL, NULL, 0}

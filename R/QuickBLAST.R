@@ -1,9 +1,14 @@
 #' Globals
 
-.GetLibsPath <- function(file_name = ""){
-  libs_path <- file.path("libs", Sys.getenv("R_ARCH"), file_name)
-  return(system.file(libs_path, package = "QuickBLAST", mustWork = T))
-}
+# #' Get file path of file inside "libs" folder of package
+# #' 
+# #' @param file_name file_name inside "libs" folder
+# #' @return File path inside QuickBLAST package
+# #' @md
+# .GetLibsPath <- function(file_name = ""){
+#   libs_path <- file.path("libs", Sys.getenv("R_ARCH"), file_name)
+#   return(system.file(libs_path, package = "QuickBLAST", mustWork = T))
+# }
 
 # arrow_lfs <- arrow::LocalFileSystem$create()
 ## internal single-file-system getter for the package
@@ -34,7 +39,7 @@
 
 # #' Get an Instance of QuickBLAST class and its exposed methods
 # #' @note Check BLAST C++ Call in Help for the list of parameters for the exposed BLAST function. Exposed C++ function only takes BLAST options as string.
-# #' @seealso [QuickBLAST::CreateNewBLASTInstance()], [QuickBLAST::GetQuickBLASTEnums()]
+# #' @seealso [QuickBLAST::CreateQuickBLASTInstance()], [QuickBLAST::GetQuickBLASTEnums()]
 # #' @examples
 # #' \dontrun{
 # #' bw_obj <- QuickBLAST::GetQuickBLASTInstance(list(0, 0, FALSE), "blastn", "-evalue 1e-05")
@@ -150,7 +155,7 @@ LoadBLASTHits <- function(infile, sep = "\t", header = F, format = 'parquet') {
         # expand hsps which is another nested tibble
         tidyr::unnest(cols = c(hsps)) %>%
         # if any columns are still list-columns of length-1, unnest them:
-        tidyr::mutate(across(where(~ is.list(.) && all(lengths(.) == n())), ~ unlist(.))) %>%
+        dplyr::mutate(dplyr::across(dplyr::where(~ is.list(.) && all(lengths(.) == n())), ~ unlist(.))) %>%
         tidyr::as_tibble()
       
       # blast_results <- arrow::read_feather(file = infile, mmap = T)
@@ -172,27 +177,93 @@ LoadBLASTHits <- function(infile, sep = "\t", header = F, format = 'parquet') {
 #'
 #' @examples
 #' \dontrun{
-#' one2one("ungrouped.cds", "ungrouped.cds", seq_info = list(GetQuickBLASTEnums()$ESeqType$eNucleotide, GetQuickBLASTEnums()$EStrand$ePlus, F), file_ext = "fa", blast.sequence.limit = 200, input_type = GetQuickBLASTEnums()$EInputType$eFile, n_threads = 8, blast_program = "tblastx", output_dir = "./", blast_options = QuickBLAST::GetAvailableBLASTOptions(), verbose = T)
+#' QuickBLAST::one2one(
+#'  first_list="ungrouped.cds",
+#'  second_list="ungrouped.cds", 
+#'  blast_fun=QuickBLAST::BLAST2Files
+#'  seq_type = 0, 
+#'  strand=0,
+#'  output_dir = "./",
+#'  n_threads = 8,
+#'  blast_program = "tblastx",
+#'  save_sequences=F,
+#'  save_hsp_sequences=F,
+#'  return_values=F,
+#'  min_batch_size=256,
+#'  out_format="parquet",
+#'  blast_options="",
+#'  verbose = T
+#' )
 #' }
 #'
 #' @seealso [QuickBLAST::GetAvailableBLASTOptions()], [QuickBLAST::GetQuickBLASTEnums()]
 #' @param first_list Vector of FASTA Filenames or Strings
 #' @param second_list Vector of FASTA Filenames or Strings
-#' @param seq_info Ordered List of 1) (int) Sequence Type, 2) (int) Strand (bool), 3) Save Sequences in BLAST Hits? : TRUE - BLAST Hits have sequences, FALSE - FASTA sequences are not stored in BLAST Hits. Check QuickBLAST::GetQuickBLASTEnums() for available enums
+#' @param blast_fun One of QuickBLAST::BLAST2Seqs, QuickBLAST::BLAST2Files, QuickBLAST::BLAST2Folders, QuickBLAST::BLAST2DBs
+#' @param seq_type (int) Sequence Type. Check QuickBLAST::GetQuickBLASTEnums()$ESeqType for available enums.
+#' @param strand (int) Strand. Check QuickBLAST::GetQuickBLASTEnums()$EStrand for available enums.
 #' @param file_ext File extension of input files. eg- ".cds" or ".fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString
 #' @param blast_program Give the name of the BLAST program to use (if in $PATH) or give the absolute path to the BLAST program. Default is tempdir(). Can also be NULL
 #' @param output_dir Path to BLAST output
-#' @param blast.sequence.limit Maximum number of sequences to be BLASTed at a time, not used for Seqs
 #' @param n_threads Number of threads. Default - 8
-#' @param blast_program BLAST Program to use
+#' @param blast_program BLAST Program to use.
+#' @param save_sequences (bool) Save full sequences to result?
+#' @param save_hsp_sequences (bool) Save HSP sequences to result?
+#' @param return_values (bool) Return values back to R? (Only valid for QuickBLAST::BLAST2Seqs(),QuickBLAST::BLAST2Files() and QuickBLAST::BLAST2DBs())
+#' @param min_batch_size Minimum batch size. (Default:256)
+#' @param out_format Output format. ipc/csv/parquet (Default: "parquet")
+#' @param extension File extension. (Only for QuickBLAST::BLAST2Folders())
+#' @param reciprocal_hits (bool) Reciprocal (Bi-directional) Hits? (Only valid for QuickBLAST::BLAST2Folders())
 #' @param blast_options BLAST Options to use - QuickBLAST::GetAvailableBLASTOptions()
-#' @param input_type (integer) 0 for Files, 1 for Sequences - QuickBLAST::GetQuickBLASTEnums()
 #' @param input_prefix_path If input lists/vectors are filenames, then provide input folder to prefix path
-#' @param input_type (integer) 0 for Files, 1 for Sequences - QuickBLAST::GetQuickBLASTEnums()$EInputType
 #' @param verbose Print DEBUG Messages?
+#' @param ... Extended options blast_options, save_sequences, save_hsp_sequences, return_values, min_batch_size, n_threads, out_format, extension, reciprocal_hits, verbose
 #' @md
 #' @export
-one2one <- function(first_list, second_list, seq_info, file_ext = ".fa", input_prefix_path = NULL, blast.sequence.limit = 1000, input_type, n_threads, blast_program, output_dir = "./", blast_options, verbose = T) {
+one2one <- function(first_list, second_list, blast_fun, seq_type, strand, blast_program, file_ext = ".fa", input_prefix_path = NULL, output_dir = "./", ...) {
+  dot_args <- list(...)
+  blast_options <- ""
+  if("blast_options" %in% names(dot_args)){
+    blast_options <- dot_args$blast_options
+  }
+  save_sequences<- F
+  if("save_sequences" %in% names(dot_args)){
+    save_sequences <- dot_args$save_sequences
+  }
+  save_hsp_sequences <- T
+  if("save_hsp_sequences" %in% names(dot_args)){
+    save_hsp_sequences <- dot_args$save_hsp_sequences
+  }
+  return_values <- F
+  if("return_values" %in% names(dot_args)){
+    return_values <- dot_args$return_values
+  }
+  min_batch_size = 256
+  if("min_batch_size" %in% names(dot_args)){
+    min_batch_size <- dot_args$min_batch_size
+  }
+  n_threads=tryCatch(parallel::detectCores(all.tests = T, logical = T), error=function(cond){return(2)})
+  if("n_threads" %in% names(dot_args)){
+    n_threads <- dot_args$n_threads
+  }
+  out_format = "parquet"
+  if("out_format" %in% names(dot_args)){
+    out_format <- dot_args$out_format
+  }
+  extension <- ".fa"
+  if("extension" %in% names(dot_args)){
+    extension <- dot_args$extension
+  }
+  reciprocal_hits <- FALSE
+  if("reciprocal_hits" %in% names(dot_args)){
+    reciprocal_hits <- dot_args$reciprocal_hits
+  }
+  verbose = T
+  if("verbose" %in% names(dot_args)){
+    verbose <- dot_args$verbose
+  }
+  future::plan(future.callr::callr, workers = n_threads)
+  
   if (!is.null(input_prefix_path)) {
     first_list <- paste(input_prefix_path, "/", first_list, file_ext, sep = "")
     second_list <- paste(input_prefix_path, "/", second_list, file_ext, sep = "")
@@ -204,7 +275,8 @@ one2one <- function(first_list, second_list, seq_info, file_ext = ".fa", input_p
   list_combos <- unique(tidyr::crossing(first_list[order(first_list)], second_list[order(second_list)]))
 
   # return_data <- furrr::future_map2(.x=first_list[order(first_list)], .y=second_list[order(second_list)], .f=function(x,y){
-  parallel::mclapply(seq_along(1:nrow(list_combos)), function(idx) {
+  # parallel::mclapply(seq_along(1:nrow(list_combos)), function(idx) {
+  future.apply::future_lapply(seq_along(1:nrow(list_combos)), function(idx) {
     x <- toString(list_combos[idx, 1])
     y <- toString(list_combos[idx, 2])
     if (input_type == QuickBLAST::GetQuickBLASTEnums()$EInputType$eFile) {
@@ -218,19 +290,31 @@ one2one <- function(first_list, second_list, seq_info, file_ext = ".fa", input_p
       print(y)
     }
 
-    blast_ptr <- QuickBLAST::CreateNewBLASTInstance(seq_info = seq_info, program = blast_program, options = blast_options)
-
-    switch(input_type,
-      { # eFile
-        return(QuickBLAST::BLAST2Files(ptr = blast_ptr, query = x, subject = y, out_file = paste(output_dir, "/", basename(tools::file_path_sans_ext(x)), ".", basename(tools::file_path_sans_ext(y)), ".hits", sep = ""), seq_limit = blast.sequence.limit, show_progress = T, return_values = F, min_batch_size = 256, num_threads = n_threads))
-      },
-      { # eSequenceString
-        return(QuickBLAST::BLAST2Seqs(ptr = blast_ptr, query = x, subject = y))
-      },
-      { # eFolder
-      }
-    )
-  }, mc.cores = n_threads, mc.silent = !verbose)
+    blast_ptr <- QuickBLAST::CreateQuickBLASTInstance(seq_type = seq_type, strand = strand, program = blast_program, save_sequences = save_sequences, save_hsp_sequences=save_hsp_sequences, options = blast_options)
+    
+    # switch(input_type,
+    #   { # eFile
+    #     return(QuickBLAST::BLAST2Files(ptr = blast_ptr, query = x, subject = y, out_file = paste(output_dir, "/", basename(tools::file_path_sans_ext(x)), ".", basename(tools::file_path_sans_ext(y)), ".hits", sep = ""), out_format=out_format, return_values = return_values, min_batch_size = min_batch_size, num_threads = n_threads, verbose=verbose))
+    #   },
+    #   { # eSequenceString
+    #     return(QuickBLAST::BLAST2Seqs(ptr = blast_ptr, query = x, subject = y, verbose=verbose))
+    #   },
+    #   { # eFolder
+    #   }
+    # )
+    if(identical(blast_fun, QuickBLAST::BLAST2Files)){
+      return(blast_fun(ptr = blast_ptr, query = x, subject = y, out_file = paste(output_dir, "/", basename(tools::file_path_sans_ext(x)), ".", basename(tools::file_path_sans_ext(y)), ".hits", sep = ""), out_format=out_format, return_values = return_values, min_batch_size = min_batch_size, num_threads = n_threads, verbose=verbose))
+    }else if(identical(blast_fun, QuickBLAST::BLAST2Seqs)){
+      return(blast_fun(ptr = blast_ptr, query = x, subject = y, verbose=verbose))
+    }else if(identical(blast_fun, QuickBLAST::BLAST2Folders)){
+      return(blast_fun(ptr = blast_ptr, query = x, subject = y, extension=extension, out_folder = output_dir, out_format=out_format, reciprocal_hits = reciprocal_hits, min_batch_size = min_batch_size, num_threads = n_threads, verbose=verbose))
+    }else if(identical(blast_fun, QuickBLAST::BLAST2DBs)){
+      return(blast_fun(ptr = blast_ptr, query = x, subject = y, out_file = paste(output_dir, "/", basename(tools::file_path_sans_ext(x)), ".", basename(tools::file_path_sans_ext(y)), ".hits", sep = ""), out_format=out_format, return_values = return_values, min_batch_size = min_batch_size, num_threads = n_threads, verbose=verbose))
+    }else{
+      stop("[one2one()] blast_fun: Should be one of QuickBLAST::BLAST2Files|QuickBLAST::BLAST2Seqs|QuickBLAST::BLAST2Folders|QuickBLAST::BLAST2DBs")
+    }
+  })
+  # }, mc.cores = n_threads, mc.silent = !verbose)
 
   # return(return_data)
 }
@@ -242,47 +326,114 @@ one2one <- function(first_list, second_list, seq_info, file_ext = ".fa", input_p
 #'
 #' @examples
 #' \dontrun{
-#' all2all("ungrouped.cds", "ungrouped.cds", seq_info = list(GetQuickBLASTEnums()$ESeqType$eNucleotide, GetQuickBLASTEnums()$EStrand$ePlus, F), file_ext = "fa", blast.sequence.limit = 200, input_type = GetQuickBLASTEnums()$EInputType$eFile, n_threads = 8, blast_program = "tblastx", output_dir = "./", blast_options = QuickBLAST::GetAvailableBLASTOptions(), verbose = T)
+#' QuickBLAST::all2all(
+#'   first_list="ungrouped.cds",
+#'   second_list="ungrouped.cds", 
+#'   blast_fun=QuickBLAST::BLAST2Files
+#'   seq_type = 0, 
+#'   strand=0,
+#'   output_dir = "./",
+#'   n_threads = 8,
+#'   blast_program = "tblastx",
+#'   save_sequences=F,
+#'   save_hsp_sequences=F,
+#'   return_values=T,
+#'   min_batch_size=256,
+#'   out_format="parquet",
+#'   blast_options="",
+#'   verbose = T
+#'  )
 #' }
 #'
 #' @seealso [QuickBLAST::GetAvailableBLASTOptions()], [QuickBLAST::GetQuickBLASTEnums()]
 #' @param first_list Vector of FASTA Filenames or Strings
 #' @param second_list Vector of FASTA Filenames or Strings
-#' @param seq_info Ordered List of 1) (int) Sequence Type, 2) (int) Strand (bool), 3) Save Sequences in BLAST Hits? : TRUE - BLAST Hits have sequences, FALSE - FASTA sequences are not stored in BLAST Hits. Check QuickBLAST::GetQuickBLASTEnums() for available enums
-#' @param file_ext (Optional) File extension of input files. eg- ".cds" or ".fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString
+#' @param blast_fun One of QuickBLAST::BLAST2Seqs, QuickBLAST::BLAST2Files, QuickBLAST::BLAST2Folders, QuickBLAST::BLAST2DBs
+#' @param seq_type (int) Sequence Type. Check QuickBLAST::GetQuickBLASTEnums()$ESeqType for available enums.
+#' @param strand (int) Strand. Check QuickBLAST::GetQuickBLASTEnums()$EStrand for available enums.
+#' @param file_ext File extension of input files. eg- ".cds" or ".fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString
 #' @param blast_program Give the name of the BLAST program to use (if in $PATH) or give the absolute path to the BLAST program. Default is tempdir(). Can also be NULL
 #' @param output_dir Path to BLAST output
-#' @param blast_options Extra Options to be passed to the BLAST program
-#' @param input_type (integer) 0 for Files, 1 for Sequences - QuickBLAST::GetQuickBLASTEnums()$EInputType
+#' @param n_threads Number of threads. Default - 8
+#' @param blast_program BLAST Program to use.
+#' @param save_sequences (bool) Save full sequences to result?
+#' @param save_hsp_sequences (bool) Save HSP sequences to result?
+#' @param return_values (bool) Return values back to R? (Only valid for QuickBLAST::BLAST2Seqs(),QuickBLAST::BLAST2Files() and QuickBLAST::BLAST2DBs())
+#' @param min_batch_size Minimum batch size. (Default:256)
+#' @param out_format Output format. ipc/csv/parquet (Default: "parquet")
+#' @param extension File extension. (Only for QuickBLAST::BLAST2Folders())
+#' @param reciprocal_hits (bool) Reciprocal (Bi-directional) Hits? (Only valid for QuickBLAST::BLAST2Folders())
+#' @param blast_options BLAST Options to use - QuickBLAST::GetAvailableBLASTOptions()
 #' @param input_prefix_path If input lists/vectors are filenames, then provide input folder to prefix path
-#' @param blast.sequence.limit Maximum number of sequences allowed in each BLAST file. Default - 0. If the query FASTA sequences > blast.sequence.limit, the sequences are split into multiple files and BLASTed. Use 0 to not split & copy the files into temporary files
-#' @param n_threads Number of Threads
-#' @param verbose Print Debug Messages?
+#' @param verbose Print DEBUG Messages?
+#' @param ... Extended options blast_options, save_sequences, save_hsp_sequences, return_values, min_batch_size, n_threads, out_format, extension, reciprocal_hits, verbose
 #' @md
 #' @export
-all2all <- function(first_list, second_list, input_type, seq_info, blast_program, file_ext = ".fa", blast_options = "", output_dir = "./", input_prefix_path = NULL, blast.sequence.limit = 1000, n_threads = 8, verbose = T) {
-  if (verbose) {
+all2all <- function(first_list, second_list, blast_fun, seq_type, strand, blast_program, file_ext = ".fa", input_prefix_path = NULL, output_dir = "./", ...) {
+  dot_args <- list(...)
+  blast_options <- ""
+  if("blast_options" %in% names(dot_args)){
+    blast_options <- dot_args$blast_options
+  }
+  save_sequences<- F
+  if("save_sequences" %in% names(dot_args)){
+    save_sequences <- dot_args$save_sequences
+  }
+  save_hsp_sequences <- T
+  if("save_hsp_sequences" %in% names(dot_args)){
+    save_hsp_sequences <- dot_args$save_hsp_sequences
+  }
+  return_values <- F
+  if("return_values" %in% names(dot_args)){
+    return_values <- dot_args$return_values
+  }
+  min_batch_size = 256
+  if("min_batch_size" %in% names(dot_args)){
+    min_batch_size <- dot_args$min_batch_size
+  }
+  n_threads=tryCatch(parallel::detectCores(all.tests = T, logical = T), error=function(cond){return(2)})
+  if("n_threads" %in% names(dot_args)){
+    n_threads <- dot_args$n_threads
+  }
+  out_format = "parquet"
+  if("out_format" %in% names(dot_args)){
+    out_format <- dot_args$out_format
+  }
+  extension <- ".fa"
+  if("extension" %in% names(dot_args)){
+    extension <- dot_args$extension
+  }
+  reciprocal_hits <- FALSE
+  if("reciprocal_hits" %in% names(dot_args)){
+    reciprocal_hits <- dot_args$reciprocal_hits
+  }
+  verbose = T
+  if("verbose" %in% names(dot_args)){
+    verbose <- dot_args$verbose
+  }
+  if(verbose) {
     cat(paste("All2All QuickBLAST Started...", "\n", sep = ""))
     print(paste(first_list, collapse = ","))
     print(paste(second_list, collapse = ","))
   }
-
+  future::plan(future.callr::callr, workers = n_threads)
   dir.create(path = output_dir, recursive = T, showWarnings = F)
 
   list_combinations <- unique(tidyr::crossing(first_list, second_list))
   # furrr::future_map2(.x=list_combinations$first_list, .y=list_combinations$second_list, .f=function(first_set,second_set){
   parallel::mclapply(seq_along(1:nrow(list_combinations)), function(idx) {
+  # future.apply::future_lapply(seq_along(1:nrow(list_combinations)), function(idx) {
     first_set <- list_combinations[idx, 1]
     second_set <- list_combinations[idx, 2]
 
-    tryCatch(QuickBLAST::one2one(first_list = first_set, second_list = second_set, seq_info = seq_info, file_ext = file_ext, input_prefix_path = input_prefix_path, blast.sequence.limit = blast.sequence.limit, input_type = input_type, n_threads = n_threads, blast_program = blast_program, output_dir = output_dir, blast_options = blast_options, verbose = verbose),
+    tryCatch(QuickBLAST::one2one(first_list = first_set, second_list = second_set, blast_fun=blast_fun, seq_type = seq_type, strand=strand, file_ext = file_ext, input_prefix_path = input_prefix_path, reciprocal_hits=reciprocal_hits, n_threads = 1, blast_program = blast_program, output_dir = output_dir,   blast_options=blast_options, save_sequences=save_sequences, save_hsp_sequences=save_hsp_sequences, return_values=return_values, min_batch_size=min_batch_size, out_format=out_format, extension=extension, verbose=verbose),
       error = function(cond) {
         if (verbose) {
           message(cond)
         }
       }
     )
-    tryCatch(QuickBLAST::one2one(first_set, second_set, seq_info = seq_info, file_ext = file_ext, input_prefix_path = input_prefix_path, blast.sequence.limit = blast.sequence.limit, input_type = input_type, n_threads = n_threads, blast_program = blast_program, output_dir = output_dir, blast_options = blast_options, verbose = verbose),
+    tryCatch(QuickBLAST::one2one(first_list = first_set, second_list = second_set, blast_fun=blast_fun, seq_type = seq_type, strand=strand, file_ext = file_ext, input_prefix_path = input_prefix_path, reciprocal_hits=reciprocal_hits, n_threads = 1, blast_program = blast_program, output_dir = output_dir,   blast_options=blast_options, save_sequences=save_sequences, save_hsp_sequences=save_hsp_sequences, return_values=return_values, min_batch_size=min_batch_size, out_format=out_format, extension=extension, verbose=verbose),
       error = function(cond) {
         if (verbose) {
           message(cond)
@@ -292,31 +443,6 @@ all2all <- function(first_list, second_list, input_type, seq_info, blast_program
   }, mc.cores = n_threads, mc.preschedule = T)
 }
 
-# isQuickBLASTLoaded <- function() {
-#   .Call(QuickBLAST:::"libQB_isQuickBLASTLoaded")
-# }
-
-# R_dll_paths <- c(
-#   # list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=".dll", full.names = T),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"Riconv.dll"),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"R.dll"),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"Rgraphapp.dll"),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"Rblas.dll"),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"R.dll"),
-#   fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"Rlapack.dll")
-#   # fs::path_package("Rcpp","libs", Sys.getenv("R_ARCH"),"Rcpp.dll")
-#   # list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=".dll", full.names = T)
-#   # fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"),"Rcpp.dll")
-#   # fs::path_package("Rcpp","libs", Sys.getenv("R_ARCH"),"Rcpp.dll")
-# )
-
-# msys_dlls <- c("msys-bz2-1", "msys-lzo2-2", "msys-z", "msys-pcre-1", "msys-zstd-1", "msys-sqlite3-0", "msys-gomp-1", "msys-stdc++-6", "msys-gcc_s-seh-1", "msys-2.0")
-
-# msys_dll_paths <- c( fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH"), paste(msys_dlls, .Platform$dynlib.ext,sep="")) )
-
-# cat(list.files(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")),pattern = "*arrow.*dll", full.names = F))
-#"Riconv","R","Rgraphapp","Rblas","R","Rlapack"
-#"Riconv", "R", "Rgraphapp", "Rblas", "R", "Rlapack", 
 R_dlls <- c("Riconv", "R", "Rgraphapp", "Rblas", "R", "Rlapack")
 R_dll_paths <- paste0(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),.Platform$file.sep, R_dlls, .Platform$dynlib.ext)
 
@@ -333,11 +459,6 @@ dll_paths <- paste(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")), 
 dll_obj_list <-  list()
 
 .onLoad <- function(libname, pkgname) {
-  # # # Load the DLLs when the package is loaded
-  # require(arrow)
-  # require(Rcpp)
-  # require(RcppProgress)
-  # require(remotes)
   Sys.setenv("ARROW_DEFAULT_MEMORY_POOL"="jemalloc") #="system")
   Sys.setenv("ARROW_DEBUG_MEMORY_POOL"="warn")
   Sys.setenv("OMP_NUM_THREADS"=parallel::detectCores(all.tests = T, logical = T))
@@ -375,7 +496,8 @@ dll_obj_list <-  list()
   Sys.setenv("OMP_NUM_THREADS"=parallel::detectCores(all.tests = T, logical = T))
   Sys.setenv("OMP_DYNAMIC"="TRUE")
   Sys.setenv("OMP_WAIT_POLICY"="PASSIVE")
-  Sys.setenv("OMP_DISPLAY_ENV"="VERBOSE")
+  Sys.setenv("OMP_DISPLAY_ENV"="FALSE")
+  # Sys.setenv("OMP_DISPLAY_ENV"="VERBOSE")
   packageStartupMessage("QuickBLAST Loaded!")
   packageStartupMessage("Version: ", utils::packageVersion("QuickBLAST"))
 }
@@ -383,7 +505,6 @@ dll_obj_list <-  list()
 # .onUnload() function
 .onUnload <- function(libpath) {
   # # Unload the DLLs when the package is unloaded
-  # detach("package:QuickBLASTdeps", unload = TRUE)
   #msys_dll_paths
   packageStartupMessage("Unloading QuickBLAST...")
 
@@ -408,17 +529,6 @@ dll_obj_list <-  list()
 
 .onDetach <- function(libpath) {
   packageStartupMessage("Detaching QuickBLAST...")
-  # rm(list = ls(envir = .GlobalEnv, pattern = "^QuickBLAST"))
-  
-  # for (dll_path in c(rev(c(dll_paths)))) {
-  #   if(is.loaded(dll_path)){
-  #     if (dyn.unload(dll_path)) {
-  #       packageStartupMessage(cat("Unloaded DLL:", dll_path, "\n"))
-  #     } else {
-  #       packageStartupMessage(cat("Failed to unload DLL:", dll_path, "\n"))
-  #     }
-  #   }
-  # }
 }
 
 LoadBLASTHits <- compiler::cmpfun(LoadBLASTHits)
@@ -446,5 +556,7 @@ GetInstanceCount <- compiler::cmpfun(GetInstanceCount)
 CreateQuickBLASTInstance <- compiler::cmpfun(CreateQuickBLASTInstance)
 RecordBatchVectorToFlattenedDFList <- compiler::cmpfun(RecordBatchVectorToFlattenedDFList)
 isQuickBLASTLoaded <- compiler::cmpfun(isQuickBLASTLoaded)
+
+
 
 NULL

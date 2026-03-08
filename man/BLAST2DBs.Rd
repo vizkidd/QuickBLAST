@@ -12,7 +12,8 @@ BLAST2DBs(
   out_format = NULL,
   num_threads = 0L,
   return_values = TRUE,
-  min_batch_size = 0L
+  min_batch_size = 0L,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ BLAST2DBs(
 \item{return_values}{(bool) Return BLAST Hits as Rcpp::List (Default: TRUE) (Optional)}
 
 \item{min_batch_size}{(unsigned int) Minimum batch size - Size of file write buffer (Optional).}
+
+\item{verbose}{(bool) Verbose? (Default: TRUE)}
 }
 \value{
 (SEXP) Rcpp::List - if return_values == TRUE, out_file - Otherwise.
@@ -40,13 +43,59 @@ Calls makeblastdb to create a BLAST DB of a FASTA file
 }
 \examples{
 \dontrun{
-blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-QuickBLAST::BLAST2DBs(ptr=blastp_inst, query=system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), subject=system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), num_threads=24, out_file="test.db.arrow", return_values = T)
-QuickBLAST::MakeBLASTDB(blastp_inst, system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), "protein_query.db")
-QuickBLAST::MakeBLASTDB(blastp_inst, system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), "protein_subject.db")
-QuickBLAST::BLAST2DBs(ptr=blastp_inst, query="protein_query.db", subject="protein_subject.db", num_threads=24, out_file="test.db.arrow", return_values = T)
-#tools::file_path_sans_ext(system.file("extdata","protein_query.db.pin", package = "QuickBLAST", mustWork = T))
-#tools::file_path_sans_ext(system.file("extdata","protein_subject.db.pin", package = "QuickBLAST", mustWork = T))
+blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+  seq_type = 1,
+  strand = 0,
+  program = "blastp",
+  save_sequences = F,
+  save_hsp_sequences = F
+)
+QuickBLAST::BLAST2DBs(
+  ptr=blastp_inst,
+  query=system.file(
+    "extdata",
+    "protein_query.fasta",
+    package = "QuickBLAST",
+    mustWork = T
+  ),
+  subject=system.file(
+    "extdata",
+    "protein_subject.fasta",
+    package = "QuickBLAST",
+    mustWork = T
+  ),
+  num_threads=24,
+  out_file="test.db.arrow",
+  return_values = T
+)
+QuickBLAST::MakeBLASTDB(
+  blastp_inst,
+  system.file(
+    "extdata",
+    "protein_query.fasta",
+    package = "QuickBLAST",
+    mustWork = T
+  ), 
+  "protein_query.db"
+)
+QuickBLAST::MakeBLASTDB(
+  blastp_inst,
+  system.file(
+    "extdata",
+    "protein_subject.fasta",
+    package = "QuickBLAST",
+    mustWork = T
+  ),
+  "protein_subject.db"
+)
+QuickBLAST::BLAST2DBs(
+  ptr=blastp_inst,
+  query="protein_query.db",
+  subject="protein_subject.db",
+  num_threads=24,
+  out_file="test.db.arrow",
+  return_values = T
+)
 }
 }
 \seealso{

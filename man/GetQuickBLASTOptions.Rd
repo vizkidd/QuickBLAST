@@ -17,8 +17,16 @@ Get the BLAST options for a QuickBLAST instance.
 }
 \examples{
 \dontrun{
-blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "tblastn", save_sequences = F, save_hsp_sequences = F)
-QuickBLAST::GetQuickBLASTOptions(blastp_inst)
+blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+  seq_type = 1,
+  strand = 0,
+  program = "tblastn",
+  save_sequences = F,
+  save_hsp_sequences = F
+)
+QuickBLAST::GetQuickBLASTOptions(
+  blastp_inst
+)
 }
 }
 \seealso{

@@ -77,7 +77,13 @@ RecordBatchVectorToFlattenedDFList <- function(rbv_sexp) {
 #' @return (Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST Instance (Cannot be used in R)
 #' @examples
 #' \dontrun{
-#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
+#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+#'   seq_type = 1,
+#'   strand = 0,
+#'   program = "blastp",
+#'   save_sequences = F,
+#'   save_hsp_sequences = F
+#' )
 #' }
 #' @export
 CreateQuickBLASTInstance <- function(seq_type, strand, program, options = NULL, save_sequences = FALSE, save_hsp_sequences = FALSE) {
@@ -105,8 +111,17 @@ GetInstanceCount <- function() {
 #' @return (unsigned int) ID/Index of the QuickBLAST instance pointer, FALSE otherwise
 #' @examples
 #' \dontrun{
-#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F, num_threads=24)
-#' QuickBLAST::GetInstanceID(blastp_inst)
+#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+#'   seq_type = 1,
+#'   strand = 0,
+#'   program = "blastp",
+#'   save_sequences = F,
+#'   save_hsp_sequences = F,
+#'   num_threads=24
+#' )
+#' QuickBLAST::GetInstanceID(
+#'   blastp_inst
+#' )
 #' }
 #' @export
 GetInstanceID <- function(ptr) {
@@ -136,8 +151,18 @@ GetQuickBLASTInstance <- function(ptr_id) {
 #' @return TRUE - if the instance is deleted successfully, throws error otherwise
 #' @examples
 #' \dontrun{
-#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-#' QuickBLAST::DeleteQuickBLASTInstance(QuickBLAST::GetInstanceID(blastp_inst))
+#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+#'   seq_type = 1,
+#'   strand = 0,
+#'   program = "blastp",
+#'   save_sequences = F,
+#'   save_hsp_sequences = F
+#' )
+#' QuickBLAST::DeleteQuickBLASTInstance(
+#'   QuickBLAST::GetInstanceID(
+#'     blastp_inst
+#'   )
+#' )
 #' }
 #' @export
 DeleteQuickBLASTInstance <- function(ptr) {
@@ -155,8 +180,16 @@ DeleteQuickBLASTInstance <- function(ptr) {
 #' @return (string) BLAST options as std::string
 #' @examples
 #' \dontrun{
-#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "tblastn", save_sequences = F, save_hsp_sequences = F)
-#' QuickBLAST::GetQuickBLASTOptions(blastp_inst)
+#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+#'   seq_type = 1,
+#'   strand = 0,
+#'   program = "tblastn",
+#'   save_sequences = F,
+#'   save_hsp_sequences = F
+#' )
+#' QuickBLAST::GetQuickBLASTOptions(
+#'   blastp_inst
+#' )
 #' }
 #' @export
 GetQuickBLASTOptions <- function(ptr) {
@@ -176,8 +209,18 @@ GetQuickBLASTOptions <- function(ptr) {
 #' @return (bool) TRUE - if options set for the QuickBLAST instance, FALSE otherwise
 #' @examples
 #' \dontrun{
-#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "tblastn", save_sequences = F, save_hsp_sequences = F)
-#' QuickBLAST::SetQuickBLASTOptions(blastp_inst, "blastp", "-evalue 1")
+#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+#'   seq_type = 1,
+#'   strand = 0,
+#'   program = "tblastn",
+#'   save_sequences = F,
+#'   save_hsp_sequences = F
+#' )
+#' QuickBLAST::SetQuickBLASTOptions(
+#'   blastp_inst,
+#'   "blastp",
+#'   "-evalue 1"
+#' )
 #' }
 #' @export
 SetQuickBLASTOptions <- function(ptr, program_name, options) {
@@ -198,8 +241,32 @@ SetQuickBLASTOptions <- function(ptr, program_name, options) {
 #' @return (Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST Instance (Cannot be used in R)
 #' @examples
 #' \dontrun{
-#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-#' QuickBLAST::BLAST2Seqs(blastp_inst, "MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", "MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE")
+#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+#'   seq_type = 1,
+#'   strand = 0,
+#'   program = "blastp",
+#'   save_sequences = F,
+#'   save_hsp_sequences = F
+#' )
+#' QuickBLAST::BLAST2Seqs(
+#'   blastp_inst,
+#'   "MQILLVEDDNTLFQELKKELEQWDFNV
+#'   AGIEDFGKVMDTFESFNPEIVILDVQLP
+#'   KYDGFYWCRKMREVSNVPILFLSSRDNP
+#'   MDQVMSMELGADDYMQKPFYTNVLIAKL
+#'   QAIYRRVYEFTAEEKRTLTWQDAVVDLS
+#'   KDSIQKGDDTIFLSKTEMIILEILITKK
+#'   NQIVSRDTIITALWDDEAFVSDNTLTVN
+#'   VNRLRKKLSEISMDSAIETKVGKGYMAHE",
+#'   "MQILLVEDDNTLFQELKKELEQWDFNV
+#'   AGIEDFGKVMDTFESFNPEIVILDVQLP
+#'   KYDGFYWCRKMREVSNVPILFLSSRDNP
+#'   MDQVMSMELGADDYMQKPFYTNVLIAKL
+#'   QAIYRRVYEFTAEEKRTLTWQDAVVDLS
+#'   KDSIQKGDDTIFLSKTEMIILEILITKK
+#'   NQIVSRDTIITALWDDEAFVSDNTLTVN
+#'   VNRLRKKLSEISMDSAIETKVGKGYMAHE"
+#' )
 #' }
 #' @export
 BLAST2Seqs <- function(ptr, query, subject, verbose = TRUE) {
@@ -262,9 +329,51 @@ BLAST1Folder <- function(ptr, input_folder, extension, out_folder, out_format = 
 #' @return (SEXP) Rcpp::List - if return_values == TRUE, out_file - Otherwise.
 #' @examples
 #' \dontrun{
-#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-#' QuickBLAST::BLAST2Files(ptr = blastp_inst, query = system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), subject = system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), out_file = "test.arrow", out_format = "parquet",return_values = F, min_batch_size = 1024)
-#' QuickBLAST::BLAST2Files(ptr = blastp_inst, query = system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), subject = system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), out_file = "test.arrow",return_values = T, min_batch_size = 0, seq_limit = 0)
+#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+#'   seq_type = 1,
+#'   strand = 0,
+#'   program = "blastp",
+#'   save_sequences = F,
+#'   save_hsp_sequences = F
+#' )
+#' QuickBLAST::BLAST2Files(
+#'   ptr = blastp_inst,
+#'   query = system.file(
+#'     "extdata",
+#'     "protein_query.fasta",
+#'     package = "QuickBLAST",
+#'     mustWork = T
+#'   ),
+#'   subject = system.file(
+#'     "extdata",
+#'     "protein_subject.fasta",
+#'     package = "QuickBLAST",
+#'     mustWork = T
+#'   ),
+#'   out_file = "test.arrow",
+#'   out_format = "parquet",
+#'   return_values = F,
+#'   min_batch_size = 1024
+#' )
+#' QuickBLAST::BLAST2Files(
+#'   ptr = blastp_inst,
+#'   query = system.file(
+#'     "extdata",
+#'     "protein_query.fasta",
+#'     package = "QuickBLAST",
+#'     mustWork = T
+#'   ),
+#'   subject = system.file(
+#'     "extdata",
+#'     "protein_subject.fasta",
+#'     package = "QuickBLAST",
+#'     mustWork = T
+#'   ),
+#'   out_file = "test.arrow",
+#'   return_values = T,
+#'   min_batch_size = 0,
+#'   seq_limit = 0
+#' )
 #' }
 #' @export
 BLAST2Files <- function(ptr, query, subject, out_file = NULL, out_format = NULL, num_threads = 0L, return_values = TRUE, min_batch_size = 0L, verbose = TRUE) {
@@ -286,7 +395,6 @@ BLAST2Files <- function(ptr, query, subject, out_file = NULL, out_format = NULL,
 #' @param input_type (QuickBLAST::EInputType) Input type (Check [QuickBLAST::GetQuickBLASTEnums()])
 #' @param outFile (string) Output file name (Optional)
 #' @param outFormat (string) Format of Output File (Required for outFile) (Default: 'parquet')
-#' @param num_threads (unsigned int) Number of threads. (Optional)
 #' @param return_values (bool) Return BLAST Hits as Rcpp::List (Default: TRUE) (Optional)
 #' @param max_poll_seconds (int) Max seconds to wait for RemoteBLAST (Default: 360) (Optional)
 #' @param poll_interval_ms (int) Milliseconds wait-time between polling RemoteBLAST service (Default(4s): 4000) (Optional)
@@ -294,8 +402,25 @@ BLAST2Files <- function(ptr, query, subject, out_file = NULL, out_format = NULL,
 #' @return (SEXP) Rcpp::List - if return_values == TRUE, outFile - Otherwise.
 #' @examples
 #' \dontrun{
-#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-#' QuickBLAST::RemoteBLAST(blastp_inst, query_input="MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", database= "pdb", input_type=1, return_values=T)
+#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+#'   seq_type = 1,
+#'   strand = 0,
+#'   program = "blastp",
+#'   save_sequences = F,
+#'   save_hsp_sequences = F
+#' )
+#' QuickBLAST::RemoteBLAST(
+#'   blastp_inst,
+#'   query_input="MQILLVEDDNTLFQELKKELEQWDFN
+#'   VAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRK
+#'   MREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYT
+#'   NVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSI
+#'   QKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWD
+#'   DEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE",
+#'   database= "pdb",
+#'   input_type=1,
+#'   return_values=T
+#' )
 #' }
 #' @export
 RemoteBLAST <- function(ptr, database, query_input, input_type, outFile = NULL, outFormat = NULL, return_values = TRUE, max_poll_seconds = 360L, poll_interval_ms = 4000L, verbose = TRUE) {
@@ -318,8 +443,26 @@ RemoteBLAST <- function(ptr, database, query_input, input_type, outFile = NULL, 
 #' @return list with keys: is_db (logical), type (string), files (character vector), dir (string), name (string), message (string)
 #' @examples
 #' \dontrun{
-#' QuickBLAST::MakeBLASTDB(blastp_inst, system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), "protein_query.db")
-#' QuickBLAST::isBLASTDB(tools::file_path_sans_ext(system.file("extdata","protein_query.db.pin", package = "QuickBLAST", mustWork = T)))
+#' QuickBLAST::MakeBLASTDB(
+#'   blastp_inst,
+#'   system.file(
+#'     "extdata",
+#'     "protein_query.fasta",
+#'     package = "QuickBLAST",
+#'     mustWork = T
+#'   ),
+#'   "protein_query.db"
+#' )
+#' QuickBLAST::isBLASTDB(
+#'   tools::file_path_sans_ext(
+#'     system.file(
+#'       "extdata",
+#'       "protein_query.db.pin",
+#'       package = "QuickBLAST",
+#'       mustWork = T
+#'     )
+#'   )
+#' )
 #' }
 #' @export
 isBLASTDB <- function(ptr, input_db) {
@@ -342,12 +485,41 @@ isBLASTDB <- function(ptr, input_db) {
 #' @return (bool) DB name on success, FALSE - Otherwise.
 #' @examples
 #' \dontrun{
-#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-#' QuickBLAST::MakeBLASTDB(blastp_inst, system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), "protein_query.db")
-#' QuickBLAST::MakeBLASTDB(blastp_inst, system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), "protein_subject.db")
-#' QuickBLAST::BLAST2DBs(ptr=blastp_inst, query="protein_query.db", subject="protein_subject.db", num_threads=24, out_file="test.db.arrow", return_values = T)
-#' #tools::file_path_sans_ext(system.file("extdata","protein_query.db.pin", package = "QuickBLAST", mustWork = T))
-#' #tools::file_path_sans_ext(system.file("extdata","protein_subject.db.pin", package = "QuickBLAST", mustWork = T))
+#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+#'   seq_type = 1,
+#'   strand = 0,
+#'   program = "blastp",
+#'   save_sequences = F,
+#'   save_hsp_sequences = F
+#' )
+#' QuickBLAST::MakeBLASTDB(
+#'   blastp_inst,
+#'   system.file(
+#'     "extdata",
+#'     "protein_query.fasta",
+#'     package = "QuickBLAST",
+#'     mustWork = T
+#'   ),
+#'   "protein_query.db"
+#' )
+#' QuickBLAST::MakeBLASTDB(
+#'   blastp_inst,
+#'   system.file(
+#'     "extdata",
+#'     "protein_subject.fasta",
+#'     package = "QuickBLAST",
+#'     mustWork = T
+#'   ),
+#'   "protein_subject.db"
+#' )
+#' QuickBLAST::BLAST2DBs(
+#'   ptr=blastp_inst,
+#'   query="protein_query.db",
+#'   subject="protein_subject.db",
+#'   num_threads=24,
+#'   out_file="test.db.arrow",
+#'   return_values = T
+#' )
 #' }
 #' @export
 MakeBLASTDB <- function(ptr, input_file, database_name, parse_seqids = FALSE) {
@@ -357,20 +529,67 @@ MakeBLASTDB <- function(ptr, input_file, database_name, parse_seqids = FALSE) {
 #' @param num_threads (unsigned int) Number of threads. (Optional)
 #' @param return_values (bool) Return BLAST Hits as Rcpp::List (Default: TRUE) (Optional)
 #' @param min_batch_size (unsigned int) Minimum batch size - Size of file write buffer (Optional).
+#' @param verbose (bool) Verbose? (Default: TRUE)
 #' @return (SEXP) Rcpp::List - if return_values == TRUE, out_file - Otherwise.
 #' @examples
 #' \dontrun{
-#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-#' QuickBLAST::BLAST2DBs(ptr=blastp_inst, query=system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), subject=system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), num_threads=24, out_file="test.db.arrow", return_values = T)
-#' QuickBLAST::MakeBLASTDB(blastp_inst, system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), "protein_query.db")
-#' QuickBLAST::MakeBLASTDB(blastp_inst, system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), "protein_subject.db")
-#' QuickBLAST::BLAST2DBs(ptr=blastp_inst, query="protein_query.db", subject="protein_subject.db", num_threads=24, out_file="test.db.arrow", return_values = T)
-#' #tools::file_path_sans_ext(system.file("extdata","protein_query.db.pin", package = "QuickBLAST", mustWork = T))
-#' #tools::file_path_sans_ext(system.file("extdata","protein_subject.db.pin", package = "QuickBLAST", mustWork = T))
+#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+#'   seq_type = 1,
+#'   strand = 0,
+#'   program = "blastp",
+#'   save_sequences = F,
+#'   save_hsp_sequences = F
+#' )
+#' QuickBLAST::BLAST2DBs(
+#'   ptr=blastp_inst,
+#'   query=system.file(
+#'     "extdata",
+#'     "protein_query.fasta",
+#'     package = "QuickBLAST",
+#'     mustWork = T
+#'   ),
+#'   subject=system.file(
+#'     "extdata",
+#'     "protein_subject.fasta",
+#'     package = "QuickBLAST",
+#'     mustWork = T
+#'   ),
+#'   num_threads=24,
+#'   out_file="test.db.arrow",
+#'   return_values = T
+#' )
+#' QuickBLAST::MakeBLASTDB(
+#'   blastp_inst,
+#'   system.file(
+#'     "extdata",
+#'     "protein_query.fasta",
+#'     package = "QuickBLAST",
+#'     mustWork = T
+#'   ), 
+#'   "protein_query.db"
+#' )
+#' QuickBLAST::MakeBLASTDB(
+#'   blastp_inst,
+#'   system.file(
+#'     "extdata",
+#'     "protein_subject.fasta",
+#'     package = "QuickBLAST",
+#'     mustWork = T
+#'   ),
+#'   "protein_subject.db"
+#' )
+#' QuickBLAST::BLAST2DBs(
+#'   ptr=blastp_inst,
+#'   query="protein_query.db",
+#'   subject="protein_subject.db",
+#'   num_threads=24,
+#'   out_file="test.db.arrow",
+#'   return_values = T
+#' )
 #' }
 #' @export
-BLAST2DBs <- function(ptr, query, subject, out_file = NULL, out_format = NULL, num_threads = 0L, return_values = TRUE, min_batch_size = 0L) {
-    .Call(`_QuickBLAST_BLAST2DBs`, ptr, query, subject, out_file, out_format, num_threads, return_values, min_batch_size)
+BLAST2DBs <- function(ptr, query, subject, out_file = NULL, out_format = NULL, num_threads = 0L, return_values = TRUE, min_batch_size = 0L, verbose = TRUE) {
+    .Call(`_QuickBLAST_BLAST2DBs`, ptr, query, subject, out_file, out_format, num_threads, return_values, min_batch_size, verbose)
 }
 
 #' @name GetFASTAHeaders
@@ -380,12 +599,20 @@ BLAST2DBs <- function(ptr, query, subject, out_file = NULL, out_format = NULL, n
 #' @description Get the header strings of a FASTA file as a String Vector
 #'
 #' @seealso [QuickBLAST::MakeBLASTDB()], [QuickBLAST::isBLASTDB()]
-#' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
-#' @param query (string) Query DB
+#' @param path (std::string) Path to FASTA file
+#' @param keep_gt (bool) Keep the '>' symbol? (Default: FALSE)
 #' @return (SEXP) Rcpp::StringVector - on success, FALSE - Otherwise.
 #' @examples
 #' \dontrun{
-#' QuickBLAST::GetFASTAHeaders(system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), keep_gt = F)
+#' QuickBLAST::GetFASTAHeaders(
+#'   system.file(
+#'     "extdata",
+#'     "protein_query.fasta",
+#'     package = "QuickBLAST",
+#'     mustWork = T
+#'   ),
+#'   keep_gt = F
+#' )
 #' }
 #' @export
 GetFASTAHeaders <- function(path, keep_gt = FALSE) {
@@ -398,10 +625,48 @@ GetFASTAHeaders <- function(path, keep_gt = FALSE) {
 #' @return (SEXP) Rcpp::List - if return_values == TRUE, out_file - Otherwise.
 #' @examples
 #' \dontrun{
-#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-#' QuickBLAST::BLASTFile2DB(ptr=blastp_inst, query=system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), subject=system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), num_threads=24, out_file="test.db.arrow", return_values = T)
-#' QuickBLAST::MakeBLASTDB(blastp_inst, system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), "protein_subject.db")
-#' QuickBLAST::BLASTFile2DB(ptr=blastp_inst, query="protein_query.fasta", subject="protein_subject.db", num_threads=24, out_file="test.db.arrow", return_values = T)
+#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+#'   seq_type = 1,
+#'   strand = 0,
+#'   program = "blastp",
+#'   save_sequences = F,
+#'   save_hsp_sequences = F
+#' )
+#' QuickBLAST::BLASTFile2DB(
+#'   ptr=blastp_inst,
+#'   query=system.file(
+#'     "extdata","protein_query.fasta",
+#'     package = "QuickBLAST",
+#'     mustWork = T
+#'   ),
+#'   subject=system.file(
+#'     "extdata",
+#'     "protein_subject.fasta",
+#'     package = "QuickBLAST",
+#'     mustWork = T
+#'   ),
+#'   num_threads=24,
+#'   out_file="test.db.arrow",
+#'   return_values = T
+#' )
+#' QuickBLAST::MakeBLASTDB(
+#'   blastp_inst,
+#'   system.file(
+#'     "extdata",
+#'     "protein_subject.fasta",
+#'     package = "QuickBLAST",
+#'     mustWork = T
+#'   ),
+#'   "protein_subject.db"
+#' )
+#' QuickBLAST::BLASTFile2DB(
+#'   ptr=blastp_inst,
+#'   query="protein_query.fasta",
+#'   subject="protein_subject.db",
+#'   num_threads=24,
+#'   out_file="test.db.arrow",
+#'   return_values = T
+#' )
 #' }
 #' @export
 BLASTFile2DB <- function(ptr, query, subject, out_file = NULL, out_format = NULL, num_threads = 0L, return_values = TRUE, min_batch_size = 0L) {

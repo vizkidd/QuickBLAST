@@ -20,6 +20,11 @@ if(NO_CONNECTION GREATER 0)
     message(FATAL_ERROR "Requires an internet connection")
 endif()
 
+#message("DTOOLKIT_CPPFLAGS ${TOOLKIT_CPPFLAGS}")
+#message("DRCPP_FOLDER ${RCPP_FOLDER}")
+#message("DRCPPPROG_FOLDER ${RCPPPROG_FOLDER}")
+#return()
+
 if(NOT WIN32)    
 
     execute_process(
@@ -39,7 +44,7 @@ if(NOT WIN32)
     execute_process(
         COMMAND git clone https://github.com/apache/arrow arrow
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        COMMAND_ERROR_IS_FATAL ANY    
+     #   COMMAND_ERROR_IS_FATAL ANY    
     )
     endif()
 
@@ -62,7 +67,7 @@ if(NOT WIN32)
     execute_process(
     COMMAND git clone https://github.com/ncbi/ncbi-cxx-toolkit-public ncbi-cxx-toolkit-public
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMAND_ERROR_IS_FATAL ANY
+    #COMMAND_ERROR_IS_FATAL ANY
     )
     endif()
 
@@ -85,7 +90,7 @@ if(NOT WIN32)
     execute_process(
         COMMAND git clone https://github.com/NixOS/patchelf patchelf
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        COMMAND_ERROR_IS_FATAL ANY    
+        #COMMAND_ERROR_IS_FATAL ANY    
     )
     execute_process(
         COMMAND ${RTOOLS_DIR}/usr/bin/bash -c "git tag -l --sort=-v:refname | grep -iv \"dev\" | head -n 1" ; #no dev versions
@@ -191,12 +196,14 @@ set(ARROW_C_FLAGS  "-std=gnu2x -fdiagnostics-color=always -march=native -fopenmp
     #file(COPY ${CMAKE_SOURCE_DIR}/include
     #DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     #)
-
+    
     execute_process(
     COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/cmake-configure
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
 
+    set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} -DRCPPPROG_FOLDER=${RCPPPROG_FOLDER} -DRCPPTHREAD_FOLDER=${RCPPTHREAD_FOLDER} -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}'")
+    
     execute_process(
     COMMAND ./cmake-configure GCC ${GCC_VERSION} --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD --with-dll
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/

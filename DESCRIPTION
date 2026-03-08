@@ -5,36 +5,43 @@ Version: 1.3.2
 Date: 2025-10-01
 Author: Vishvesh Karthik
 Maintainer: Vishvesh Karthik <vishveshkarthik@gmail.com>
-Description: A BLAST Wrapper to call BLAST directly from R (interoperable and without Sys.call()) coupled with Apache Arrow's IPC and columnar format
+Description: A BLAST Wrapper to call BLAST directly from R (interoperable and without Sys.call()) coupled with Apache Arrow's IPC and columnar format.
 License: GPL (>= 2)
 Depends:
   R (>= 4.4.0),
   Rcpp (>= 1.0.10),
   RcppProgress (>= 0.4.2),
-  remotes (>= 2.4.2.1),
   dplyr (>= 1.1.4)
 Imports:
   tidyr (>= 1.3.1),
   iterators (>= 1.0.14),
   arrow (>= 21.0.0.1),
-  tidyr (>= 1.3.0),
   inline (>= 0.3.19),
-  parallel (>= 4.3.1),
   methods (>= 4.3.1),
   stringi (>= 1.7.1),
   tools (>= 4.3.1),
   compiler (>= 4.5.2),
-  parallel(>= 4.4.1)
-LinkingTo: Rcpp, RcppProgress, RcppThread
+  parallel(>= 4.4.1),
+  fs (>= 1.6.6),
+  RcppThread (>= 2.3.0),
+  future (>= 1.69.0),
+  future.apply (>= 1.20.2),
+  future.callr (>= 0.10.2)
+LinkingTo:
+    Rcpp,
+    RcppProgress,
+    RcppThread
 Encoding: UTF-8
 StagedInstall: no
 UseLTO: yes
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Language: en-US
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    remotes
 VignetteBuilder: knitr
 Collate:
+    'QuickBLAST-package.R'
     'RcppExports.R'
     'QuickBLAST.R'

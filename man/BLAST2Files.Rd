@@ -46,9 +46,51 @@ Only FASTA files are supported by this function, use [QuickBLAST::BLAST2DBs()] i
 }
 \examples{
 \dontrun{
-blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-QuickBLAST::BLAST2Files(ptr = blastp_inst, query = system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), subject = system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), out_file = "test.arrow", out_format = "parquet",return_values = F, min_batch_size = 1024)
-QuickBLAST::BLAST2Files(ptr = blastp_inst, query = system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), subject = system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), out_file = "test.arrow",return_values = T, min_batch_size = 0, seq_limit = 0)
+blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+  seq_type = 1,
+  strand = 0,
+  program = "blastp",
+  save_sequences = F,
+  save_hsp_sequences = F
+)
+QuickBLAST::BLAST2Files(
+  ptr = blastp_inst,
+  query = system.file(
+    "extdata",
+    "protein_query.fasta",
+    package = "QuickBLAST",
+    mustWork = T
+  ),
+  subject = system.file(
+    "extdata",
+    "protein_subject.fasta",
+    package = "QuickBLAST",
+    mustWork = T
+  ),
+  out_file = "test.arrow",
+  out_format = "parquet",
+  return_values = F,
+  min_batch_size = 1024
+)
+QuickBLAST::BLAST2Files(
+  ptr = blastp_inst,
+  query = system.file(
+    "extdata",
+    "protein_query.fasta",
+    package = "QuickBLAST",
+    mustWork = T
+  ),
+  subject = system.file(
+    "extdata",
+    "protein_subject.fasta",
+    package = "QuickBLAST",
+    mustWork = T
+  ),
+  out_file = "test.arrow",
+  return_values = T,
+  min_batch_size = 0,
+  seq_limit = 0
+)
 }
 }
 \seealso{

@@ -37,8 +37,6 @@ RemoteBLAST(
 \item{poll_interval_ms}{(int) Milliseconds wait-time between polling RemoteBLAST service (Default(4s): 4000) (Optional)}
 
 \item{verbose}{(bool) Verbosity (Default: TRUE).}
-
-\item{num_threads}{(unsigned int) Number of threads. (Optional)}
 }
 \value{
 (SEXP) Rcpp::List - if return_values == TRUE, outFile - Otherwise.
@@ -51,8 +49,25 @@ Check (BLAST Guide)[https://blast.ncbi.nlm.nih.gov/BLAST_guide.pdf] and (NCBI BL
 }
 \examples{
 \dontrun{
-blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-QuickBLAST::RemoteBLAST(blastp_inst, query_input="MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", database= "pdb", input_type=1, return_values=T)
+blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+  seq_type = 1,
+  strand = 0,
+  program = "blastp",
+  save_sequences = F,
+  save_hsp_sequences = F
+)
+QuickBLAST::RemoteBLAST(
+  blastp_inst,
+  query_input="MQILLVEDDNTLFQELKKELEQWDFN
+  VAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRK
+  MREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYT
+  NVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSI
+  QKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWD
+  DEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE",
+  database= "pdb",
+  input_type=1,
+  return_values=T
+)
 }
 }
 \seealso{

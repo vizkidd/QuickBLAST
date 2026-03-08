@@ -15,17 +15,4 @@
 #endif
 
 std::map<unsigned int, Rcpp::XPtr<QuickBLAST>> cppObj_list = {};
-// struct QuickBLASTHandle
-// {
-//     std::shared_ptr<QuickBLAST> ptr;
-//     // QuickBLAST *ptr;
-//     int id;
-// };
-// /*struct ArrowRBHandle {
-//     std::shared_ptr<arrow::RecordBatch> ptr;
-// };*/
-// struct ArrowRBVHandle
-// {
-//     std::shared_ptr<arrow::RecordBatchVector> ptr;
-//     // arrow::RecordBatchVector *ptr;
-// };
+

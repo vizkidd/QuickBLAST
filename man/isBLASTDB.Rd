@@ -23,8 +23,26 @@ a character vector of matching `files`, and the `dir` and `name` used.
 }
 \examples{
 \dontrun{
-QuickBLAST::MakeBLASTDB(blastp_inst, system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), "protein_query.db")
-QuickBLAST::isBLASTDB(tools::file_path_sans_ext(system.file("extdata","protein_query.db.pin", package = "QuickBLAST", mustWork = T)))
+QuickBLAST::MakeBLASTDB(
+  blastp_inst,
+  system.file(
+    "extdata",
+    "protein_query.fasta",
+    package = "QuickBLAST",
+    mustWork = T
+  ),
+  "protein_query.db"
+)
+QuickBLAST::isBLASTDB(
+  tools::file_path_sans_ext(
+    system.file(
+      "extdata",
+      "protein_query.db.pin",
+      package = "QuickBLAST",
+      mustWork = T
+    )
+  )
+)
 }
 }
 \seealso{

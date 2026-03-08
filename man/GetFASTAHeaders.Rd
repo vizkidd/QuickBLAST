@@ -7,9 +7,9 @@
 GetFASTAHeaders(path, keep_gt = FALSE)
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance}
+\item{path}{(std::string) Path to FASTA file}
 
-\item{query}{(string) Query DB}
+\item{keep_gt}{(bool) Keep the '>' symbol? (Default: FALSE)}
 }
 \value{
 (SEXP) Rcpp::StringVector - on success, FALSE - Otherwise.
@@ -19,7 +19,15 @@ Get the header strings of a FASTA file as a String Vector
 }
 \examples{
 \dontrun{
-QuickBLAST::GetFASTAHeaders(system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), keep_gt = F)
+QuickBLAST::GetFASTAHeaders(
+  system.file(
+    "extdata",
+    "protein_query.fasta",
+    package = "QuickBLAST",
+    mustWork = T
+  ),
+  keep_gt = F
+)
 }
 }
 \seealso{

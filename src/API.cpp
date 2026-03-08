@@ -19,59 +19,6 @@ using namespace Rcpp;
 // // [[Rcpp::depends(RcppProgress)]]
 // // [[Rcpp::depends(RcppThread)]]
 
-// // #if defined(MINGW32) || defined(WIN32)
-// extern "C"
-// {
-//     //     QBLIBRARY_API BOOL QuickBLASTcpp_main(std::string dllPath){
-//     //         //std::string dllPath = "inst/x64/QuickBLASTcpp.dll";
-// 
-//     //         // Load the DLL using LoadLibraryEx
-//     //         HMODULE hDLL = LoadLibraryExA(dllPath.data(), NULL, 0);
-// 
-//     //         if (hDLL == NULL) {
-//     //             std::cout << "Failed to load the DLL: " << dllPath<< std::endl;  // Handle DLL loading failure
-//     //             return FALSE;
-//     //         }
-// 
-//     //         //FreeLibrary(hDLL);
-//     //         return TRUE;
-//     //     }
-// 
-//     // QuickBLASTHandle GetQuickBLASTInstance(unsigned int id);
-//     QBLIBRARY_API unsigned int libQB_GetInstanceCount();
-//     unsigned int GetInstanceID(QuickBLASTHandle ptr);
-//     // QBLIBRARY_API unsigned int libQB_CreateQuickBLASTInstance(const int seq_type, const int strand, const char *program, const char *options, int save_sequences);
-//     QBLIBRARY_API SEXP libQB_CreateQuickBLASTInstance(const int seq_type, const int strand, const char *program, const char *options, int save_sequences, const unsigned int num_threads);
-// 
-//     QBLIBRARY_API SEXP libQB_DeleteQuickBLASTInstance(SEXP ptr_id);
-//     //     //QBLIBRARY_API ArrowWrapper* CreateArrowWrapperInstance();
-//     //     //QBLIBRARY_API std::shared_ptr<arrow::RecordBatch> cpp_BLAST2Seqs(std::shared_ptr<QuickBLAST> ptr, std::string query, std::string subject);
-//     //     //QBLIBRARY_API std::shared_ptr<arrow::RecordBatchVector> cpp_BLAST2Files(std::shared_ptr<QuickBLAST> ptr, std::string queryFile, std::string subjectFile, std::string outFile, int blast_sequence_limit, int num_threads, const bool show_progress = true, const bool return_values = false, int batch_size = 1024);
-//     QBLIBRARY_API bool libQB_SetQuickBLASTOptions(SEXP ptr_id, SEXP program_name, SEXP options);
-//     QBLIBRARY_API SEXP BLAST2Seqs(SEXP ptr_id, SEXP query, SEXP subject);
-//     QBLIBRARY_API SEXP BLAST2Files(SEXP ptr_id, SEXP query, SEXP subject, SEXP out_file, SEXP seq_limit, SEXP num_threads, SEXP show_progress, SEXP return_values, SEXP min_batch_size);
-//     // QBLIBRARY_API SEXP BLAST2Folders(int ptr_id, std::string query, std::string subject, std::string extension, std::string out_folder, int num_threads, bool reciprocal_hits, int min_batch_size = 1024);
-//     // QBLIBRARY_API SEXP BLAST1Folder(int ptr_id, std::string input_folder, std::string extension, std::string out_folder, int num_threads, bool reciprocal_hits, int min_batch_size = 1024);
-//     // // QBLIBRARY_API std::string getFilenameWithoutExtension(const std::string &filename);
-//     // // QBLIBRARY_API Rcpp::List rm_null(Rcpp::List x);
-//     // // QBLIBRARY_API std::vector<std::string> getFilesInDir(const std::string &folderPath, const std::string &extension);
-//     // QBLIBRARY_API SEXP libQB_isQuickBLASTLoaded();
-//     QBLIBRARY_API std::string libQB_isQuickBLASTLoaded();
-//     //     //QBLIBRARY_API  bool QueryOOBESupport() { return false; }
-//     //     /*QBLIBRARY_API int arrow_struct_num_fields(std::shared_ptr<arrow::StructArray> arr);
-//     //     QBLIBRARY_API std::shared_ptr<arrow::Array> arrow_struct_field(std::shared_ptr<arrow::StructArray> arr, const int i);
-//     //     QBLIBRARY_API std::shared_ptr<arrow::Array> arrow_array_slice(std::shared_ptr<arrow::Array> arr, const int offset, const int length);
-//     //     QBLIBRARY_API int arrow_schema_num_fields(std::shared_ptr<arrow::Schema> sch);
-//     //     QBLIBRARY_API std::shared_ptr<arrow::Field> arrow_schema_field(std::shared_ptr<arrow::Schema> sch, const int i);
-//     //     QBLIBRARY_API std::shared_ptr<arrow::DataType> arrow_schema_field_type(std::shared_ptr<arrow::Schema> sch, const int i);
-//     //     QBLIBRARY_API std::string arrow_schema_field_name(std::shared_ptr<arrow::Schema> sch, const int i);
-//     //     QBLIBRARY_API bool arrow_int8array_isvalid(std::shared_ptr<arrow::Int8Array> arr, int i);
-//     //     QBLIBRARY_API bool arrow_strarray_isvalid(std::shared_ptr<arrow::StringArray> arr, int i);
-//     //     QBLIBRARY_API bool arrow_dblarray_isvalid(std::shared_ptr<arrow::DoubleArray> arr, int i);*/
-// } // extern "C"
-// 
-// // #endif
-
 //' @name isQuickBLASTLoaded
 //' @title Check R <-> C++ (FFI) connection
 //'
@@ -80,16 +27,10 @@ using namespace Rcpp;
 //' @return String that successfully confirms when the package is loaded properly
 //' @export
 // [[Rcpp::export]]
-RcppExport bool isQuickBLASTLoaded() //SEXP libQB_isQuickBLASTLoaded()
+RcppExport bool isQuickBLASTLoaded()
  {
-   // std::string ret_str = "C++ - QuickBLAST dependencies Loaded!";
-   // // Rprintf("%s - R print\n", ret_str.c_str());
-   //  std::cout << ret_str.c_str() << " - R print"<< std::endl;
-   //  std::cout << std::flush;
    ArrowWrapper *testwrap = new ArrowWrapper();
    std::shared_ptr<ArrowWrapper> testwrap_ = std::make_shared<ArrowWrapper>();
-   // // return Rcpp::wrap(ret_str);
-   // return ret_str;
    return true;
  }
 
@@ -97,8 +38,6 @@ void PrintClock(std::chrono::time_point<std::chrono::high_resolution_clock> star
 {
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed_seconds = end - start;
-  // Print the time in seconds
-  // Rprintf("Clock : %f seconds \n", elapsed_seconds.count());
   Rcpp::Rcout << "Clock : " << elapsed_seconds.count() << " seconds" << std::endl << std::flush;
 }
 
@@ -153,7 +92,7 @@ SEXP Hits2RList_internal(std::shared_ptr<arrow::Array> array, std::shared_ptr<ar
     for (int i = 0; i < list_array->length(); i++)
     {
       
-      auto sublist_array = list_array->values()->Slice(list_array->value_offset(i), list_array->value_length(i)); // arrow_array_slice(list_array->values(), list_array->value_offset(i), list_array->value_length(i));
+      auto sublist_array = list_array->values()->Slice(list_array->value_offset(i), list_array->value_length(i));
       
       names[i] = field_name + "[" + std::to_string(i) + "]";
       auto sublist_name = field_name + "[" + std::to_string(i) + "]";
@@ -172,15 +111,10 @@ SEXP Hits2RList_internal(std::shared_ptr<arrow::Array> array, std::shared_ptr<ar
     
     for (int i = 0; i < string_array->length(); ++i)
     {
-      // if (arrow_strarray_isvalid(string_array, i))
       if (string_array->IsValid(i))
       {
         strings[i] = Rcpp::String(string_array->GetString(i));
       }
-      // else
-      // {
-      //   strings[i] = NA_STRING;
-      // }
     }
     
     return strings;
@@ -193,15 +127,10 @@ SEXP Hits2RList_internal(std::shared_ptr<arrow::Array> array, std::shared_ptr<ar
     
     for (int i = 0; i < int_array->length(); ++i)
     {
-      // if (arrow_int8array_isvalid(int_array, i))
       if (int_array->IsValid(i))
       {
         ints[i] = int_array->Value(i);
       }
-      // else
-      // {
-      //   ints[i] = NA_INTEGER;
-      // }
     }
     
     return ints;
@@ -214,15 +143,10 @@ SEXP Hits2RList_internal(std::shared_ptr<arrow::Array> array, std::shared_ptr<ar
     
     for (int i = 0; i < int_array->length(); ++i)
     {
-      // if (arrow_int8array_isvalid(int_array, i))
       if (int_array->IsValid(i))
       {
         ints[i] = int_array->Value(i);
       }
-      // else
-      // {
-      //   ints[i] = NA_INTEGER;
-      // }
     }
     
     return ints;
@@ -235,15 +159,10 @@ SEXP Hits2RList_internal(std::shared_ptr<arrow::Array> array, std::shared_ptr<ar
     
     for (int i = 0; i < double_array->length(); ++i)
     {
-      // if (arrow_dblarray_isvalid(double_array, i))
       if (double_array->IsValid(i))
       {
         doubles[field_name] = double_array->Value(i);
       }
-      // else
-      // {
-      //   doubles[i] = NA_REAL;
-      // }
     }
     
     return doubles;
@@ -842,17 +761,6 @@ std::string getFilenameWithoutExtension(const std::string &filename)
   }
 }
 
-// QuickBLASTHandle GetQuickBLASTInstance(unsigned int id)
-// {
-//     assert(id >= 0);
-//     QuickBLASTHandle handle;
-//     // handle.ptr = cppObj_list[id].get();
-//     handle.ptr = cppObj_list[id];
-//     assert(handle.ptr != nullptr);
-//     handle.id = id;
-//     return handle;
-// }
-
 std::string ConvertBLASTOptions2String(SEXP options)
 {
   std::string options_;
@@ -882,7 +790,6 @@ std::string ConvertBLASTOptions2String(SEXP options)
   }
   default:
     REprintf("Only named list or string allowed for BLAST options : Check QuickBLAST::GetAvailableBLASTOptions()\n");
-    // return Rcpp::wrap(false);
     break;
   }
   return options_;
@@ -904,33 +811,29 @@ std::string ConvertBLASTOptions2String(SEXP options)
 //' @return (Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST Instance (Cannot be used in R)
 //' @examples
 //' \dontrun{
-//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
+//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+//'   seq_type = 1,
+//'   strand = 0,
+//'   program = "blastp",
+//'   save_sequences = F,
+//'   save_hsp_sequences = F
+//' )
 //' }
 //' @export
 // [[Rcpp::export]]
-RcppExport SEXP CreateQuickBLASTInstance(const int seq_type, const int strand, SEXP program, SEXP options = R_NilValue, const bool save_sequences = false, const bool save_hsp_sequences = false) //const unsigned int num_threads = 0
+RcppExport SEXP CreateQuickBLASTInstance(const int seq_type, const int strand, SEXP program, SEXP options = R_NilValue, const bool save_sequences = false, const bool save_hsp_sequences = false) 
  {
    try
    {
-     // Auto-detect threads when 0 is passed
-     //unsigned int threads = DetectThreadLimit(num_threads);
-     
-     // return std::make_shared<QuickBLAST>(seq_type, strand, program, options, save_sequences);
-     //  new QuickBLAST(seq_type, strand, program, options, save_sequences);
-     
+
      QuickBLAST::ESeqType seq_type_ = static_cast<QuickBLAST::ESeqType>(seq_type);
      QuickBLAST::EStrand strand_ = static_cast<QuickBLAST::EStrand>(strand);
      std::string program_ = Rcpp::as<std::string>(program);
      
      std::string options_ = options == R_NilValue ? "" : ConvertBLASTOptions2String(options);
-     // std::string options_ = options;
      bool save_sequences_ = save_sequences; //static_cast<bool>(save_sequences);
      bool save_hsp_sequences_ = save_hsp_sequences;
-     // Rprintf("DBG: %d %d %s %s %d \n", seq_type_, strand_, program_.c_str(), options_.c_str(), save_sequences_);
-     // QuickBLASTHandle handle;
-     // std::shared_ptr<QuickBLAST> objPtr = std::make_shared<QuickBLAST>(seq_type_, strand_, program_, options_, save_sequences_);
      QuickBLAST *objPtr = new QuickBLAST(seq_type_, strand_, program_, options_, save_sequences_, save_hsp_sequences_);
-     // objPtr->SetThreadCount(threads);
      Rcpp::XPtr<QuickBLAST> ptr(objPtr, true);
      ptr.attr("seq_type") = seq_type;
      ptr.attr("strand") = strand;
@@ -941,17 +844,10 @@ RcppExport SEXP CreateQuickBLASTInstance(const int seq_type, const int strand, S
      // ptr.attr("num_threads") = threads;
      // ptr.attr("class") = "QuickBLAST_XPtr";
      Rf_classgets(ptr, Rf_mkString("QuickBLAST_XPtr"));
-     // Rprintf("DBG1: %d \n", cppObj_list.size());
      unsigned int list_size = cppObj_list.size();
-     // handle.id = list_size;
-     // // handle.ptr = objPtr.get();
-     // handle.ptr = objPtr;
-     // Log::Rcppcout << "dbg2" << std::endl;
-     // cppObj_list.insert(std::make_pair(list_size, objPtr));
+     
      cppObj_list.insert(std::make_pair(list_size, ptr));
-     // Rprintf("DBG2: %d \n", cppObj_list.size());
-     // // Log::Rcppcout << "dbg3" << std::endl;
-     // return list_size;
+     
      return ptr;
    }catch(const Rcpp::exception &e){
      Rcpp::stop(std::string("CreateQuickBLASTInstance() - Rcpp Exception : ") + e.what());
@@ -963,7 +859,6 @@ RcppExport SEXP CreateQuickBLASTInstance(const int seq_type, const int strand, S
      Rcpp::stop(std::string("CreateQuickBLASTInstance() - Unknown Exception"));
    }
    return Rcpp::wrap(false);
-   // return 0;
  }
 
 //' @name GetInstanceCount
@@ -976,21 +871,7 @@ RcppExport SEXP CreateQuickBLASTInstance(const int seq_type, const int strand, S
 // [[Rcpp::export]]
 RcppExport unsigned int GetInstanceCount()
  {
-   //  // Rprintf("testing c++ side");
-   //  // Rprintf("\n%d\n", (int)cppObj_list.size());
-   //   std::cout << "testing c++ side" << std::endl;
-   // std::cout << (int)cppObj_list.size() << std::endl;
-   // std::cout << std::flush;
-   // Rprintf("\n%s\n", (int)cppObj_list.size());
-   // if (!cppObj_list.empty())
-   // {
    return (unsigned int)cppObj_list.size();
-   // }
-   // else
-   // {
-   //     return Rcpp::wrap(0);
-   // }
-   // return Rcpp::wrap((int)cppObj_list.size());
  }
 
 Rcpp::XPtr<QuickBLAST> ResolveQuickBLASTInstance(SEXP inst)
@@ -999,7 +880,6 @@ Rcpp::XPtr<QuickBLAST> ResolveQuickBLASTInstance(SEXP inst)
   case INTSXP: 
   case REALSXP: {
     // numeric 
-    // return GetQuickBLASTInstance(Rcpp::as<unsigned int>(inst));
     unsigned int ptr_id = Rcpp::as<unsigned int>(inst);
     try {
       return cppObj_list.at(ptr_id);
@@ -1066,8 +946,17 @@ Rcpp::XPtr<QuickBLAST> ResolveQuickBLASTInstance(SEXP inst)
 //' @return (unsigned int) ID/Index of the QuickBLAST instance pointer, FALSE otherwise
 //' @examples
 //' \dontrun{
-//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F, num_threads=24)
-//' QuickBLAST::GetInstanceID(blastp_inst)
+//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+//'   seq_type = 1,
+//'   strand = 0,
+//'   program = "blastp",
+//'   save_sequences = F,
+//'   save_hsp_sequences = F,
+//'   num_threads=24
+//' )
+//' QuickBLAST::GetInstanceID(
+//'   blastp_inst
+//' )
 //' }
 //' @export
 // [[Rcpp::export]]
@@ -1075,8 +964,6 @@ RcppExport SEXP GetInstanceID(SEXP ptr)
  {
    try
    {
-     // return ptr.ptr->obj_id;
-     // Rcpp::XPtr<QuickBLAST> ptr_ = Rcpp::as<Rcpp::XPtr<QuickBLAST>>(ptr);
      Rcpp::XPtr<QuickBLAST> ptr_ = ResolveQuickBLASTInstance(ptr);
      // Find the first key associated with the target value
      auto it = std::find_if(cppObj_list.begin(), cppObj_list.end(),
@@ -1097,7 +984,6 @@ RcppExport SEXP GetInstanceID(SEXP ptr)
    }catch(...){
      Rcpp::stop("GetInstanceID() - Unknown Exception");
    }
-   // return ptr.ptr->GetObjectID();
  }
 
 //' @name GetQuickBLASTInstance
@@ -1147,8 +1033,18 @@ unsigned int DetectThreadLimit(unsigned int num_threads){
 //' @return TRUE - if the instance is deleted successfully, throws error otherwise
 //' @examples
 //' \dontrun{
-//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-//' QuickBLAST::DeleteQuickBLASTInstance(QuickBLAST::GetInstanceID(blastp_inst))
+//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+//'   seq_type = 1,
+//'   strand = 0,
+//'   program = "blastp",
+//'   save_sequences = F,
+//'   save_hsp_sequences = F
+//' )
+//' QuickBLAST::DeleteQuickBLASTInstance(
+//'   QuickBLAST::GetInstanceID(
+//'     blastp_inst
+//'   )
+//' )
 //' }
 //' @export
 // [[Rcpp::export]]
@@ -1156,14 +1052,6 @@ RcppExport SEXP DeleteQuickBLASTInstance(SEXP ptr)
  {
    try
    {
-     // // unsigned int ptr_id_ = as<unsigned int>(ptr_id);
-     // //// ptr.reset();
-     // // fetch the object from the map
-     // Rprintf("Deleting QuickBLAST Instance : %d\n", ptr_id);
-     // // Rcpp::as<Rcpp::XPtr<QuickBLAST>>(GetQuickBLASTInstance(ptr_id))->~QuickBLAST();
-     // Rcpp::as<Rcpp::XPtr<QuickBLAST>>(GetQuickBLASTInstance(ptr_id)).release();
-     // // auto obj_ptr = Rcpp::as<Rcpp::XPtr<QuickBLAST>>(GetQuickBLASTInstance(ptr_id)).get();
-     // // delete obj_ptr; // double free
      if(ptr == R_NilValue){ 
        Rcpp::Rcerr << "DeleteQuickBLASTInstance(): Input pointer/ID cannot be NULL." << std::endl << std::flush;
        return Rcpp::wrap(false); 
@@ -1171,13 +1059,9 @@ RcppExport SEXP DeleteQuickBLASTInstance(SEXP ptr)
      Rcpp::XPtr<QuickBLAST> ptr_ = ResolveQuickBLASTInstance(ptr);
      auto ptr_id = Rcpp::as<unsigned int>(GetInstanceID(ptr));
      ptr_.release();
+  
      cppObj_list.erase(ptr_id);
-     // // ptr.ptr->~QuickBLAST();
-     // //// delete ptr.ptr.get();
-     // Rcpp::XPtr<QuickBLAST> ptr = Rcpp::as<Rcpp::XPtr<QuickBLAST>>(ptr_id);
-     // ptr->~QuickBLAST();
-     // // return true;
-     // return Rcpp::wrap(true);
+  
      return Rcpp::wrap(true);
    }catch(const Rcpp::exception &e){
      Rcpp::stop(std::string("DeleteQuickBLASTInstance() - Rcpp Exception : ") + e.what());
@@ -1202,8 +1086,16 @@ RcppExport SEXP DeleteQuickBLASTInstance(SEXP ptr)
 //' @return (string) BLAST options as std::string
 //' @examples
 //' \dontrun{
-//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "tblastn", save_sequences = F, save_hsp_sequences = F)
-//' QuickBLAST::GetQuickBLASTOptions(blastp_inst)
+//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+//'   seq_type = 1,
+//'   strand = 0,
+//'   program = "tblastn",
+//'   save_sequences = F,
+//'   save_hsp_sequences = F
+//' )
+//' QuickBLAST::GetQuickBLASTOptions(
+//'   blastp_inst
+//' )
 //' }
 //' @export
 // [[Rcpp::export]]
@@ -1238,8 +1130,18 @@ RcppExport SEXP GetQuickBLASTOptions(SEXP ptr)
 //' @return (bool) TRUE - if options set for the QuickBLAST instance, FALSE otherwise
 //' @examples
 //' \dontrun{
-//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "tblastn", save_sequences = F, save_hsp_sequences = F)
-//' QuickBLAST::SetQuickBLASTOptions(blastp_inst, "blastp", "-evalue 1")
+//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+//'   seq_type = 1,
+//'   strand = 0,
+//'   program = "tblastn",
+//'   save_sequences = F,
+//'   save_hsp_sequences = F
+//' )
+//' QuickBLAST::SetQuickBLASTOptions(
+//'   blastp_inst,
+//'   "blastp",
+//'   "-evalue 1"
+//' )
 //' }
 //' @export
 // [[Rcpp::export]]
@@ -1247,14 +1149,11 @@ RcppExport bool SetQuickBLASTOptions(SEXP ptr, SEXP program_name, SEXP options)
  {
    try
    {
-     // unsigned int ptr_id_ = as<unsigned int>(ptr_id);
      std::string program_name_ = Rcpp::as<std::string>(program_name);
      std::string options_ = ConvertBLASTOptions2String(options);
-     
-     // auto ptr = GetQuickBLASTInstance(ptr_id_);
-     // Rcpp::XPtr<QuickBLAST> ptr_ = Rcpp::as<Rcpp::XPtr<QuickBLAST>>(ptr);
+    
      Rcpp::XPtr<QuickBLAST> ptr_ = ResolveQuickBLASTInstance(ptr);
-     // ptr.ptr->GetQuickBLASTOptions() = *ptr.ptr->SetQuickBLASTOptions(program_name_, options_);
+
      ptr_->GetQuickBLASTOptions() = *ptr_->SetQuickBLASTOptions(program_name_, options_, CBlastOptions::EAPILocality::eLocal);
      return true;
    }catch(const Rcpp::exception &e){
@@ -1285,17 +1184,39 @@ RcppExport bool SetQuickBLASTOptions(SEXP ptr, SEXP program_name, SEXP options)
 //' @return (Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST Instance (Cannot be used in R)
 //' @examples
 //' \dontrun{
-//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-//' QuickBLAST::BLAST2Seqs(blastp_inst, "MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", "MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE")
+//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+//'   seq_type = 1,
+//'   strand = 0,
+//'   program = "blastp",
+//'   save_sequences = F,
+//'   save_hsp_sequences = F
+//' )
+//' QuickBLAST::BLAST2Seqs(
+//'   blastp_inst,
+//'   "MQILLVEDDNTLFQELKKELEQWDFNV
+//'   AGIEDFGKVMDTFESFNPEIVILDVQLP
+//'   KYDGFYWCRKMREVSNVPILFLSSRDNP
+//'   MDQVMSMELGADDYMQKPFYTNVLIAKL
+//'   QAIYRRVYEFTAEEKRTLTWQDAVVDLS
+//'   KDSIQKGDDTIFLSKTEMIILEILITKK
+//'   NQIVSRDTIITALWDDEAFVSDNTLTVN
+//'   VNRLRKKLSEISMDSAIETKVGKGYMAHE",
+//'   "MQILLVEDDNTLFQELKKELEQWDFNV
+//'   AGIEDFGKVMDTFESFNPEIVILDVQLP
+//'   KYDGFYWCRKMREVSNVPILFLSSRDNP
+//'   MDQVMSMELGADDYMQKPFYTNVLIAKL
+//'   QAIYRRVYEFTAEEKRTLTWQDAVVDLS
+//'   KDSIQKGDDTIFLSKTEMIILEILITKK
+//'   NQIVSRDTIITALWDDEAFVSDNTLTVN
+//'   VNRLRKKLSEISMDSAIETKVGKGYMAHE"
+//' )
 //' }
 //' @export
 // [[Rcpp::export]]
 RcppExport SEXP BLAST2Seqs(SEXP ptr, SEXP query, SEXP subject, bool verbose = true)
  {
    try{
-     // assert(TYPEOF(query) == CHARSXP);
-     // assert(TYPEOF(subject) == CHARSXP);
-     
+
      if (query == R_NilValue || TYPEOF(query) != STRSXP || Rf_length(query) != 1) {
        Rcpp::stop("query must be a single string (character vector of length 1)");
      }
@@ -1306,61 +1227,36 @@ RcppExport SEXP BLAST2Seqs(SEXP ptr, SEXP query, SEXP subject, bool verbose = tr
      auto start = std::chrono::high_resolution_clock::now();
      
      Rcpp::XPtr<QuickBLAST> ptr_ = ResolveQuickBLASTInstance(ptr);
-     // // unsigned int ptr_id_ = as<unsigned int>(ptr_id);
-     // // QuickBLASTHandle ptr = GetQuickBLASTInstance(ptr_id_);
-     // Rcpp::XPtr<QuickBLAST> ptr = Rcpp::as<Rcpp::XPtr<QuickBLAST>>(ptr_id);
+
      std::string query_ = Rcpp::as<std::string>(query);
      std::string subject_ = Rcpp::as<std::string>(subject);
      
-     // assert(!query_.empty());
-     // assert(!subject_.empty());
-     
-     // ArrowRBVHandle ret_val;
      std::shared_ptr<arrow::RecordBatchVector> ret_val = std::make_shared<arrow::RecordBatchVector>();
-     // Rcpp::XPtr<arrow::RecordBatchVector> ret_val(ret_val_sp.get(), true);
-     // std::shared_ptr<arrow::RecordBatch> ret_rb = ptr.ptr->BLAST_seqs(query_, subject_); //
+  
      std::shared_ptr<arrow::RecordBatch> ret_rb = ptr_->BLAST_seqs(query_, subject_, verbose); //
-     // ret_val.ptr.emplace_back(ptr.ptr->BLAST_seqs(query_, subject_)); //
+  
      if (ret_rb)
      {
        try{
          arrow::Status rb_sts = ret_rb->ValidateFull();
-         // std::cout << "here18.1.1:" << rb_sts.message()  << std::endl << rb_sts.ToString() << std::endl << "rows:" << ret_rb->num_rows() << "\ncols:" << ret_rb->num_columns()  << std::endl << std::flush; //DEBUG
+  
          if (!rb_sts.ok())
          {
            REprintf("[BLAST2Seqs()] ERR : Invalid RB : %s \n %s \n", rb_sts.message().c_str(), rb_sts.detail()->ToString().c_str());
-           // PrintClock(start);
-           // ret_val.ptr.clear();
-           // ret_val.ptr->emplace_back(arrow::RecordBatch::MakeEmpty(ptr.ptr->GetSchema()).ValueOrDie());
            
-           // ret_val->emplace_back(arrow::RecordBatch::MakeEmpty(ptr_->GetSchema()).ValueOrDie());
-           
-           // return arrow::RecordBatch::MakeEmpty(ptr.ptr->GetSchema()).ValueOrDie();
          }
          else
          {
-           // std::cout << "here18.1.2:" << rb_sts.ok()  << std::endl << std::flush; //DEBUG
            if(ret_rb->num_rows() <= 0){
              Rcpp::stop("[BLAST2Seqs()] No alignments could be computed");
            }
            ret_val->emplace_back(ret_rb); 
-           // std::cout << ret_rb->ToString() << std::endl << std::flush; //DEBUG
-           // std::cout << "here18.1.3"  << std::endl << std::flush; //DEBUG
          }
        }catch(...){
          // ret_val->emplace_back(arrow::RecordBatch::MakeEmpty(ptr_->GetSchema()).ValueOrDie());
          Rcpp::stop("[BLAST2Seqs()] Unknown Error");
-         // throw;
        }
      }
-     // else
-     // {
-     //   // PrintClock(start);
-     //   // ret_val.ptr.clear();
-     //   // ret_val.ptr->emplace_back(arrow::RecordBatch::MakeEmpty(ptr.ptr->GetSchema()).ValueOrDie());
-     //   ret_val->emplace_back(arrow::RecordBatch::MakeEmpty(ptr_->GetSchema()).ValueOrDie());
-     //   // return arrow::RecordBatch::MakeEmpty(ptr.ptr->GetSchema()).ValueOrDie();
-     // }
      
      if(verbose)
        PrintClock(start);
@@ -1415,20 +1311,9 @@ RcppExport SEXP BLAST2Seqs(SEXP ptr, SEXP query, SEXP subject, bool verbose = tr
 RcppExport bool BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension, SEXP out_folder, SEXP out_format = R_NilValue, unsigned int num_threads = 0, bool reciprocal_hits = false, unsigned int min_batch_size = 0, bool verbose = true)
  {
    try{
-     // int typ1 = TYPEOF(query);
-     // int typ2 = TYPEOF(subject);
      auto start = std::chrono::high_resolution_clock::now();
      unsigned int threads = DetectThreadLimit(num_threads);
      Rcpp::XPtr<QuickBLAST> ptr_ = ResolveQuickBLASTInstance(ptr);
-     
-     // assert(TYPEOF(out_folder) == CHARSXP);
-     // assert(TYPEOF(out_format) == CHARSXP);
-     // assert(TYPEOF(query) == CHARSXP);
-     // assert(TYPEOF(subject) == CHARSXP);
-     // assert(TYPEOF(extension) == CHARSXP);
-     // // assert(typ1 == LISTSXP || typ1 == VECSXP || typ1 == CHARSXP);
-     // // assert(typ2 == LISTSXP || typ2 == VECSXP || typ2 == CHARSXP);
-     // // assert(ptr.ptr != nullptr);
      
      if (query == R_NilValue || TYPEOF(query) != STRSXP || Rf_length(query) != 1) {
        Rcpp::stop("query must be a single string (character vector of length 1)");
@@ -1446,36 +1331,17 @@ RcppExport bool BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension
      std::string out_format_ = out_format == R_NilValue ? "parquet" : Rcpp::as<std::string>(out_format);
      std::string extension_ = Rcpp::as<std::string>(extension);
      
-     // assert(!query_.empty());
-     // assert(!subject_.empty());
-     // assert(!out_folder_.empty());
-     // assert(!out_format_.empty());
-     
-     // int seq_limit = 0; //-1;
-     
      std::filesystem::path outPath(out_folder_);
      std::filesystem::create_directory(outPath);
      if (!std::filesystem::is_empty(outPath))
      {
        Rcpp::stop(std::string("[BLAST2Folders()] out_folder : Folder must be empty -") + out_folder_);
-       // std::cerr << "out_folder : Folder must be empty.";
-       // return false;
      }
-     // // assert(min_batch_size > 0);
-     // if(min_batch_size == 0){
-     //   min_batch_size = threads;
-     // }
      
      std::filesystem::path query_path(query_);
      std::filesystem::path subject_path(subject_);
      std::vector<std::string> queryFiles = getFilesInDir(query_, extension_);
      std::vector<std::string> subjectFiles = getFilesInDir(subject_, extension_);
-     
-     // assert(!queryFiles.empty());
-     // assert(!subjectFiles.empty());
-     // assert(queryFiles.size() > 0);
-     // assert(subjectFiles.size() > 0);
-     // assert(queryFiles.size() * subjectFiles.size() > 0);
      
      if(queryFiles.empty()){
        Rcpp::stop("query directory is empty");
@@ -1486,10 +1352,6 @@ RcppExport bool BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension
      
      int iterations = queryFiles.size() * subjectFiles.size();
      
-     // assert(iterations > 0);
-     
-     // Rcpp::List ret_lst(iterations);
-     // Rcpp::CharacterVector names(iterations);
      Progress progress_bar(iterations, verbose);
      
      for (int i = 0; i < (int)queryFiles.size(); i++)
@@ -1533,15 +1395,12 @@ RcppExport bool BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension
            Rcpp::Rcout << "BLASTing : " << base_name << std::endl;
          static_cast<void>(ptr_->BLAST_files(query_input.string(), subject_input.string(), outFileStr, out_format_, threads, /*return_values*/ false, min_batch_size, verbose));
          
-         // static_cast<void>(cpp_BLAST2Files(sh_ptr, query_input.string(), subject_input.string(), outFile_.string(), seq_limit, num_threads_, true, false, min_batch_size_));
-         // ret_lst[one_dim_index] = outFile_.string();
-         // names[one_dim_index] = base_name;
        }
      }
-     // ret_lst.names() = names;
+
      if(verbose)
        PrintClock(start);
-     // return ret_lst;
+
      return Rcpp::wrap(true);
    }catch(const Rcpp::exception &e){
      Rcpp::stop(std::string("BLAST2Folders() - Rcpp Exception : ") + e.what());
@@ -1578,20 +1437,12 @@ RcppExport bool BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension
 // [[Rcpp::export]]
 RcppExport bool BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP out_folder, SEXP out_format = R_NilValue, unsigned int num_threads = 0, bool reciprocal_hits = false, unsigned int min_batch_size = 0, bool verbose = true)
  {
-   // int typ1 = TYPEOF(input_folder);
-   // assert(typ1 == LISTSXP || typ1 == VECSXP);
+
    try{
      auto start = std::chrono::high_resolution_clock::now();
      unsigned int threads = DetectThreadLimit(num_threads);
      Rcpp::XPtr<QuickBLAST> ptr_ = ResolveQuickBLASTInstance(ptr);
-     // assert(TYPEOF(out_folder) == CHARSXP);
-     // assert(TYPEOF(out_format) == CHARSXP);
-     // assert(TYPEOF(input_folder) == CHARSXP);
-     // assert(TYPEOF(extension) == CHARSXP);
-     // // assert(typ1 == LISTSXP || typ1 == VECSXP || typ1 == CHARSXP);
-     // // assert(typ2 == LISTSXP || typ2 == VECSXP || typ2 == CHARSXP);
-     // // assert(ptr.ptr != nullptr);
-     
+
      if (out_folder == R_NilValue || TYPEOF(out_folder) != STRSXP || Rf_length(out_folder) != 1) {
        Rcpp::stop("out_folder must be a single string (character vector of length 1)");
      }
@@ -1608,48 +1459,28 @@ RcppExport bool BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP o
      std::string extension_ = Rcpp::as<std::string>(extension);
      std::string out_format_ = out_format == R_NilValue ? "parquet" : Rcpp::as<std::string>(out_format);
      
-     // assert(!input_folder_.empty());
-     // assert(!out_folder_.empty());
-     // assert(!out_format_.empty());
-     
      if(input_folder_.empty() || out_folder_.empty() || out_format_.empty()){
        Rcpp::stop("Input cannot be empty: input_folder || out_folder || out_format");
      }
-     // assert(ptr.ptr != nullptr);
-     // int seq_limit = 0; //-1;
-     // auto start = std::chrono::high_resolution_clock::now();
      
      std::filesystem::path outPath(out_folder_);
      std::filesystem::create_directory(outPath);
      if (!std::filesystem::is_empty(outPath))
      {
-       // std::cerr << "out_folder : Folder must be empty.";
-       // return false;
        Rcpp::stop(std::string("[BLAST1Folder()] out_folder : Folder must be empty - ") + out_folder_);
-       // return false;
      }
-     // // assert(min_batch_size > 0);
-     // if(min_batch_size == 0){
-     //   min_batch_size = threads;
-     // }
      
      std::vector<std::string> inputFiles = getFilesInDir(input_folder_, extension_);
      
-     // assert(!inputFiles.empty());
      if(inputFiles.empty()){
        Rcpp::stop("input directory is empty.");
      }
      
      std::filesystem::path folder = input_folder_;
      
-     // assert(inputFiles.size() * inputFiles.size() > 0);
-     
      int iterations = inputFiles.size() * inputFiles.size();
      Progress progress_bar(iterations, verbose);
-     // assert(iterations > 0);
      
-     // std::list<std::string> ret_lst(iterations);
-     // std::list<std::string> names(iterations);
      for (int i = 0; i < (int)inputFiles.size(); i++)
      {
        for (int j = 0; j < (int)inputFiles.size(); j++)
@@ -1686,14 +1517,13 @@ RcppExport bool BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP o
          if(verbose)
            Rcpp::Rcout << "BLASTing : " << base_name << std::endl;
          static_cast<void>(ptr_->BLAST_files(qry_filePath.string(), subj_filePath.string(), outFileStr, out_format_, threads, /*return_values*/ false, min_batch_size, verbose));
-         // ret_lst[one_dim_index] = outFile_.string();
-         // names[one_dim_index] = base_name;
+
        }
      }
-     // ret_lst.names() = names;
+
      if(verbose)
        PrintClock(start);
-     // return rm_null(ret_lst);
+     
      return Rcpp::wrap(true);
    }catch(const Rcpp::exception &e){
      Rcpp::stop(std::string("BLAST1Folder() - Rcpp Exception : ") + e.what());
@@ -1730,9 +1560,51 @@ RcppExport bool BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP o
 //' @return (SEXP) Rcpp::List - if return_values == TRUE, out_file - Otherwise.
 //' @examples
 //' \dontrun{
-//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-//' QuickBLAST::BLAST2Files(ptr = blastp_inst, query = system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), subject = system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), out_file = "test.arrow", out_format = "parquet",return_values = F, min_batch_size = 1024)
-//' QuickBLAST::BLAST2Files(ptr = blastp_inst, query = system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), subject = system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), out_file = "test.arrow",return_values = T, min_batch_size = 0, seq_limit = 0)
+//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+//'   seq_type = 1,
+//'   strand = 0,
+//'   program = "blastp",
+//'   save_sequences = F,
+//'   save_hsp_sequences = F
+//' )
+//' QuickBLAST::BLAST2Files(
+//'   ptr = blastp_inst,
+//'   query = system.file(
+//'     "extdata",
+//'     "protein_query.fasta",
+//'     package = "QuickBLAST",
+//'     mustWork = T
+//'   ),
+//'   subject = system.file(
+//'     "extdata",
+//'     "protein_subject.fasta",
+//'     package = "QuickBLAST",
+//'     mustWork = T
+//'   ),
+//'   out_file = "test.arrow",
+//'   out_format = "parquet",
+//'   return_values = F,
+//'   min_batch_size = 1024
+//' )
+//' QuickBLAST::BLAST2Files(
+//'   ptr = blastp_inst,
+//'   query = system.file(
+//'     "extdata",
+//'     "protein_query.fasta",
+//'     package = "QuickBLAST",
+//'     mustWork = T
+//'   ),
+//'   subject = system.file(
+//'     "extdata",
+//'     "protein_subject.fasta",
+//'     package = "QuickBLAST",
+//'     mustWork = T
+//'   ),
+//'   out_file = "test.arrow",
+//'   return_values = T,
+//'   min_batch_size = 0,
+//'   seq_limit = 0
+//' )
 //' }
 //' @export
 // [[Rcpp::export]]
@@ -1742,23 +1614,10 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
      auto start = std::chrono::high_resolution_clock::now();
      unsigned int threads = DetectThreadLimit(num_threads);
      Rcpp::XPtr<QuickBLAST> ptr_ = ResolveQuickBLASTInstance(ptr);
-     // assert(out_file == R_NilValue || return_values == true);
-     // assert(out_file != R_NilValue || return_values == false);
-     // assert(TYPEOF(out_file) == CHARSXP || out_file == R_NilValue);
-     // assert(TYPEOF(out_format) == CHARSXP);
-     // assert(TYPEOF(query) == CHARSXP);
-     // assert(TYPEOF(subject) == CHARSXP);
-     // unsigned int ptr_id_ = as<unsigned int>(ptr_id);
-     // QuickBLASTHandle ptr = GetQuickBLASTInstance(ptr_id_);
-     // std::cout << "here 1.0.0" << std::endl << std::flush; //DEBUG
      
      if(out_file == R_NilValue && return_values == false){
        Rcpp::stop("Error: Both out_file cannot be empty and return_values == FALSE");
-       // return Rcpp::wrap(false);
      }
-     // if (out_file == R_NilValue || TYPEOF(out_file) != STRSXP || Rf_length(out_file) != 1) {
-     //   Rcpp::stop("Query must be a single string (character vector of length 1)");
-     // }
      
      if (query == R_NilValue || TYPEOF(query) != STRSXP || Rf_length(query) != 1) {
        Rcpp::stop("Query must be a single string (character vector of length 1)");
@@ -1770,20 +1629,7 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
      std::string query_ = Rcpp::as<std::string>(query);
      std::string subject_ = Rcpp::as<std::string>(subject);
      std::string out_file_ = out_file == R_NilValue ? "" : Rcpp::as<std::string>(out_file);
-     std::string out_format_ = out_format == R_NilValue ? "parquet" : Rcpp::as<std::string>(out_format);//out_file == R_NilValue ? std::tmpnam(nullptr) : Rcpp::as<std::string>(out_file);
-     // std::cout << "here 1.1.0" << std::endl << std::flush; //DEBUG
-     // if(min_batch_size == 0){
-     //   min_batch_size = threads;
-     // }    
-     
-     // assert(!query_.empty());
-     // assert(!subject_.empty());
-     // // assert(!out_file_.empty()); //|| return_values == true);
-     // assert(!out_format_.empty());
-     // 
-     // assert(std::filesystem::exists(query_));
-     // assert(std::filesystem::exists(subject_));
-     
+     std::string out_format_ = out_format == R_NilValue ? "parquet" : Rcpp::as<std::string>(out_format);   
      if (query_.empty()) {
        Rcpp::stop("query is empty.");
      }
@@ -1793,46 +1639,22 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
      if (out_format_.empty()) {
        Rcpp::stop("out_format is empty.");
      }
-     // if (!std::filesystem::exists(query_)) {
-     //   Rcpp::stop("query directory does not exist.");
-     // }
-     // if (!std::filesystem::exists(subject_)) {
-     //   Rcpp::stop("subject directory does not exist.");
-     // }
-     
-     // ArrowRBVHandle ret_vals;
+
      std::shared_ptr<arrow::RecordBatchVector> ret_vals = std::make_shared<arrow::RecordBatchVector>();
-     // Rcpp::XPtr<arrow::RecordBatchVector> ret_vals(ret_vals_sp.get(), true);
      
      if (return_values)
      {
-       // std::shared_ptr<arrow::RecordBatchVector> ret_vals_tmp = ptr_->BLAST_files(query_, subject_, out_file_, seq_limit, threads, show_progress, return_values, min_batch_size); //.get();
-       // ret_vals->insert(ret_vals->end(), ret_vals_tmp->begin(), ret_vals_tmp->end());
-       // ret_vals_tmp->clear();
-       // ret_vals_tmp->shrink_to_fit();
-       
-       ret_vals = ptr_->BLAST_files(query_, subject_, out_file_, out_format_, threads, return_values, min_batch_size, verbose); //.get();
-       // PrintClock(start);
-       // return ret_vals;
+       ret_vals = ptr_->BLAST_files(query_, subject_, out_file_, out_format_, threads, return_values, min_batch_size, verbose); 
      }
      else
      {
-       // static_cast<void>(ptr.ptr->BLAST_files(query_, subject_, out_file_, seq_limit_, num_threads_, show_progress_, return_values_, min_batch_size_));
        static_cast<void>(ptr_->BLAST_files(query_, subject_, out_file_, out_format_, threads, return_values, min_batch_size, verbose));
-       
-       // PrintClock(start);
-       // return std::make_shared<arrow::RecordBatchVector>();
-       // ret_vals.ptr->emplace_back(arrow::RecordBatch::MakeEmpty(ptr.ptr->GetSchema()).ValueOrDie());
-     
-     
-       // ret_vals->emplace_back(arrow::RecordBatch::MakeEmpty(ptr_->GetSchema()).ValueOrDie());
      }
+     
      if(verbose)
        PrintClock(start);
      
      if(return_values){
-       // Rcpp::List ret_vals_ = as<List>(Hits2RList(*ret_vals));
-       // std::cout << "here 1.0.0" << std::endl << std::flush; //DEBUG
        if(ret_vals->size() > 0){
          auto ret_vals_ = RecordBatchVectorToFlattenedDFList_cpp(*ret_vals);
          ret_vals->clear();
@@ -1872,7 +1694,6 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
 //' @param input_type (QuickBLAST::EInputType) Input type (Check [QuickBLAST::GetQuickBLASTEnums()])
 //' @param outFile (string) Output file name (Optional)
 //' @param outFormat (string) Format of Output File (Required for outFile) (Default: 'parquet')
-//' @param num_threads (unsigned int) Number of threads. (Optional)
 //' @param return_values (bool) Return BLAST Hits as Rcpp::List (Default: TRUE) (Optional)
 //' @param max_poll_seconds (int) Max seconds to wait for RemoteBLAST (Default: 360) (Optional)
 //' @param poll_interval_ms (int) Milliseconds wait-time between polling RemoteBLAST service (Default(4s): 4000) (Optional)
@@ -1880,8 +1701,25 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
 //' @return (SEXP) Rcpp::List - if return_values == TRUE, outFile - Otherwise.
 //' @examples
 //' \dontrun{
-//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-//' QuickBLAST::RemoteBLAST(blastp_inst, query_input="MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", database= "pdb", input_type=1, return_values=T)
+//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+//'   seq_type = 1,
+//'   strand = 0,
+//'   program = "blastp",
+//'   save_sequences = F,
+//'   save_hsp_sequences = F
+//' )
+//' QuickBLAST::RemoteBLAST(
+//'   blastp_inst,
+//'   query_input="MQILLVEDDNTLFQELKKELEQWDFN
+//'   VAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRK
+//'   MREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYT
+//'   NVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSI
+//'   QKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWD
+//'   DEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE",
+//'   database= "pdb",
+//'   input_type=1,
+//'   return_values=T
+//' )
 //' }
 //' @export
 // [[Rcpp::export]]
@@ -1890,30 +1728,21 @@ RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input
    try{
      auto start = std::chrono::high_resolution_clock::now();
      
-     // assert(outFile == R_NilValue || return_values == true);
-     // assert(outFile != R_NilValue || return_values == false);
-     // assert(TYPEOF(outFile) == CHARSXP || outFile == R_NilValue);
-     // assert(TYPEOF(query_input) == CHARSXP);
-     // // assert(TYPEOF(program) == CHARSXP);
      if (outFile == R_NilValue && return_values == false) {
        Rcpp::stop("Error: Both outFile cannot be empty and return_values == FALSE");
      }
-     // if (TYPEOF(outFile) != STRSXP || Rf_length(outFile) != 1) {
-     //   Rcpp::stop("outFile must be a single string (character vector of length 1)");
-     // }
+    
      if (query_input == R_NilValue || TYPEOF(query_input) != STRSXP || Rf_length(query_input) != 1) {
        Rcpp::stop("query_input must be a single string (character vector of length 1)");
      }
      
      Rcpp::XPtr<QuickBLAST> ptr_ = ResolveQuickBLASTInstance(ptr);
-     std::string program_ = ptr_->GetProgram();//Rcpp::as<std::string>(program);
+     std::string program_ = ptr_->GetProgram();
      std::string database_ = Rcpp::as<std::string>(database);
-     // Rcpp::List query_input_ = Rcpp::as<Rcpp::List>(query_input);
-     QuickBLAST::EInputType input_type_ = static_cast<QuickBLAST::EInputType>(input_type); //Rcpp::as<int>(input_type);
-     std::string outFile_ = outFile == R_NilValue ? "" : Rcpp::as<std::string>(outFile); //outFile == R_NilValue ? std::tmpnam(nullptr) : Rcpp::as<std::string>(outFile);
-     std::string outFormat_ = outFormat == R_NilValue ? "parquet" : Rcpp::as<std::string>(outFormat); //outFile == R_NilValue ? std::tmpna
+     QuickBLAST::EInputType input_type_ = static_cast<QuickBLAST::EInputType>(input_type);
+     std::string outFile_ = outFile == R_NilValue ? "" : Rcpp::as<std::string>(outFile); 
+     std::string outFormat_ = outFormat == R_NilValue ? "parquet" : Rcpp::as<std::string>(outFormat); 
      std::shared_ptr<arrow::RecordBatchVector> ret_val = std::make_shared<arrow::RecordBatchVector>();
-     // Rcpp::XPtr<arrow::RecordBatchVector> ret_val(ret_val_sp.get(), true);
      
      switch(input_type_){
      case QuickBLAST::EInputType::eFile: {
@@ -1923,10 +1752,6 @@ RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input
      case QuickBLAST::EInputType::eSequenceString:{
        Rcpp::List query_input_ = Rcpp::as<Rcpp::List>(query_input);
        if(return_values){
-         // std::shared_ptr<arrow::RecordBatchVector> ret_val_tmp = ptr_->BLAST_remote(program_, database_, query_input_, input_type_, outFile_, return_values, 120, 4000);
-         // ret_val->insert(ret_val->end(), ret_val_tmp->begin(), ret_val_tmp->end());
-         // ret_val_tmp->clear();
-         // ret_val_tmp->shrink_to_fit();
          ret_val = ptr_->BLAST_remote(program_, database_, query_input_, input_type_, outFile_, outFormat_, return_values, max_poll_seconds, poll_interval_ms, verbose);
        }else{
          static_cast<void>(ptr_->BLAST_remote(program_, database_, query_input_, input_type_, outFile_, outFormat_, return_values, max_poll_seconds, poll_interval_ms, verbose));
@@ -1946,7 +1771,6 @@ RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input
      if(verbose)
        PrintClock(start);
      if(return_values){
-       // Rcpp::List ret_vals_ = Rcpp::as<List>(Hits2RList(*ret_val));
        if(ret_val->size() > 0){
          auto ret_vals_ = RecordBatchVectorToFlattenedDFList_cpp(*ret_val);
          ret_val->clear();
@@ -1969,88 +1793,6 @@ RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input
    }
  }
 
-// //' @name isBLASTDB
-// //'
-// //' @title Check BLAST DB Files
-// //'
-// //' @description Check if all the files of a BLAST DB exist (.psq .pog .pin .phr .pos .pto .pot .pdb .ptf .pjs)
-// //'
-// //' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::MakeBLASTDB()], [QuickBLAST::BLAST2DBs()]
-// //' @param input_db (string) Path and name of the BLAST DB
-// //' @return (bool) TRUE if all files exist for a BLAST DB, FALSE - Otherwise.
-// //' @examples
-// //' \dontrun{
-// //' QuickBLAST::isBLASTDB(tools::file_path_sans_ext(system.file("extdata","protein_query.db.pin", package = "QuickBLAST", mustWork = T)))
-// //' }
-// //' @export
-// // [[Rcpp::export]]
-// RcppExport SEXP isBLASTDB(SEXP input_db){
-//    try{
-//      
-//      assert(TYPEOF(input_db) == CHARSXP);
-//      
-//      std::string input_db_ = Rcpp::as<std::string>(input_db);
-//      
-//      assert(!input_db_.empty());
-//      
-//      std::cout << "DEBUG input_db: " << input_db_ << std::endl << std::flush; //DEBUG
-//      
-//      std::filesystem::path dbPath(input_db_);
-//      
-//      if(!dbPath.has_filename()){
-//        throw std::runtime_error(std::string("Input is Directory - Provide (Path to and) name of the DB") + dbPath.string()); 
-//      }
-//      
-//      std::filesystem::path dbDir = dbPath.parent_path();
-//      std::string dbName = dbPath.stem().string();
-//      std::string dbExt = dbPath.extension().string();
-//      std::cout << "DB DIR : " << dbDir.string() << std::endl << std::flush; //DEBUG
-//      std::cout << "DB dbName : " << dbName << std::endl << std::flush; //DEBUG
-//      std::cout << "DB dbExt : " << dbExt << std::endl << std::flush; //DEBUG
-//      if(dbDir.string().empty()){
-//        //assume current directory
-//        dbDir = std::filesystem::current_path();
-//      }
-//      // if(!dbDir){
-//      //   throw std::runtime_error(std::string("DB directory is NULL (try with absolute path)")); 
-//      // }
-//      if (!std::filesystem::is_empty(dbDir))
-//      {
-//        // Iterate through the directory
-//        for (const auto& entry : std::filesystem::directory_iterator(dbDir)) {
-//          // Get the filename (basename with extension)
-//          std::string filename = entry.path().filename().string();
-//          
-//          // Get the basename (filename without extension)
-//          std::string basename = entry.path().stem().string();
-//          
-//          std::string only_basename = entry.path().stem().filename().string();
-//          
-//          // Check if the basename starts with the target prefix
-//          // if (basename.rfind(dbName, 0) == 0) {
-//          if (only_basename.rfind(dbName, 0) == 0) {
-//            std::cout << "Matched file: " << entry.path() << std::endl;
-//          }
-//        }
-//      }
-//      else{
-//        throw std::runtime_error(std::string("DB Directory is empty! - ") + dbDir.string());
-//      }
-//    }catch(const Rcpp::exception &e){
-//      Rcpp::stop(std::string("isBLASTDB() - Rcpp Exception : ") + e.what());
-//    }
-//    catch(const std::exception &e){
-//      Rcpp::stop(std::string("isBLASTDB() - C++ Exception : ") + e.what());
-//    }
-//    catch(const std::runtime_error &e){
-//      Rcpp::stop(std::string("isBLASTDB(): C++ Runtime Error : ") + e.what());
-//    }
-//    catch(...){
-//      Rcpp::stop("isBLASTDB() - Unknown Exception");
-//    } 
-//  }
-
-
 //' @name isBLASTDB
 //'
 //' @title Check BLAST DB Files
@@ -2067,8 +1809,26 @@ RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input
 //' @return list with keys: is_db (logical), type (string), files (character vector), dir (string), name (string), message (string)
 //' @examples
 //' \dontrun{
-//' QuickBLAST::MakeBLASTDB(blastp_inst, system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), "protein_query.db")
-//' QuickBLAST::isBLASTDB(tools::file_path_sans_ext(system.file("extdata","protein_query.db.pin", package = "QuickBLAST", mustWork = T)))
+//' QuickBLAST::MakeBLASTDB(
+//'   blastp_inst,
+//'   system.file(
+//'     "extdata",
+//'     "protein_query.fasta",
+//'     package = "QuickBLAST",
+//'     mustWork = T
+//'   ),
+//'   "protein_query.db"
+//' )
+//' QuickBLAST::isBLASTDB(
+//'   tools::file_path_sans_ext(
+//'     system.file(
+//'       "extdata",
+//'       "protein_query.db.pin",
+//'       package = "QuickBLAST",
+//'       mustWork = T
+//'     )
+//'   )
+//' )
 //' }
 //' @export
 // [[Rcpp::export]]
@@ -2235,20 +1995,47 @@ Rcpp::List isBLASTDB(SEXP ptr, SEXP input_db) {
 //' @return (bool) DB name on success, FALSE - Otherwise.
 //' @examples
 //' \dontrun{
-//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-//' QuickBLAST::MakeBLASTDB(blastp_inst, system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), "protein_query.db")
-//' QuickBLAST::MakeBLASTDB(blastp_inst, system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), "protein_subject.db")
-//' QuickBLAST::BLAST2DBs(ptr=blastp_inst, query="protein_query.db", subject="protein_subject.db", num_threads=24, out_file="test.db.arrow", return_values = T)
-//' #tools::file_path_sans_ext(system.file("extdata","protein_query.db.pin", package = "QuickBLAST", mustWork = T))
-//' #tools::file_path_sans_ext(system.file("extdata","protein_subject.db.pin", package = "QuickBLAST", mustWork = T))
+//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+//'   seq_type = 1,
+//'   strand = 0,
+//'   program = "blastp",
+//'   save_sequences = F,
+//'   save_hsp_sequences = F
+//' )
+//' QuickBLAST::MakeBLASTDB(
+//'   blastp_inst,
+//'   system.file(
+//'     "extdata",
+//'     "protein_query.fasta",
+//'     package = "QuickBLAST",
+//'     mustWork = T
+//'   ),
+//'   "protein_query.db"
+//' )
+//' QuickBLAST::MakeBLASTDB(
+//'   blastp_inst,
+//'   system.file(
+//'     "extdata",
+//'     "protein_subject.fasta",
+//'     package = "QuickBLAST",
+//'     mustWork = T
+//'   ),
+//'   "protein_subject.db"
+//' )
+//' QuickBLAST::BLAST2DBs(
+//'   ptr=blastp_inst,
+//'   query="protein_query.db",
+//'   subject="protein_subject.db",
+//'   num_threads=24,
+//'   out_file="test.db.arrow",
+//'   return_values = T
+//' )
 //' }
 //' @export
 // [[Rcpp::export]]
 RcppExport SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool parse_seqids = false){
    try{
-     // assert(TYPEOF(input_file) == CHARSXP && input_file != R_NilValue);
-     // assert(TYPEOF(database_name) == CHARSXP && database_name != R_NilValue);
-     
+
      if (TYPEOF(input_file) != STRSXP || input_file == R_NilValue) {
        Rcpp::stop("input_file must be a single string (character vector of length 1)");
      }
@@ -2336,42 +2123,76 @@ RcppExport SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool 
 //' @param num_threads (unsigned int) Number of threads. (Optional)
 //' @param return_values (bool) Return BLAST Hits as Rcpp::List (Default: TRUE) (Optional)
 //' @param min_batch_size (unsigned int) Minimum batch size - Size of file write buffer (Optional).
+//' @param verbose (bool) Verbose? (Default: TRUE)
 //' @return (SEXP) Rcpp::List - if return_values == TRUE, out_file - Otherwise.
 //' @examples
 //' \dontrun{
-//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-//' QuickBLAST::BLAST2DBs(ptr=blastp_inst, query=system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), subject=system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), num_threads=24, out_file="test.db.arrow", return_values = T)
-//' QuickBLAST::MakeBLASTDB(blastp_inst, system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), "protein_query.db")
-//' QuickBLAST::MakeBLASTDB(blastp_inst, system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), "protein_subject.db")
-//' QuickBLAST::BLAST2DBs(ptr=blastp_inst, query="protein_query.db", subject="protein_subject.db", num_threads=24, out_file="test.db.arrow", return_values = T)
-//' #tools::file_path_sans_ext(system.file("extdata","protein_query.db.pin", package = "QuickBLAST", mustWork = T))
-//' #tools::file_path_sans_ext(system.file("extdata","protein_subject.db.pin", package = "QuickBLAST", mustWork = T))
+//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+//'   seq_type = 1,
+//'   strand = 0,
+//'   program = "blastp",
+//'   save_sequences = F,
+//'   save_hsp_sequences = F
+//' )
+//' QuickBLAST::BLAST2DBs(
+//'   ptr=blastp_inst,
+//'   query=system.file(
+//'     "extdata",
+//'     "protein_query.fasta",
+//'     package = "QuickBLAST",
+//'     mustWork = T
+//'   ),
+//'   subject=system.file(
+//'     "extdata",
+//'     "protein_subject.fasta",
+//'     package = "QuickBLAST",
+//'     mustWork = T
+//'   ),
+//'   num_threads=24,
+//'   out_file="test.db.arrow",
+//'   return_values = T
+//' )
+//' QuickBLAST::MakeBLASTDB(
+//'   blastp_inst,
+//'   system.file(
+//'     "extdata",
+//'     "protein_query.fasta",
+//'     package = "QuickBLAST",
+//'     mustWork = T
+//'   ), 
+//'   "protein_query.db"
+//' )
+//' QuickBLAST::MakeBLASTDB(
+//'   blastp_inst,
+//'   system.file(
+//'     "extdata",
+//'     "protein_subject.fasta",
+//'     package = "QuickBLAST",
+//'     mustWork = T
+//'   ),
+//'   "protein_subject.db"
+//' )
+//' QuickBLAST::BLAST2DBs(
+//'   ptr=blastp_inst,
+//'   query="protein_query.db",
+//'   subject="protein_subject.db",
+//'   num_threads=24,
+//'   out_file="test.db.arrow",
+//'   return_values = T
+//' )
 //' }
 //' @export
 // [[Rcpp::export]]
-RcppExport SEXP BLAST2DBs(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = R_NilValue, SEXP out_format = R_NilValue, unsigned int num_threads = 0, bool return_values = true, unsigned int min_batch_size = 0){
+RcppExport SEXP BLAST2DBs(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = R_NilValue, SEXP out_format = R_NilValue, unsigned int num_threads = 0, bool return_values = true, unsigned int min_batch_size = 0, bool verbose = true){
    try{
      auto start = std::chrono::high_resolution_clock::now();
      unsigned int threads = DetectThreadLimit(num_threads);
      Rcpp::XPtr<QuickBLAST> ptr_ = ResolveQuickBLASTInstance(ptr);
-     // assert(out_file == R_NilValue || return_values == true);
-     // assert(out_file != R_NilValue || return_values == false);
-     // assert(TYPEOF(out_file) == CHARSXP || out_file == R_NilValue);
-     // assert(TYPEOF(out_format) == CHARSXP);
-     // assert(TYPEOF(query) == CHARSXP);
-     // assert(TYPEOF(subject) == CHARSXP);
-     // unsigned int ptr_id_ = as<unsigned int>(ptr_id);
-     // QuickBLASTHandle ptr = GetQuickBLASTInstance(ptr_id_);
-     // std::cout << "here 1.0.0" << std::endl << std::flush; //DEBUG
-     
+
      if(out_file == R_NilValue && return_values == false){
        Rcpp::stop("Error: Both out_file cannot be empty and return_values == FALSE");
-       // return Rcpp::wrap(false);
      }
-     // if (TYPEOF(out_file) != STRSXP || Rf_length(out_file) != 1) {
-     //   Rcpp::stop("out_file must be a single string (character vector of length 1)");
-     // }
-     
+
      if (query == R_NilValue || TYPEOF(query) != STRSXP || Rf_length(query) != 1) {
        Rcpp::stop("query must be a single string (character vector of length 1)");
      }
@@ -2394,20 +2215,7 @@ RcppExport SEXP BLAST2DBs(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = R_
      }
      
      std::string out_file_ = out_file == R_NilValue ? "" : Rcpp::as<std::string>(out_file);
-     std::string out_format_ = out_format == R_NilValue ? "parquet" : Rcpp::as<std::string>(out_format);//out_file == R_NilValue ? std::tmpnam(nullptr) : Rcpp::as<std::string>(out_file);
-     // std::cout << "here 1.1.0" << std::endl << std::flush; //DEBUG
-     // if(min_batch_size == 0){
-     //   min_batch_size = threads;
-     // }    
-     
-     // assert(!query_.empty());
-     // assert(!subject_.empty());
-     // // assert(!out_file_.empty()); //|| return_values == true);
-     // assert(!out_format_.empty());
-     // 
-     // assert(std::filesystem::exists(query_));
-     // assert(std::filesystem::exists(subject_));
-     
+     std::string out_format_ = out_format == R_NilValue ? "parquet" : Rcpp::as<std::string>(out_format);   
      if (query_.empty()) {
        Rcpp::stop("query is empty.");
      }
@@ -2417,44 +2225,22 @@ RcppExport SEXP BLAST2DBs(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = R_
      if (out_format_.empty()) {
        Rcpp::stop("out_format is empty.");
      }
-     // if (!std::filesystem::exists(query_)) {
-     //   Rcpp::stop("query directory does not exist.");
-     // }
-     // if (!std::filesystem::exists(subject_)) {
-     //   Rcpp::stop("subject directory does not.");
-     // }
-     // ArrowRBVHandle ret_vals;
+
      std::shared_ptr<arrow::RecordBatchVector> ret_vals = std::make_shared<arrow::RecordBatchVector>();
-     // Rcpp::XPtr<arrow::RecordBatchVector> ret_vals(ret_vals_sp.get(), true);
      
      if (return_values)
      {
-       // std::shared_ptr<arrow::RecordBatchVector> ret_vals_tmp = ptr_->BLAST_files(query_, subject_, out_file_, seq_limit, threads, show_progress, return_values, min_batch_size); //.get();
-       // ret_vals->insert(ret_vals->end(), ret_vals_tmp->begin(), ret_vals_tmp->end());
-       // ret_vals_tmp->clear();
-       // ret_vals_tmp->shrink_to_fit();
-       
-       ret_vals = ptr_->BLAST_dbs(query_, subject_, out_file_, out_format_, threads, return_values, min_batch_size); //.get();
-       // PrintClock(start);
-       // return ret_vals;
+       ret_vals = ptr_->BLAST_dbs(query_, subject_, out_file_, out_format_, threads, return_values, min_batch_size, verbose);
      }
      else
      {
-       // static_cast<void>(ptr.ptr->BLAST_files(query_, subject_, out_file_, seq_limit_, num_threads_, show_progress_, return_values_, min_batch_size_));
-       static_cast<void>(ptr_->BLAST_dbs(query_, subject_, out_file_, out_format_, threads, return_values, min_batch_size));
-       
-       // PrintClock(start);
-       // return std::make_shared<arrow::RecordBatchVector>();
-       // ret_vals.ptr->emplace_back(arrow::RecordBatch::MakeEmpty(ptr.ptr->GetSchema()).ValueOrDie());
-       
-       
-       // ret_vals->emplace_back(arrow::RecordBatch::MakeEmpty(ptr_->GetSchema()).ValueOrDie());
+       static_cast<void>(ptr_->BLAST_dbs(query_, subject_, out_file_, out_format_, threads, return_values, min_batch_size, verbose));
      }
      
-     PrintClock(start);
+     if(verbose)
+       PrintClock(start);
      
      if(return_values){
-       // Rcpp::List ret_vals_ = as<List>(Hits2RList(*ret_vals));
        if(ret_vals->size() > 0){
          auto ret_vals_ = RecordBatchVectorToFlattenedDFList_cpp(*ret_vals);
          ret_vals->clear();
@@ -2497,12 +2283,20 @@ static inline void trim(std::string &s) { ltrim(s); rtrim(s); }
 //' @description Get the header strings of a FASTA file as a String Vector
 //'
 //' @seealso [QuickBLAST::MakeBLASTDB()], [QuickBLAST::isBLASTDB()]
-//' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
-//' @param query (string) Query DB
+//' @param path (std::string) Path to FASTA file
+//' @param keep_gt (bool) Keep the '>' symbol? (Default: FALSE)
 //' @return (SEXP) Rcpp::StringVector - on success, FALSE - Otherwise.
 //' @examples
 //' \dontrun{
-//' QuickBLAST::GetFASTAHeaders(system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), keep_gt = F)
+//' QuickBLAST::GetFASTAHeaders(
+//'   system.file(
+//'     "extdata",
+//'     "protein_query.fasta",
+//'     package = "QuickBLAST",
+//'     mustWork = T
+//'   ),
+//'   keep_gt = F
+//' )
 //' }
 //' @export
 // [[Rcpp::export]]
@@ -2562,10 +2356,48 @@ RcppExport SEXP GetFASTAHeaders(const std::string &path, bool keep_gt = false) {
 //' @return (SEXP) Rcpp::List - if return_values == TRUE, out_file - Otherwise.
 //' @examples
 //' \dontrun{
-//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-//' QuickBLAST::BLASTFile2DB(ptr=blastp_inst, query=system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), subject=system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), num_threads=24, out_file="test.db.arrow", return_values = T)
-//' QuickBLAST::MakeBLASTDB(blastp_inst, system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), "protein_subject.db")
-//' QuickBLAST::BLASTFile2DB(ptr=blastp_inst, query="protein_query.fasta", subject="protein_subject.db", num_threads=24, out_file="test.db.arrow", return_values = T)
+//' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+//'   seq_type = 1,
+//'   strand = 0,
+//'   program = "blastp",
+//'   save_sequences = F,
+//'   save_hsp_sequences = F
+//' )
+//' QuickBLAST::BLASTFile2DB(
+//'   ptr=blastp_inst,
+//'   query=system.file(
+//'     "extdata","protein_query.fasta",
+//'     package = "QuickBLAST",
+//'     mustWork = T
+//'   ),
+//'   subject=system.file(
+//'     "extdata",
+//'     "protein_subject.fasta",
+//'     package = "QuickBLAST",
+//'     mustWork = T
+//'   ),
+//'   num_threads=24,
+//'   out_file="test.db.arrow",
+//'   return_values = T
+//' )
+//' QuickBLAST::MakeBLASTDB(
+//'   blastp_inst,
+//'   system.file(
+//'     "extdata",
+//'     "protein_subject.fasta",
+//'     package = "QuickBLAST",
+//'     mustWork = T
+//'   ),
+//'   "protein_subject.db"
+//' )
+//' QuickBLAST::BLASTFile2DB(
+//'   ptr=blastp_inst,
+//'   query="protein_query.fasta",
+//'   subject="protein_subject.db",
+//'   num_threads=24,
+//'   out_file="test.db.arrow",
+//'   return_values = T
+//' )
 //' }
 //' @export
 // [[Rcpp::export]]
@@ -2574,23 +2406,10 @@ RcppExport SEXP BLASTFile2DB(SEXP ptr, SEXP query, SEXP subject, SEXP out_file =
      auto start = std::chrono::high_resolution_clock::now();
      unsigned int threads = DetectThreadLimit(num_threads);
      Rcpp::XPtr<QuickBLAST> ptr_ = ResolveQuickBLASTInstance(ptr);
-     // assert(out_file == R_NilValue || return_values == true);
-     // assert(out_file != R_NilValue || return_values == false);
-     // assert(TYPEOF(out_file) == CHARSXP || out_file == R_NilValue);
-     // assert(TYPEOF(out_format) == CHARSXP);
-     // assert(TYPEOF(query) == CHARSXP);
-     // assert(TYPEOF(subject) == CHARSXP);
-     // unsigned int ptr_id_ = as<unsigned int>(ptr_id);
-     // QuickBLASTHandle ptr = GetQuickBLASTInstance(ptr_id_);
-     // std::cout << "here 1.0.0" << std::endl << std::flush; //DEBUG
      
      if(out_file == R_NilValue && return_values == false){
        Rcpp::stop("Error: Both out_file cannot be empty and return_values == FALSE");
-       // return Rcpp::wrap(false);
      }
-     // if (TYPEOF(out_file) != STRSXP || Rf_length(out_file) != 1) {
-     //   Rcpp::stop("out_file must be a single string (character vector of length 1)");
-     // }
      
      if (query == R_NilValue || TYPEOF(query) != STRSXP || Rf_length(query) != 1) {
        Rcpp::stop("query must be a single string (character vector of length 1)");
@@ -2613,20 +2432,7 @@ RcppExport SEXP BLASTFile2DB(SEXP ptr, SEXP query, SEXP subject, SEXP out_file =
      }
      
      std::string out_file_ = out_file == R_NilValue ? "" : Rcpp::as<std::string>(out_file);
-     std::string out_format_ = out_format == R_NilValue ? "parquet" : Rcpp::as<std::string>(out_format);//out_file == R_NilValue ? std::tmpnam(nullptr) : Rcpp::as<std::string>(out_file);
-     // std::cout << "here 1.1.0" << std::endl << std::flush; //DEBUG
-     // if(min_batch_size == 0){
-     //   min_batch_size = threads;
-     // }    
-     
-     // assert(!query_.empty());
-     // assert(!subject_.empty());
-     // // assert(!out_file_.empty()); //|| return_values == true);
-     // assert(!out_format_.empty());
-     // 
-     // assert(std::filesystem::exists(query_));
-     // assert(std::filesystem::exists(subject_));
-     
+     std::string out_format_ = out_format == R_NilValue ? "parquet" : Rcpp::as<std::string>(out_format);   
      if (query_.empty()) {
        Rcpp::stop("query is empty.");
      }
@@ -2636,49 +2442,23 @@ RcppExport SEXP BLASTFile2DB(SEXP ptr, SEXP query, SEXP subject, SEXP out_file =
      if (out_format_.empty()) {
        Rcpp::stop("out_format is empty.");
      }
-     // if (!std::filesystem::exists(query_)) {
-     //   Rcpp::stop("query directory does not exist.");
-     // }
-     // if (!std::filesystem::exists(subject_)) {
-     //   Rcpp::stop("subject directory does not exist.");
-     // }
-     
-     // ArrowRBVHandle ret_vals;
+    
      std::shared_ptr<arrow::RecordBatchVector> ret_vals = std::make_shared<arrow::RecordBatchVector>();
-     // Rcpp::XPtr<arrow::RecordBatchVector> ret_vals(ret_vals_sp.get(), true);
-     
+    
      if (return_values)
      {
-       // std::shared_ptr<arrow::RecordBatchVector> ret_vals_tmp = ptr_->BLAST_files(query_, subject_, out_file_, seq_limit, threads, show_progress, return_values, min_batch_size); //.get();
-       // ret_vals->insert(ret_vals->end(), ret_vals_tmp->begin(), ret_vals_tmp->end());
-       // ret_vals_tmp->clear();
-       // ret_vals_tmp->shrink_to_fit();
-       
-       ret_vals = ptr_->BLAST_f2db(query_, subject_, out_file_, out_format_, threads, return_values, min_batch_size); //.get();
-       // PrintClock(start);
-       // return ret_vals;
+       ret_vals = ptr_->BLAST_f2db(query_, subject_, out_file_, out_format_, threads, return_values, min_batch_size); 
      }
      else
      {
-       // static_cast<void>(ptr.ptr->BLAST_files(query_, subject_, out_file_, seq_limit_, num_threads_, show_progress_, return_values_, min_batch_size_));
        static_cast<void>(ptr_->BLAST_f2db(query_, subject_, out_file_, out_format_, threads, return_values, min_batch_size));
-       
-       // PrintClock(start);
-       // return std::make_shared<arrow::RecordBatchVector>();
-       // ret_vals.ptr->emplace_back(arrow::RecordBatch::MakeEmpty(ptr.ptr->GetSchema()).ValueOrDie());
-     
-     
-       // ret_vals->emplace_back(arrow::RecordBatch::MakeEmpty(ptr_->GetSchema()).ValueOrDie());
      }
      
      PrintClock(start);
      
      if(return_values){
-       // Rcpp::List ret_vals_ = as<List>(Hits2RList(*ret_vals));
-       // std::cout << "here 1.0.0" << std::endl << std::flush; //DEBUG
        if(ret_vals->size() > 0){
          auto ret_vals_ = RecordBatchVectorToFlattenedDFList_cpp(*ret_vals);
-         // std::cout << "here 1.1.0" << std::endl << std::flush; //DEBUG
          ret_vals->clear();
          ret_vals->shrink_to_fit();
          return ret_vals_; //rm_null(ret_vals_);

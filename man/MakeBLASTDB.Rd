@@ -26,12 +26,41 @@ Faitful re-implementation of makeblastdb seemed pointless, hence the system.call
 }
 \examples{
 \dontrun{
-blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = F, save_hsp_sequences = F)
-QuickBLAST::MakeBLASTDB(blastp_inst, system.file("extdata","protein_query.fasta", package = "QuickBLAST", mustWork = T), "protein_query.db")
-QuickBLAST::MakeBLASTDB(blastp_inst, system.file("extdata","protein_subject.fasta", package = "QuickBLAST", mustWork = T), "protein_subject.db")
-QuickBLAST::BLAST2DBs(ptr=blastp_inst, query="protein_query.db", subject="protein_subject.db", num_threads=24, out_file="test.db.arrow", return_values = T)
-#tools::file_path_sans_ext(system.file("extdata","protein_query.db.pin", package = "QuickBLAST", mustWork = T))
-#tools::file_path_sans_ext(system.file("extdata","protein_subject.db.pin", package = "QuickBLAST", mustWork = T))
+blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+  seq_type = 1,
+  strand = 0,
+  program = "blastp",
+  save_sequences = F,
+  save_hsp_sequences = F
+)
+QuickBLAST::MakeBLASTDB(
+  blastp_inst,
+  system.file(
+    "extdata",
+    "protein_query.fasta",
+    package = "QuickBLAST",
+    mustWork = T
+  ),
+  "protein_query.db"
+)
+QuickBLAST::MakeBLASTDB(
+  blastp_inst,
+  system.file(
+    "extdata",
+    "protein_subject.fasta",
+    package = "QuickBLAST",
+    mustWork = T
+  ),
+  "protein_subject.db"
+)
+QuickBLAST::BLAST2DBs(
+  ptr=blastp_inst,
+  query="protein_query.db",
+  subject="protein_subject.db",
+  num_threads=24,
+  out_file="test.db.arrow",
+  return_values = T
+)
 }
 }
 \seealso{

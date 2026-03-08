@@ -7,16 +7,14 @@
 one2one(
   first_list,
   second_list,
-  seq_info,
+  blast_fun,
+  seq_type,
+  strand,
+  blast_program,
   file_ext = ".fa",
   input_prefix_path = NULL,
-  blast.sequence.limit = 1000,
-  input_type,
-  n_threads,
-  blast_program,
   output_dir = "./",
-  blast_options,
-  verbose = T
+  ...
 )
 }
 \arguments{
@@ -24,21 +22,37 @@ one2one(
 
 \item{second_list}{Vector of FASTA Filenames or Strings}
 
-\item{seq_info}{Ordered List of 1) (int) Sequence Type, 2) (int) Strand (bool), 3) Save Sequences in BLAST Hits? : TRUE - BLAST Hits have sequences, FALSE - FASTA sequences are not stored in BLAST Hits. Check QuickBLAST::GetQuickBLASTEnums() for available enums}
+\item{blast_fun}{One of QuickBLAST::BLAST2Seqs, QuickBLAST::BLAST2Files, QuickBLAST::BLAST2Folders, QuickBLAST::BLAST2DBs}
+
+\item{seq_type}{(int) Sequence Type. Check QuickBLAST::GetQuickBLASTEnums()$ESeqType for available enums.}
+
+\item{strand}{(int) Strand. Check QuickBLAST::GetQuickBLASTEnums()$EStrand for available enums.}
+
+\item{blast_program}{BLAST Program to use.}
 
 \item{file_ext}{File extension of input files. eg- ".cds" or ".fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString}
 
 \item{input_prefix_path}{If input lists/vectors are filenames, then provide input folder to prefix path}
 
-\item{blast.sequence.limit}{Maximum number of sequences to be BLASTed at a time, not used for Seqs}
+\item{output_dir}{Path to BLAST output}
 
-\item{input_type}{(integer) 0 for Files, 1 for Sequences - QuickBLAST::GetQuickBLASTEnums()$EInputType}
+\item{...}{Extended options blast_options, save_sequences, save_hsp_sequences, return_values, min_batch_size, n_threads, out_format, extension, reciprocal_hits, verbose}
 
 \item{n_threads}{Number of threads. Default - 8}
 
-\item{blast_program}{BLAST Program to use}
+\item{save_sequences}{(bool) Save full sequences to result?}
 
-\item{output_dir}{Path to BLAST output}
+\item{save_hsp_sequences}{(bool) Save HSP sequences to result?}
+
+\item{return_values}{(bool) Return values back to R? (Only valid for QuickBLAST::BLAST2Seqs(),QuickBLAST::BLAST2Files() and QuickBLAST::BLAST2DBs())}
+
+\item{min_batch_size}{Minimum batch size. (Default:256)}
+
+\item{out_format}{Output format. ipc/csv/parquet (Default: "parquet")}
+
+\item{extension}{File extension. (Only for QuickBLAST::BLAST2Folders())}
+
+\item{reciprocal_hits}{(bool) Reciprocal (Bi-directional) Hits? (Only valid for QuickBLAST::BLAST2Folders())}
 
 \item{blast_options}{BLAST Options to use - QuickBLAST::GetAvailableBLASTOptions()}
 
@@ -49,7 +63,23 @@ Executes One-to-One QuickBLAST between two lists of organisms/genes/clusters. Th
 }
 \examples{
 \dontrun{
-one2one("ungrouped.cds", "ungrouped.cds", seq_info = list(GetQuickBLASTEnums()$ESeqType$eNucleotide, GetQuickBLASTEnums()$EStrand$ePlus, F), file_ext = "fa", blast.sequence.limit = 200, input_type = GetQuickBLASTEnums()$EInputType$eFile, n_threads = 8, blast_program = "tblastx", output_dir = "./", blast_options = QuickBLAST::GetAvailableBLASTOptions(), verbose = T)
+QuickBLAST::one2one(
+ first_list="ungrouped.cds",
+ second_list="ungrouped.cds", 
+ blast_fun=QuickBLAST::BLAST2Files
+ seq_type = 0, 
+ strand=0,
+ output_dir = "./",
+ n_threads = 8,
+ blast_program = "tblastx",
+ save_sequences=F,
+ save_hsp_sequences=F,
+ return_values=F,
+ min_batch_size=256,
+ out_format="parquet",
+ blast_options="",
+ verbose = T
+)
 }
 
 }
