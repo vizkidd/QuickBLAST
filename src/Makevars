@@ -1,18 +1,33 @@
 CXXSTD = CXX17
 
+# Adjust these paths based on where Make is executed. 
+# Assuming Make runs in src/, so we step back to the package root.
+PKG_ROOT = ..
+MAIN_LIB = src/QuickBLAST.so
+LIB_DIR = inst/libs
+
+PATCHELF ?= BUILD/patchelf/src/patchelf   # fallback if patchelf not in PATH
+
 #LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.8
 TOOLKIT_CPPFLAGS = "$(CLINK_CPPFLAGS) $(PKG_CPPFLAGS)"
 RCPP_FOLDER = $(shell $(R_HOME)/bin/Rscript -e "cat(system.file(package='Rcpp'))")
 RCPPPROG_FOLDER = $(shell $(R_HOME)/bin/Rscript -e "cat(system.file(package='RcppProgress'))")
 RCPPTHREAD_FOLDER = $(shell $(R_HOME)/bin/Rscript -e "cat(system.file(package='RcppThread'))")
+# We use --verbose so ld doesn't complain about "no input files" and returns 0 if found
+BOOST_LIBS = $(shell ld -lboost_system --verbose > /dev/null 2>&1 && echo "-lboost_system")
+STDCPPFS_LIBS = $(shell ld -lstdc++fs --verbose > /dev/null 2>&1 && echo "-lstdc++fs")
 
-PKG_LIBS = -Wl,-rpath='$$ORIGIN' -L../BUILD/arrow/cpp/BUILD/release/ -L../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ -L../BUILD/arrow/cpp/BUILD/release/ -L/usr/local/lib/ -L/usr/lib/ -larrow -lparquet -lrt -lxncbi -lgeneral -lseqcode -lseq -lseqset -lseqsplit -lseqedit -lgenome_collection -lxobjmgr -lsequtil -lxutil -lxser -lscoremat -lxnetblast -lxconnect -lxobjutil -lbiblio -lmedline -lpub -lxlogging -lsubmit -lxobjread -lsqlitewrapp -llmdb -lseqdb -ltables -lconnect -lcomposition_adjustment -lutrtprof -lxnetblastcli -lblastdb -lseqmasks_io -lxalgowinmask -lxalgodustmask -lblast -lxalgoblastdbindex -lxblast -lxalnmgr -lxalgoalignutil -lQuickBLASTcpp $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) -O3 -fdiagnostics-color=always
+PKG_LIBS = -Wl,-rpath,\$$ORIGIN -Wl,-rpath,@loader_path/ -L../BUILD/arrow/cpp/BUILD/release/ -L../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ -L../BUILD/arrow/cpp/BUILD/release/ -L/usr/local/lib/ -L/usr/lib/ -larrow -lparquet -lrt -lxncbi -lgeneral -lseqcode -lseq -lseqset -lseqsplit -lseqedit -lgenome_collection -lxobjmgr -lsequtil -lxutil -lxser -lscoremat -lxnetblast -lxconnect -lxobjutil -lbiblio -lmedline -lpub -lxlogging -lsubmit -lxobjread -lsqlitewrapp -llmdb -lseqdb -ltables -lconnect -lcomposition_adjustment -lutrtprof -lxnetblastcli -lblastdb -lseqmasks_io -lxalgowinmask -lxalgodustmask -lblast -lxalgoblastdbindex -lxblast -lxalnmgr -lxalgoalignutil -lQuickBLASTcpp $(STDCPPFS_LIBS) $(BOOST_LIBS) $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) -O3
+
+#-fdiagnostics-color=always 
+#-fsanitize=address -fno-omit-frame-pointer 
+#-fsanitize=undefined -fsanitize=address -fno-omit-frame-pointer
 
 # `$(R_HOME)/bin/Rscript -e "cat(Rcpp:::RcppCxxFlags())"` `$(R_HOME)/bin/Rscript -e "cat(Rcpp:::LdFlags())"`
 
 #-fsanitize=undefined -fno-omit-frame-pointer -g -O1
 
-PKG_CXXFLAGS = -fdiagnostics-color=always -O3 -fPIC -Wextra -shared -Ilibsrc $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) -pthread -I/usr/local/src/ -I/usr/include/ -I../include/ -I../BUILD/arrow/cpp/src/ -I../BUILD/arrow/cpp/BUILD/src/ -I../BUILD/ncbi-cxx-toolkit-public/include/ -I../BUILD/ncbi-cxx-toolkit-public/src/ -I../BUILD/ncbi-cxx-toolkit-public/BUILD/inc/
+PKG_CXXFLAGS = -O3 -fPIC -Wextra -shared -Ilibsrc $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) -pthread -I/usr/local/src/ -I/usr/include/ -I../include/ -I../BUILD/arrow/cpp/src/ -I../BUILD/arrow/cpp/BUILD/src/ -I../BUILD/ncbi-cxx-toolkit-public/include/ -I../BUILD/ncbi-cxx-toolkit-public/src/ -I../BUILD/ncbi-cxx-toolkit-public/BUILD/inc/
 
 #`$(R_HOME)/bin/Rscript -e "cat(Rcpp:::RcppCxxFlags())"`
 
@@ -21,9 +36,6 @@ PKG_CXXFLAGS = -fdiagnostics-color=always -O3 -fPIC -Wextra -shared -Ilibsrc $(S
 #-O2 $(SHLIB_OPENMP_CXXFLAGS) #-fopenmp
 
 #-I/usr/local/include/ncbi-tools++/ -I/usr/include/arrow/ -I/usr/include/parquet/ 
-
-
-PATCHELF ?= BUILD/patchelf/src/patchelf   # fallback if patchelf in PATH
 
 all: builddeps build_patchelf $(SHLIB) copy_lib fix-rpath
 $(SHLIB): install_libs
@@ -45,9 +57,9 @@ builddeps:
 	-DR_SHELL=1 \
 	-DRTOOLS_DIR="" \
 	-DTOOLKIT_CPPFLAGS=$(TOOLKIT_CPPFLAGS) \
-	-DRCPP_FOLDER=$(RCPP_FOLDER) \
-	-DRCPPPROG_FOLDER=$(RCPPPROG_FOLDER) \
-	-DRCPPTHREAD_FOLDER=$(RCPPTHREAD_FOLDER); \
+	-DRCPP_FOLDER="$(RCPP_FOLDER)" \
+	-DRCPPPROG_FOLDER="$(RCPPPROG_FOLDER)" \
+	-DRCPPTHREAD_FOLDER="$(RCPPTHREAD_FOLDER)"; \
 	$(MAKE))
 	
 build_patchelf:
@@ -55,7 +67,7 @@ build_patchelf:
 	./bootstrap.sh ; \
 	./configure ; \
 	$(MAKE) ; \
-	$(MAKE) check ; \
+	#$(MAKE) check ; \
 	)
 	
 install_libs:
@@ -74,14 +86,22 @@ copy_lib:
 		cp -uf *.so ../inst/libs/$(R_ARCH) ; 
 	
 fix-rpath:
-	@cd ../ ; command -v $(PATCHELF) >/dev/null 2>&1 || { echo "patchelf not found; install it or set PATCHELF variable"; exit 1; }
-	@echo "Patching rpath to '\$$ORIGIN' for .so files under inst/libs"
 	@cd ../ ; \
 	find "inst/libs" -type f -iname '*.so*' -or -type f -iname "makeblastdb" | \
 		while IFS= read -r -d $$'\n' f; do \
 			echo "patching $$f"; \
 			$(PATCHELF) --set-rpath '$$ORIGIN' "$$f"; \
+			strip -S "$$f"; \
 		done
+		
+#	TARGET="QuickBLAST.so"; \
+#	UNUSED_LIBS=$(ldd -u -r "$$TARGET" | grep 'Unused direct dependencies' -A 1000 | tail -n +2 | awk '{print $$1}' | sed '/^\s*$$/d'); \
+#	for lib in $$UNUSED_LIBS; do \
+#   	echo "Stripping overlinked dependency from ELF: $$lib"; \
+#   	$(PATCHELF) --remove-needed "$$lib" "$$TARGET" ; \
+#  done ; \
+#  echo "Done. $$TARGET is now perfectly lean."
+
 
 #find "inst/libs" -type f -name '*.so*' -print0 		
 #Rscript install.libs.R; \

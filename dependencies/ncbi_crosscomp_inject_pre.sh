@@ -92,17 +92,21 @@ echo "set(CMAKE_C_COMPILER $CC)" >>src/build-system/cmake/toolchains/$toolchain_
 echo "set(CMAKE_CXX_COMPILER $CXX)" >>src/build-system/cmake/toolchains/$toolchain_file
 
 #############COMPILER - MSYS2 - GCC#################################
-echo "set(CMAKE_C_FLAGS_RELEASE \" -std=gnu11 -O2 -Wformat -Werror=format-security -Wdate-time -U_WIN32 -DHAVE_IOSTREAM=1 -DNCBI_OS_OSF1=1 -DHAVE_INTTYPES_H=1 -DHAVE_NETINET_TCP_H=1 -D_FORTIFY_SOURCE=2 -pedantic -fdiagnostics-color=always $SHLIB_OPENMP_CXXFLAGS -pthread -fPIC -static-libgcc -march=native -mtune=generic -maccumulate-outgoing-args -Wall -Wno-format-y2k \")" >>src/build-system/cmake/toolchains/$toolchain_file
+echo "set(CMAKE_C_FLAGS_RELEASE \" -std=gnu11 -O3 -Wformat -Werror=format-security -Wdate-time -U_WIN32 -DHAVE_IOSTREAM=1 -DNCBI_OS_OSF1=1 -DHAVE_INTTYPES_H=1 -DHAVE_NETINET_TCP_H=1 -D_FORTIFY_SOURCE=2 -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -fPIC -static-libgcc -march=native -mtune=generic -maccumulate-outgoing-args -Wall -Wno-format-y2k \")" >>src/build-system/cmake/toolchains/$toolchain_file
 #-D_DEBUG
 #-UNDEBUG
 #-fstack-protector-strong
-echo "set(CMAKE_CXX_FLAGS_RELEASE \" -std=gnu++17 -O2 -Wformat -Werror=format-security -Wdate-time -U_WIN32 -DHAVE_IOSTREAM=1 -DNCBI_OS_OSF1=1 -DHAVE_INTTYPES_H=1 -DHAVE_NETINET_TCP_H=1 -D_FORTIFY_SOURCE=2 -pedantic -fdiagnostics-color=always $SHLIB_OPENMP_CXXFLAGS -pthread -fPIC -static-libstdc++ -march=native -mtune=generic -maccumulate-outgoing-args -Wall -Wno-format-y2k \")" >>src/build-system/cmake/toolchains/$toolchain_file
+#-fdiagnostics-color=always
+echo "set(CMAKE_CXX_FLAGS_RELEASE \" -std=gnu++17 -O3 -Wformat -Werror=format-security -Wdate-time -U_WIN32 -DHAVE_IOSTREAM=1 -DNCBI_OS_OSF1=1 -DHAVE_INTTYPES_H=1 -DHAVE_NETINET_TCP_H=1 -D_FORTIFY_SOURCE=2 -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -fPIC -static-libstdc++ -march=native -mtune=generic -maccumulate-outgoing-args -Wall -Wno-format-y2k \")" >>src/build-system/cmake/toolchains/$toolchain_file
 ###################################################
 
 ##############LINKER - GCC##############
 echo "set(CMAKE_EXE_LINKER_FLAGS_INIT  \" -Wl,--demangle -Wl,--pic-executable -Wl,--support-old-code -Wl,--as-needed \")" >>src/build-system/cmake/toolchains/$toolchain_file
 
 echo "set(CMAKE_SHARED_LINKER_FLAGS_INIT  \" -Wl,--demangle -Wl,--pic-executable -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--dll -Wl,-shared \")" >>src/build-system/cmake/toolchains/$toolchain_file
+echo "set(CMAKE_BUILD_WITH_INSTALL_RPATH=ON\")" >>src/build-system/cmake/toolchains/$toolchain_file
+echo "set(CMAKE_INSTALL_RPATH='\\$$ORIGIN'\")" >>src/build-system/cmake/toolchains/$toolchain_file
+echo "set(CMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF\")" >>src/build-system/cmake/toolchains/$toolchain_file
 ################################
 
 echo "include($NCBI_DIR/ncbi_components.cmake)" >>src/build-system/cmake/toolchains/$toolchain_file

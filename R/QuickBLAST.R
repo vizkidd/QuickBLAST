@@ -1,14 +1,14 @@
 #' Globals
 
-# #' Get file path of file inside "libs" folder of package
-# #' 
-# #' @param file_name file_name inside "libs" folder
-# #' @return File path inside QuickBLAST package
-# #' @md
-# .GetLibsPath <- function(file_name = ""){
-#   libs_path <- file.path("libs", Sys.getenv("R_ARCH"), file_name)
-#   return(system.file(libs_path, package = "QuickBLAST", mustWork = T))
-# }
+#' Get file path of file inside "libs" folder of package
+#'
+#' @param file_name file_name inside "libs" folder
+#' @return File path inside QuickBLAST package
+#' @md
+.GetLibsPath <- function(file_name = ""){
+  libs_path <- file.path("libs", Sys.getenv("R_ARCH"), file_name)
+  return(system.file(libs_path, package = "QuickBLAST", mustWork = T))
+}
 
 # arrow_lfs <- arrow::LocalFileSystem$create()
 ## internal single-file-system getter for the package
@@ -459,6 +459,8 @@ dll_paths <- paste(fs::path_package("QuickBLAST","libs", Sys.getenv("R_ARCH")), 
 dll_obj_list <-  list()
 
 .onLoad <- function(libname, pkgname) {
+  # Sys.setenv("ASAN_OPTIONS"="detect_leaks=0") #ASAN - remove in prod
+  # Sys.setenv("LD_PRELOAD"="/usr/lib/x86_64-linux-gnu/libasan.so.8") #ASAN - remove in prod
   Sys.setenv("ARROW_DEFAULT_MEMORY_POOL"="jemalloc") #="system")
   Sys.setenv("ARROW_DEBUG_MEMORY_POOL"="warn")
   Sys.setenv("OMP_NUM_THREADS"=parallel::detectCores(all.tests = T, logical = T))
@@ -468,6 +470,7 @@ dll_obj_list <-  list()
   Sys.setenv("OMP_DISPLAY_ENV"="FALSE")
   packageStartupMessage("QuickBLAST Loaded!")
   packageStartupMessage("Version: ", utils::packageVersion("QuickBLAST"))
+  packageStartupMessage("Github: https://github.com/vizkidd/QuickBLAST")
   # #R_dll_paths, msys_dll_paths
   # # library.dynam("Rcpp", "Rcpp", fs::path_package("Rcpp","..",".."))
   # if(Sys.info()['sysname'] != "Linux"){

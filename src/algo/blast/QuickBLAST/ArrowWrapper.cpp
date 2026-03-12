@@ -482,7 +482,7 @@ arrow::Status ArrowWrapper::Impl::AddRB2Batch(std::shared_ptr<arrow::RecordBatch
      rb_batch_size.store(tmp_batch_size, std::memory_order_release);
      
      {
-        std::thread write_thread([this]()
+        safe_jthread write_thread(std::thread([this]()
           {
               try{
                 static_cast<void>(this->WriteBatch2File());
@@ -513,11 +513,12 @@ arrow::Status ArrowWrapper::Impl::AddRB2Batch(std::shared_ptr<arrow::RecordBatch
                 writer_failed.store(true, std::memory_order_release);
               }
               writer_writing.store(false, std::memory_order_release);
-            });
+          }));
   #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
           omp_set_lock(&writer_threadsLock);
   #endif
           static_cast<void>(writer_threads.emplace_back(std::move(write_thread)));
+          // static_cast<void>(writer_threads.emplace_back(write_thread));
   #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
           omp_unset_lock(&writer_threadsLock);
   #endif
@@ -533,8 +534,7 @@ arrow::Status ArrowWrapper::Impl::AddRB2Batch(std::shared_ptr<arrow::RecordBatch
     Rcpp::Rcerr << std::string("[AddRB2Batch()]: Rcpp Exception : ") + e.what() << std::endl << std::flush;
   }catch(const std::exception &e){
     Rcpp::Rcerr << std::string("[AddRB2Batch()]: C++ Exception : ") + e.what() << std::endl << std::flush;
-  }
-  catch(...){
+  }catch(...){
     Rcpp::Rcerr << "[AddRB2Batch()]: Unknown Exception" << std::endl << std::flush;
   }
   return arrow::Status::Invalid("[AddRB2Batch()]: Caught an Exception.");
@@ -583,13 +583,14 @@ arrow::Status ArrowWrapper::Impl::CreateOutputStream(std::string &outFile, const
       case ArrowWrapper::EOutputFormat::eIPC: {
           auto outFileStream_res = arrow_LFS.OpenAppendStream(output_filename, blast_metadata);
           if(!outFileStream_res.ok()){
-            throw std::runtime_error(std::string("CreateOutputStream() - Could not open append stream to ") + output_filename);
+            Rcpp::Rcerr << std::string("[CreateOutputStream()] - Could not open append stream to ") + output_filename<< std::endl << std::flush;
+            return outFileStream_res.status();
           }
           outFileStream = outFileStream_res.ValueOrDie();
           auto writer_ = arrow::ipc::MakeFileWriter(outFileStream.get(), GetBLASTSchema(), GetArrowIPCOptions(), GetBLASTMetadata());
           if (!writer_.ok())
           {
-            throw std::runtime_error(std::string("WriteBatch2File() - Error initiating IPC file writer: ") + writer_.status().message());
+            Rcpp::Rcerr << std::string("WriteBatch2File() - Error initiating IPC file writer: ") + writer_.status().message() << std::endl << std::flush;
             return writer_.status();
           }
           rec_writer = writer_.ValueOrDie();
@@ -597,18 +598,19 @@ arrow::Status ArrowWrapper::Impl::CreateOutputStream(std::string &outFile, const
         }
       case ArrowWrapper::EOutputFormat::unknown:
       default: {
-        throw std::runtime_error(std::string("CreateOutputStream() - Unsupported output format. Supported values ipc/csv/parquet"));
+        return arrow::Status::Invalid((std::string("CreateOutputStream() - Unsupported output format. Supported values ipc/csv/parquet")));
       }
       case ArrowWrapper::EOutputFormat::eCSV: {
           auto outFileStream_res = arrow_LFS.OpenAppendStream(output_filename, blast_metadata);
           if(!outFileStream_res.ok()){
-            throw std::runtime_error(std::string("CreateOutputStream() - Could not open append stream to ") + output_filename);
+            Rcpp::Rcerr << std::string("CreateOutputStream() - Could not open append stream to ") + output_filename << std::endl << std::flush;
+            return outFileStream_res.status();
           }
           outFileStream = outFileStream_res.ValueOrDie();
           auto writer_ = arrow::csv::MakeCSVWriter(outFileStream.get(), GetBLASTSchema(), GetArrowCSVOptions());
           if (!writer_.ok())
           {
-            throw std::runtime_error(std::string("CreateOutputStream() - Error initiating CSV file writer: ") + writer_.status().message());
+            Rcpp::Rcerr << std::string("CreateOutputStream() - Error initiating CSV file writer: ") + writer_.status().message() << std::endl << std::flush;
             return writer_.status();
           }
           rec_writer = writer_.ValueOrDie();
@@ -628,26 +630,36 @@ arrow::Status ArrowWrapper::Impl::CreateOutputStream(std::string &outFile, const
           while ( (writer_running.load() || !writer_threads.empty()) && !writer_failed.load(std::memory_order_acquire) && !writer_finishing.load(std::memory_order_acquire)) {
             // assert(!Progress::check_abort()); // R API calls inside threads will crash c++ runtime
             RcppThread::checkUserInterrupt(); // R API calls inside threads will crash c++ runtime
-            std::thread thread_to_join;
+            // 1. Declare an empty, non-joinable thread object (NOT a reference)
+            std::thread thread_to_join; 
+            
             {
               // scoped lock for safe access to writer_threads
-              std::unique_lock<std::mutex> lk(writer_threads_mutex); //waiting4writer_mutex
+              std::unique_lock<std::mutex> lk(writer_threads_mutex); 
+              
               if (writer_threads.empty()) {
-                // nothing to join right now — wait a bit (or better: use condition_variable)
+                // wait until there is a thread to join, or the writer stops/fails
                 waiting4writer_cond.wait(lk, [this]() {
-                  return !writer_running.load(std::memory_order_acquire) || !writer_threads.empty() || writer_failed.load(std::memory_order_acquire);
+                  return !writer_running.load(std::memory_order_acquire) || 
+                    !writer_threads.empty() || 
+                    writer_failed.load(std::memory_order_acquire);
                 });
-                lk.unlock();
-                continue;
+                
+                // The unique_lock will automatically unlock when 'continue' jumps to the next loop iteration
+                continue; 
               }
               
-              // move out the first thread into local variable while holding lock
-              thread_to_join = std::move(writer_threads.front());
-              // erase first element; vector remains consistent
+              // 2. Move the thread out of the vector and into our local variable
+              // (Assuming writer_threads holds your safe_jthread, so .get() accesses the std::thread)
+              thread_to_join = std::move(writer_threads.front().get());
+              // thread_to_join = std::move(writer_threads.front());
+              
+              // 3. Erase the first element. Because we moved the data out, this just safely deletes an empty shell.
               writer_threads.erase(writer_threads.begin());
-            } // unlock before join
+              
+            } // 4. unique_lock goes out of scope and automatically unlocks the mutex here
             
-            // join outside lock (can block)
+            // 5. Join outside the lock (so we don't block other threads while waiting)
             if (thread_to_join.joinable()) {
               thread_to_join.join();
             }
@@ -684,20 +696,17 @@ arrow::Status ArrowWrapper::Impl::CreateOutputStream(std::string &outFile, const
       }); //std::move()
       finisher_thread.detach();   
     }
+    return arrow::Status::OK();
   }catch(const std::runtime_error &e){
     Rcpp::Rcerr << std::string("[CreateOutputStream()]: C++ Runtime Error : ") + e.what() << std::endl << std::flush;
-    return arrow::Status::Invalid("[AddRB2Batch()]: Caught an Exception.");
   }catch(const Rcpp::exception &e){
     Rcpp::Rcerr << std::string("[CreateOutputStream()]: Rcpp Exception : ") + e.what() << std::endl << std::flush;
-    return arrow::Status::Invalid("[AddRB2Batch()]: Caught an Exception.");
   }catch(const std::exception &e){
     Rcpp::Rcerr << std::string("[CreateOutputStream()]: C++ Exception : ") + e.what() << std::endl << std::flush;
-    return arrow::Status::Invalid("[AddRB2Batch()]: Caught an Exception.");
   }catch(...){
     Rcpp::Rcerr << "[CreateOutputStream()]: Unknown Exception" << std::endl << std::flush;
-    return arrow::Status::Invalid("[AddRB2Batch()]: Caught an Exception.");
   }
-  return arrow::Status::OK();
+  return arrow::Status::Invalid("[AddRB2Batch()]: Caught an Exception.");
 }
 
 arrow::Status ArrowWrapper::CreateOutputStream(std::string &outFile, const std::string& outputFormat)
@@ -811,7 +820,7 @@ std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> ArrowWr
 
   if (!file_ptr)
   {
-    REprintf("Error: Failed to open file: %s \n", filename.data());
+    Rcpp::Rcerr << "[MMapFile()] Error: Failed to open file:" << filename.data() << std::endl << std::flush;
     return nullptr;
   }
 
@@ -1151,22 +1160,27 @@ arrow::Status ArrowWrapper::Impl::FinishOutputStream()
   try{
   
     if(!save2file){
+      if(writer_threads.size() > 0)
+      for(auto &t : writer_threads){
+        if(t.get().joinable())
+          t.get().join();
+      }
       return arrow::Status::OK(); 
     }
     
     writer_running.store(false, std::memory_order_release);
     waiting4writer_cond.notify_all();
-    
+    Rcpp::Rcout << output_filename << std::endl << std::flush; //DEBUG
     if(writer_failed.load(std::memory_order_acquire))
     {
-      throw std::runtime_error(std::string("FinishOutputStream(): Writer thread(s) failed: ") + writer_error_msg);
+      return arrow::Status::Invalid(std::string("FinishOutputStream(): Writer thread(s) failed: ") + writer_error_msg);
     } 
     
     {
       std::unique_lock<std::mutex> lk(finishing_mutex);
       finishing_cond.wait(lk, [this]() {
         RcppThread::checkUserInterrupt();
-        return (!writer_writing.load(std::memory_order_acquire) && writer_finishing.load(std::memory_order_acquire)) || writer_failed.load(std::memory_order_acquire);
+        return (!this->save2file || (!writer_writing.load(std::memory_order_acquire) && writer_finishing.load(std::memory_order_acquire)) || writer_failed.load(std::memory_order_acquire));
       });
       lk.unlock();
     }
@@ -1215,7 +1229,8 @@ arrow::Status ArrowWrapper::Impl::FinishOutputStream()
     if(parquet_writer){
       arrow::Status st2 = parquet_writer->Close();
       if (!st2.ok()) {
-        throw std::runtime_error(std::string("FinishOutputStream(): Error closing output writer stream (Parquet): ") + st2.message() + std::string(" : ") + st2.detail()->ToString());
+        Rcpp::Rcerr << std::string("FinishOutputStream(): Error closing output writer stream (Parquet): ") + st2.message() + std::string(" : ") + st2.detail()->ToString() << std::endl << std::flush;
+        return st2;
       }
       parquet_writer.reset();
     }
@@ -1225,7 +1240,8 @@ arrow::Status ArrowWrapper::Impl::FinishOutputStream()
       {
         arrow::Status st2 = parquetFileStream->Close();
         if (!st2.ok()) {
-          throw std::runtime_error(std::string("FinishOutputStream(): Error closing parquetFileStream: ") + st2.ToString());
+          Rcpp::Rcerr << std::string("FinishOutputStream(): Error closing parquetFileStream: ") + st2.ToString() << std::endl << std::flush;
+          return st2;
         }
       }
       parquetFileStream.reset();
@@ -1236,7 +1252,8 @@ arrow::Status ArrowWrapper::Impl::FinishOutputStream()
       {
         arrow::Status st2 = outFileStream->Close();
         if (!st2.ok()) {
-          throw std::runtime_error(std::string("[FinishOutputStream()]: Error closing outFileStream: ") + st2.ToString());
+          Rcpp::Rcerr << std::string("[FinishOutputStream()]: Error closing outFileStream: ") + st2.ToString() << std::endl << std::flush;
+          return st2;
         }
       }
       outFileStream.reset();
@@ -1245,18 +1262,14 @@ arrow::Status ArrowWrapper::Impl::FinishOutputStream()
     return arrow::Status::OK();
   }catch(const std::runtime_error &e){
     Rcpp::Rcerr << std::string("[FinishOutputStream()]: C++ Runtime Error : ") + e.what() << std::endl << std::flush;
-    return arrow::Status::Invalid("[FinishOutputStream()]: Caught an Exception.");
   }catch(const Rcpp::exception &e){
     Rcpp::Rcerr << std::string("[FinishOutputStream()]: Rcpp Exception : ") + e.what() << std::endl << std::flush;
-    return arrow::Status::Invalid("[FinishOutputStream()]: Caught an Exception.");
-  }
-  catch(const std::exception &e){
+  }catch(const std::exception &e){
     Rcpp::Rcerr << std::string("[FinishOutputStream()]: C++ Exception : ") + e.what() << std::endl << std::flush;
-    return arrow::Status::Invalid("[FinishOutputStream()]: Caught an Exception.");
   }catch(...){
     Rcpp::Rcerr << "[FinishOutputStream()]: Unknown Exception" << std::endl << std::flush;
-    return arrow::Status::Invalid("[FinishOutputStream()]: Caught an Exception.");
   }
+  return arrow::Status::Invalid("[FinishOutputStream()]: Caught an Exception.");
 }
 
 arrow::Status ArrowWrapper::FinishOutputStream()
@@ -1266,7 +1279,7 @@ arrow::Status ArrowWrapper::FinishOutputStream()
 
 arrow::Status ArrowWrapper::Impl::WriteBatch2File()
 {
-  // DO NOT USE R API CALLS FROM WITHIN STD::THREAD AS IT LEADS TO STACK CORRUPTION
+  // DO NOT USE R API CALLS FROM WITHIN STD::(J)THREAD AS IT LEADS TO STACK CORRUPTION
   try{
     if(writer_writing.load(std::memory_order_acquire) || writer_failed.load(std::memory_order_acquire))
     {
@@ -1333,16 +1346,23 @@ arrow::Status ArrowWrapper::Impl::WriteBatch2File()
             if (rb->num_rows() > 0)
             {
               arrow::Status rb_sts = rb->ValidateFull();
+              arrow::Status sts;
               if (rb_sts.ok())
               {
     #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
                   omp_set_lock(&rec_writerLock);
     #endif
-                  arrow::Status sts = rec_writer->WriteRecordBatch(*rb);
+#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
+#pragma omp critical (arrow_write_lock)
+#endif
+{
+                  sts = rec_writer->WriteRecordBatch(*rb);
                   static_cast<void>(outFileStream->Flush());
+}
     #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
                   omp_unset_lock(&rec_writerLock);
     #endif
+                  
                   if (!sts.ok())
                   {
                     {
@@ -1663,31 +1683,59 @@ std::shared_ptr<arrow::RecordBatchVector> ArrowWrapper::Impl::SplitFilesIntoEntr
     for (int i = 0; i < num_threads; ++i)
     {
 
-      //  Get the thread-specific range to process
       size_t chunk_size = (end_of_file - start_of_file) / num_threads;
       char *thread_start = start_of_file + i * chunk_size;
       char *thread_end = (i == num_threads - 1) ? end_of_file : (thread_start + chunk_size);
-
-      if (thread_start != start_of_file)
-      {
-        while (strncmp(thread_start, delim, strlen(delim)) != 0)
-        {
+      
+      // Cache the length so we don't recalculate it in the loop
+      size_t delim_len = strlen(delim); 
+      
+      // 1. SAFE BACKWARD SEARCH: Prevent underflowing past start_of_file
+      if (i != 0) {
+        while (thread_start > start_of_file && strncmp(thread_start, delim, delim_len) != 0) {
           --thread_start;
         }
       }
-      if (thread_end != end_of_file)
-      {
-        while (strncmp(thread_end, delim, strlen(delim)) != 0)
-        {
+      
+      // 2. SAFE FORWARD SEARCH: Prevent overflowing past end_of_file
+      if (i != num_threads - 1) {
+        while (thread_end < (end_of_file - delim_len) && strncmp(thread_end, delim, delim_len) != 0) {
           ++thread_end;
         }
-        thread_end = thread_end - 1;
+        
+        // Only step back if we actually found the delimiter (and didn't just hit EOF)
+        if (thread_end < end_of_file) {
+          // Depending on how your parser works, you might not even need this -1. 
+          // If thread_end is pointing exactly AT the '>', that is usually the perfect boundary.
+          thread_end = thread_end - 1; 
+        }
       }
+      // //  Get the thread-specific range to process
+      // size_t chunk_size = (end_of_file - start_of_file) / num_threads;
+      // char *thread_start = start_of_file + i * chunk_size;
+      // char *thread_end = (i == num_threads - 1) ? end_of_file : (thread_start + chunk_size);
+      // 
+      // if (thread_start != start_of_file)
+      // {
+      //   while (strncmp(thread_start, delim, strlen(delim)) != 0)
+      //   {
+      //     --thread_start;
+      //   }
+      // }
+      // if (thread_end != end_of_file)
+      // {
+      //   while (strncmp(thread_end, delim, strlen(delim)) != 0)
+      //   {
+      //     ++thread_end;
+      //   }
+      //   thread_end = thread_end - 1;
+      // }
+      
       // Process the entries within the thread's range
       char *entryStart = nullptr;
       char *entryEnd = nullptr;
 
-      const size_t delim_len = std::strlen(delim);
+      // const size_t delim_len = std::strlen(delim);
       
       // p is not used now; we create piter
       const char* piter = thread_start;
@@ -1786,17 +1834,14 @@ std::shared_ptr<arrow::RecordBatchVector> ArrowWrapper::Impl::SplitFilesIntoEntr
   return std::make_shared<arrow::RecordBatchVector>(ret_results);
   }catch(const std::runtime_error &e){
     Rcpp::Rcerr << std::string("[SplitFilesIntoEntries()] - C++ Runtime Exception : ") + e.what() << std::endl << std::flush;
-    return std::make_shared<arrow::RecordBatchVector>();
   }catch(const Rcpp::exception &e){
     Rcpp::Rcerr << std::string("[SplitFilesIntoEntries()] - Rcpp Exception : ") + e.what() << std::endl << std::flush;
-    return std::make_shared<arrow::RecordBatchVector>();
   }catch (const std::exception &e) {
     Rcpp::Rcerr << std::string("[SplitFilesIntoEntries()] - C++ exception : ") + e.what() << std::endl << std::flush;
-    return std::make_shared<arrow::RecordBatchVector>();
   }catch (...) {
     Rcpp::Rcerr << "[SplitFilesIntoEntries()]: Unknown exception" << std::endl << std::flush;
-    return std::make_shared<arrow::RecordBatchVector>();
   }
+  return std::make_shared<arrow::RecordBatchVector>();
 }
 std::shared_ptr<arrow::RecordBatchVector> ArrowWrapper::SplitFilesIntoEntries(const std::string_view &filename, const char *delim, const int &num_threads, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<FastaSequenceData>)> &Entry_callback, bool return_values)
 {

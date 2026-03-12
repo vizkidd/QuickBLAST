@@ -103,15 +103,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // SetQuickBLASTOptions
-RcppExport bool SetQuickBLASTOptions(SEXP ptr, SEXP program_name, SEXP options);
-RcppExport SEXP _QuickBLAST_SetQuickBLASTOptions(SEXP ptrSEXP, SEXP program_nameSEXP, SEXP optionsSEXP) {
+RcppExport bool SetQuickBLASTOptions(SEXP ptr, SEXP program_name, SEXP options, bool verbose);
+RcppExport SEXP _QuickBLAST_SetQuickBLASTOptions(SEXP ptrSEXP, SEXP program_nameSEXP, SEXP optionsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type ptr(ptrSEXP);
     Rcpp::traits::input_parameter< SEXP >::type program_name(program_nameSEXP);
     Rcpp::traits::input_parameter< SEXP >::type options(optionsSEXP);
-    rcpp_result_gen = Rcpp::wrap(SetQuickBLASTOptions(ptr, program_name, options));
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(SetQuickBLASTOptions(ptr, program_name, options, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -234,8 +235,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // BLAST2DBs
-RcppExport SEXP BLAST2DBs(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, SEXP out_format, unsigned int num_threads, bool return_values, unsigned int min_batch_size, bool verbose);
-RcppExport SEXP _QuickBLAST_BLAST2DBs(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP, SEXP out_fileSEXP, SEXP out_formatSEXP, SEXP num_threadsSEXP, SEXP return_valuesSEXP, SEXP min_batch_sizeSEXP, SEXP verboseSEXP) {
+RcppExport SEXP BLAST2DBs(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, SEXP out_format, unsigned int num_threads, bool refresh_db, bool return_values, unsigned int min_batch_size, const bool& enable_chunking, unsigned int chunk_size, unsigned int overlap, bool verbose);
+RcppExport SEXP _QuickBLAST_BLAST2DBs(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP, SEXP out_fileSEXP, SEXP out_formatSEXP, SEXP num_threadsSEXP, SEXP refresh_dbSEXP, SEXP return_valuesSEXP, SEXP min_batch_sizeSEXP, SEXP enable_chunkingSEXP, SEXP chunk_sizeSEXP, SEXP overlapSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -245,10 +246,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type out_file(out_fileSEXP);
     Rcpp::traits::input_parameter< SEXP >::type out_format(out_formatSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type num_threads(num_threadsSEXP);
+    Rcpp::traits::input_parameter< bool >::type refresh_db(refresh_dbSEXP);
     Rcpp::traits::input_parameter< bool >::type return_values(return_valuesSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type min_batch_size(min_batch_sizeSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type enable_chunking(enable_chunkingSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type chunk_size(chunk_sizeSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type overlap(overlapSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(BLAST2DBs(ptr, query, subject, out_file, out_format, num_threads, return_values, min_batch_size, verbose));
+    rcpp_result_gen = Rcpp::wrap(BLAST2DBs(ptr, query, subject, out_file, out_format, num_threads, refresh_db, return_values, min_batch_size, enable_chunking, chunk_size, overlap, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -292,7 +297,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_QuickBLAST_GetQuickBLASTInstance", (DL_FUNC) &_QuickBLAST_GetQuickBLASTInstance, 1},
     {"_QuickBLAST_DeleteQuickBLASTInstance", (DL_FUNC) &_QuickBLAST_DeleteQuickBLASTInstance, 1},
     {"_QuickBLAST_GetQuickBLASTOptions", (DL_FUNC) &_QuickBLAST_GetQuickBLASTOptions, 1},
-    {"_QuickBLAST_SetQuickBLASTOptions", (DL_FUNC) &_QuickBLAST_SetQuickBLASTOptions, 3},
+    {"_QuickBLAST_SetQuickBLASTOptions", (DL_FUNC) &_QuickBLAST_SetQuickBLASTOptions, 4},
     {"_QuickBLAST_BLAST2Seqs", (DL_FUNC) &_QuickBLAST_BLAST2Seqs, 4},
     {"_QuickBLAST_BLAST2Folders", (DL_FUNC) &_QuickBLAST_BLAST2Folders, 10},
     {"_QuickBLAST_BLAST1Folder", (DL_FUNC) &_QuickBLAST_BLAST1Folder, 9},
@@ -300,7 +305,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_QuickBLAST_RemoteBLAST", (DL_FUNC) &_QuickBLAST_RemoteBLAST, 10},
     {"_QuickBLAST_isBLASTDB", (DL_FUNC) &_QuickBLAST_isBLASTDB, 2},
     {"_QuickBLAST_MakeBLASTDB", (DL_FUNC) &_QuickBLAST_MakeBLASTDB, 4},
-    {"_QuickBLAST_BLAST2DBs", (DL_FUNC) &_QuickBLAST_BLAST2DBs, 9},
+    {"_QuickBLAST_BLAST2DBs", (DL_FUNC) &_QuickBLAST_BLAST2DBs, 13},
     {"_QuickBLAST_GetFASTAHeaders", (DL_FUNC) &_QuickBLAST_GetFASTAHeaders, 2},
     {"_QuickBLAST_BLASTFile2DB", (DL_FUNC) &_QuickBLAST_BLASTFile2DB, 8},
     {NULL, NULL, 0}

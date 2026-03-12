@@ -26,7 +26,6 @@ endif()
 #return()
 
 if(NOT WIN32)    
-
     execute_process(
     COMMAND nproc;
     OUTPUT_VARIABLE N_PROC
@@ -154,14 +153,19 @@ if(NOT WIN32)
   	)
   	message("R flags:" ${R_FLAGS})
 
-    set(ARROW_CXX_FLAGS "-std=gnu++20 -fdiagnostics-color=always -march=native -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS}")
-set(ARROW_C_FLAGS  "-std=gnu2x -fdiagnostics-color=always -march=native -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS}")
+#-fdiagnostics-color=always
+    set(ARROW_CXX_FLAGS "-std=gnu++20  -march=native -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS}")
+set(ARROW_C_FLAGS  "-std=gnu2x -march=native -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS}")
+set(ARROW_EXE_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
+set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
 
 
     execute_process(
     COMMAND cmake .. -G "Unix Makefiles" 
     "-DCMAKE_CXX_FLAGS=${ARROW_CXX_FLAGS}"
     "-DCMAKE_C_FLAGS=${ARROW_C_FLAGS}"
+    "-DCMAKE_EXE_LINKER_FLAGS=${ARROW_EXE_FLAGS}"
+    "-DCMAKE_SHARED_LINKER_FLAGS=${ARROW_LINKER_FLAGS}"
     -DARROW_DEPENDENCY_USE_SHARED=OFF -DARROW_BUILD_SHARED=ON -DARROW_BUILD_STATIC=ON -DARROW_BZ2_USE_SHARED=OFF -DARROW_COMPUTE=ON -DARROW_CSV=ON -DARROW_DEPENDENCY_SOURCE=AUTO -DARROW_ENABLE_THREADING=ON -DARROW_FILESYSTEM=ON -DARROW_HDFS=ON -DARROW_IPC=ON -DARROW_JEMALLOC=ON -DARROW_JSON=ON -DARROW_PARQUET=ON -DARROW_POSITION_INDEPENDENT_CODE=ON -DARROW_TENSORFLOW=ON -DARROW_VERBOSE_THIRDPARTY_BUILD=ON -DARROW_WITH_BACKTRACE=ON -DARROW_WITH_BROTLI=ON -DARROW_WITH_BZ2=ON -DARROW_WITH_LZ4=ON -DARROW_WITH_RE2=ON -DARROW_WITH_SNAPPY=ON -DARROW_WITH_UTF8PROC=ON -DARROW_WITH_ZLIB=OFF -DARROW_WITH_ZSTD=ON -DCMAKE_BUILD_TYPE=release -DBUILD_SHARED_LIBS=OFF -DCMAKE_SKIP_BUILD_RPATH=FALSE -DCMAKE_BUILD_WITH_INSTALL_RPATH=TRUE -DCMAKE_INSTALL_RPATH="$ORIGIN"	-DCMAKE_POSITION_INDEPENDENT_CODE=ON #-DARROW_ZSTD_USE_SHARED=OFF -DARROW_JEMALLOC_USE_SHARED=OFF -DARROW_LLVM_USE_SHARED=OFF -DARROW_LZ4_USE_SHARED=OFF -DARROW_OPENSSL_USE_SHARED=OFF -DARROW_THRIFT_USE_SHARED=OFF -DARROW_UTF8PROC_USE_SHARED=OFF -DARROW_BOOST_USE_SHARED=OFF -DARROW_BROTLI_USE_SHARED=OFF -DARROW_PROTOBUF_USE_SHARED=OFF -DARROW_SNAPPY_USE_SHARED=OFF # -DARROW_CUDA=ON -DARROW_DEPENDENCY_SOURCE=BUNDLED  # -DARROW_BUILD_INTEGRATION=ON
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/arrow/cpp/BUILD
     COMMAND_ERROR_IS_FATAL ANY
@@ -197,18 +201,61 @@ set(ARROW_C_FLAGS  "-std=gnu2x -fdiagnostics-color=always -march=native -fopenmp
     #DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     #)
     
-    execute_process(
-    COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/cmake-configure
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    )
+    #execute_process(
+    #COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/cmake-configure
+    #WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    #)
 
-    set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} -DRCPPPROG_FOLDER=${RCPPPROG_FOLDER} -DRCPPTHREAD_FOLDER=${RCPPTHREAD_FOLDER} -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}'")
+if(APPLE)
+    set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
+    -DRCPPPROG_FOLDER=${RCPPPROG_FOLDER} \
+    -DRCPPTHREAD_FOLDER=${RCPPTHREAD_FOLDER} \
+    -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}' \
+    -DCMAKE_BUILD_RPATH='-Wl,-rpath,@loader_path' \
+    -DCMAKE_INSTALL_RPATH='-Wl,-rpath,@loader_path' \
+    -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
+    -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF")
+else()
+    # Good luck getting the single dollar sign through execute_process -> bash -> cmake -> bash -> ld
+    set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
+-DRCPPPROG_FOLDER=${RCPPPROG_FOLDER} \
+-DRCPPTHREAD_FOLDER=${RCPPTHREAD_FOLDER} \
+-DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}' \
+-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
+-DCMAKE_BUILD_RPATH='\$$ORIGIN' \
+-DCMAKE_INSTALL_RPATH='\$$ORIGIN' \
+-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF")
+endif()
     
+    #message("CMAKE ARGS: $ENV{CMAKE_ARGS}")
+    
+    #execute_process(
+    #  COMMAND bash src/build-system/cmake/toolchains/cmkTool.sh GCC ${GCC_VERSION}
+    #  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
+    #  OUTPUT_VARIABLE TOOLCHAIN_FILE
+    #  OUTPUT_STRIP_TRAILING_WHITESPACE
+    #  COMMAND_ERROR_IS_FATAL ANY
+    #)
+
+    #message(STATUS "Discovered Toolchain File: ${TOOLCHAIN_FILE}")
+  
     execute_process(
     COMMAND ./cmake-configure GCC ${GCC_VERSION} --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD --with-dll
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     COMMAND_ERROR_IS_FATAL ANY
     )
+
+#    set(TOOLCHAIN_FILE "${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/build/ncbi_toolchain.cmake")
+#    # Append the raw text to the toolchain file
+#    file(APPEND "${TOOLCHAIN_FILE}" [=[
+# --- Injected RPATH settings for QuickBLAST ---
+# Use CACHE ... FORCE to ensure these settings override the NCBI internal defaults
+#set(CMAKE_BUILD_WITH_INSTALL_RPATH ON CACHE BOOL "" FORCE)
+#set(CMAKE_INSTALL_RPATH "$ORIGIN" CACHE STRING "" FORCE)
+#set(CMAKE_INSTALL_RPATH_USE_LINK_PATH OFF CACHE BOOL "" FORCE)
+#set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -Wl,-rpath,\$$ORIGIN -Wl,-rpath,@loader_path/")
+#set(CMAKE_SHARED_LINKER_FLAGS_INIT "${CMAKE_SHARED_LINKER_FLAGS_INIT} -Wl,-rpath,\$$ORIGIN -Wl,-rpath,@loader_path/")
+#    ]=])
 
     execute_process(
     COMMAND make -j ${N_PROC} QuickBLASTcpp makeblastdb
@@ -216,7 +263,6 @@ set(ARROW_C_FLAGS  "-std=gnu2x -fdiagnostics-color=always -march=native -fopenmp
     COMMAND_ERROR_IS_FATAL ANY
     )
 elseif(WIN32)
-  
     message(STATUS "Rtools Install Path:" ${RTOOLS_DIR})
 
     execute_process(
@@ -228,8 +274,10 @@ elseif(WIN32)
     )
 
     execute_process(
-        COMMAND pacman -Sy -q --needed --noconfirm cmake mingw-w64-clang-x86_64-cmake mingw-w64-ucrt-x86_64-cmake git mingw-w64-ucrt-x86_64-libutf8proc mingw-w64-ucrt-x86_64-utf8cpp mingw-w64-clang-x86_64-utf8cpp mingw-w64-clang-x86_64-libutf8proc mingw-w64-x86_64-libutf8proc mingw-w64-x86_64-utf8cpp mingw-w64-ucrt-x86_64-xsimd mingw-w64-x86_64-xsimd mingw-w64-clang-x86_64-xsimd mingw-w64-ucrt-x86_64-re2 mingw-w64-clang-x86_64-re2 mingw-w64-x86_64-re2 mingw-w64-ucrt-x86_64-boost mingw-w64-clang-x86_64-boost mingw-w64-x86_64-boost mingw-w64-ucrt-x86_64-thrift mingw-w64-clang-x86_64-thrift inetutils mingw-w64-ucrt-x86_64-python-win_inet_pton mingw-w64-clang-x86_64-python-win_inet_pton mingw-w64-x86_64-python-win_inet_pton mingw-w64-clang-x86_64-clang mingw-w64-ucrt-x86_64-clang clang llvm mingw-w64-clang-x86_64-llvm mingw-w64-ucrt-x86_64-llvm mingw-w64-x86_64-llvm mingw-w64-ucrt-x86_64-llvm-libs mingw-w64-clang-x86_64-llvm-libs mingw-w64-x86_64-llvm-libs lzop mingw-w64-clang-x86_64-lzo2 mingw-w64-ucrt-x86_64-lzo2 mingw-w64-x86_64-lzo2 liblzo2 liblzo2-devel mingw-w64-x86_64-openmp mingw-w64-ucrt-x86_64-openmp mingw-w64-clang-x86_64-openmp brotli mingw-w64-clang-x86_64-brotli mingw-w64-ucrt-x86_64-brotli mingw-w64-x86_64-brotli brotli-devel mingw-w64-ucrt-x86_64-samtools mingw-w64-clang-x86_64-samtools mingw-w64-x86_64-samtools mingw-w64-ucrt-x86_64-arrow mingw-w64-x86_64-arrow liblz4 lz4 mingw-w64-clang-x86_64-lz4 mingw-w64-ucrt-x86_64-lz4 mingw-w64-x86_64-lz4 zlib zlib-devel mingw-w64-cross-zlib mingw-w64-x86_64-zlib mingw-w64-ucrt-x86_64-zlib mingw-w64-clang-x86_64-zlib mingw-w64-clang-x86_64-python-conan mingw-w64-ucrt-x86_64-python-conan mingw-w64-x86_64-libc++ mingw-w64-ucrt-x86_64-libc++ mingw-w64-clang-x86_64-libc++ mingw-w64-clang-x86_64-headers-git mingw-w64-ucrt-x86_64-headers-git mingw-w64-x86_64-headers-git mingw-w64-ucrt-x86_64-libunwind mingw-w64-x86_64-libunwind mingw-w64-clang-x86_64-libunwind mingw-w64-x86_64-libbacktrace mingw-w64-ucrt-x86_64-libbacktrace mingw-w64-clang-x86_64-libbacktrace mingw-w64-x86_64-python-conan mingw-w64-clang-x86_64-python-conan mingw-w64-ucrt-x86_64-python-conan make mingw-w64-x86_64-clang mingw-w64-x86_64-libxml2 mingw-w64-clang-x86_64-libxml2 mingw-w64-ucrt-x86_64-libxml2 libxml2 mingw-w64-clang-x86_64-lld mingw-w64-ucrt-x86_64-lld mingw-w64-x86_64-lld lld autotools mingw-w64-clang-x86_64-autotools mingw-w64-ucrt-x86_64-autotools mingw-w64-x86_64-autotools libgcrypt-devel libgcrypt mingw-w64-x86_64-libgcrypt mingw-w64-ucrt-x86_64-libgcrypt mingw-w64-clang-x86_64-libgcrypt bison bisonc++ flex reflex flexc++ mingw-w64-ucrt-x86_64-flexdll mingw-w64-x86_64-flexdll msys2-runtime-devel msys2-runtime  msys2-w32api-runtime mingw-w64-cross-binutils mingw-w64-ucrt-x86_64-binutils mingw-w64-x86_64-binutils binutils mingw-w64-clang-x86_64-lmdb mingw-w64-ucrt-x86_64-lmdb mingw-w64-x86_64-lmdb mingw-w64-clang-x86_64-lmdbxx mingw-w64-ucrt-x86_64-lmdbxx mingw-w64-x86_64-lmdbxx ninja mingw-w64-x86_64-arrow mingw-w64-ucrt-x86_64-arrow mingw-w64-x86_64-cmake pcre pcre2 mingw-w64-x86_64-pcre mingw-w64-x86_64-pcre2 mingw-w64-ucrt-x86_64-pcre mingw-w64-ucrt-x86_64-pcre2 mingw-w64-clang-x86_64-pcre mingw-w64-clang-x86_64-pcre2 libpcreposix libpcre2posix pcre2-devel pcre-devel libpcrecpp libpcre libpcre2_32 grep mingw-w64-x86_64-grep mingw-w64-clang-x86_64-grep mingw-w64-ucrt-x86_64-grep
+        COMMAND pacman -Sy -q --needed --noconfirm cmake gcc mingw-w64-cross-mingw64-gcc mingw-w64-cross-ucrt64-gcc mingw-w64-ucrt-x86_64-gcc mingw-w64-x86_64-gcc mingw-w64-clang-x86_64-cmake mingw-w64-ucrt-x86_64-cmake git mingw-w64-ucrt-x86_64-libutf8proc mingw-w64-ucrt-x86_64-utf8cpp mingw-w64-clang-x86_64-utf8cpp mingw-w64-clang-x86_64-libutf8proc mingw-w64-x86_64-libutf8proc mingw-w64-x86_64-utf8cpp mingw-w64-ucrt-x86_64-xsimd mingw-w64-x86_64-xsimd mingw-w64-clang-x86_64-xsimd mingw-w64-ucrt-x86_64-re2 mingw-w64-clang-x86_64-re2 mingw-w64-x86_64-re2 mingw-w64-ucrt-x86_64-boost mingw-w64-clang-x86_64-boost mingw-w64-x86_64-boost mingw-w64-ucrt-x86_64-thrift mingw-w64-clang-x86_64-thrift inetutils mingw-w64-ucrt-x86_64-python-win_inet_pton mingw-w64-clang-x86_64-python-win_inet_pton mingw-w64-x86_64-python-win_inet_pton mingw-w64-clang-x86_64-clang mingw-w64-ucrt-x86_64-clang clang llvm mingw-w64-clang-x86_64-llvm mingw-w64-ucrt-x86_64-llvm mingw-w64-x86_64-llvm mingw-w64-ucrt-x86_64-llvm-libs mingw-w64-clang-x86_64-llvm-libs mingw-w64-x86_64-llvm-libs lzop mingw-w64-clang-x86_64-lzo2 mingw-w64-ucrt-x86_64-lzo2 mingw-w64-x86_64-lzo2 liblzo2 liblzo2-devel mingw-w64-x86_64-openmp mingw-w64-ucrt-x86_64-openmp mingw-w64-clang-x86_64-openmp brotli mingw-w64-clang-x86_64-brotli mingw-w64-ucrt-x86_64-brotli mingw-w64-x86_64-brotli brotli-devel mingw-w64-ucrt-x86_64-samtools mingw-w64-clang-x86_64-samtools mingw-w64-x86_64-samtools mingw-w64-ucrt-x86_64-arrow mingw-w64-x86_64-arrow liblz4 lz4 mingw-w64-clang-x86_64-lz4 mingw-w64-ucrt-x86_64-lz4 mingw-w64-x86_64-lz4 zlib zlib-devel mingw-w64-cross-zlib mingw-w64-x86_64-zlib mingw-w64-ucrt-x86_64-zlib mingw-w64-clang-x86_64-zlib mingw-w64-clang-x86_64-python-conan mingw-w64-ucrt-x86_64-python-conan mingw-w64-x86_64-libc++ mingw-w64-ucrt-x86_64-libc++ mingw-w64-clang-x86_64-libc++ mingw-w64-clang-x86_64-headers-git mingw-w64-ucrt-x86_64-headers-git mingw-w64-x86_64-headers-git mingw-w64-ucrt-x86_64-libunwind mingw-w64-x86_64-libunwind mingw-w64-clang-x86_64-libunwind mingw-w64-x86_64-libbacktrace mingw-w64-ucrt-x86_64-libbacktrace mingw-w64-clang-x86_64-libbacktrace mingw-w64-x86_64-python-conan mingw-w64-clang-x86_64-python-conan mingw-w64-ucrt-x86_64-python-conan make mingw-w64-x86_64-clang mingw-w64-x86_64-libxml2 mingw-w64-clang-x86_64-libxml2 mingw-w64-ucrt-x86_64-libxml2 libxml2 mingw-w64-clang-x86_64-lld mingw-w64-ucrt-x86_64-lld mingw-w64-x86_64-lld lld autotools mingw-w64-clang-x86_64-autotools mingw-w64-ucrt-x86_64-autotools mingw-w64-x86_64-autotools libgcrypt-devel libgcrypt mingw-w64-x86_64-libgcrypt mingw-w64-ucrt-x86_64-libgcrypt mingw-w64-clang-x86_64-libgcrypt bison bisonc++ flex reflex flexc++ mingw-w64-ucrt-x86_64-flexdll mingw-w64-x86_64-flexdll mingw-w64-cross-binutils mingw-w64-ucrt-x86_64-binutils mingw-w64-x86_64-binutils binutils mingw-w64-clang-x86_64-lmdb mingw-w64-ucrt-x86_64-lmdb mingw-w64-x86_64-lmdb mingw-w64-clang-x86_64-lmdbxx mingw-w64-ucrt-x86_64-lmdbxx mingw-w64-x86_64-lmdbxx ninja mingw-w64-x86_64-arrow mingw-w64-ucrt-x86_64-arrow mingw-w64-x86_64-cmake pcre pcre2 mingw-w64-x86_64-pcre mingw-w64-x86_64-pcre2 mingw-w64-ucrt-x86_64-pcre mingw-w64-ucrt-x86_64-pcre2 mingw-w64-clang-x86_64-pcre mingw-w64-clang-x86_64-pcre2 libpcreposix libpcre2posix pcre2-devel pcre-devel libpcrecpp libpcre libpcre2_32 grep mingw-w64-x86_64-grep mingw-w64-clang-x86_64-grep mingw-w64-ucrt-x86_64-grep
     )
+
+#msys2-runtime-devel msys2-runtime  msys2-w32api-runtime
 
     execute_process(
         COMMAND nproc;

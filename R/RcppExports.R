@@ -17,20 +17,6 @@
 #' @param out_format (string) Ouput Format. 'ipc'/'csv'/'parquet' (Optional) (Default: 'parquet').
 NULL
 
-#' @name BLAST2DBs
-#'
-#' @title BLAST 2 on-disk BLAST DBs
-#'
-#' @description Calls makeblastdb to create a BLAST DB of a FASTA file
-#'
-#' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::MakeBLASTDB()], [QuickBLAST::isBLASTDB()]
-#' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
-#' @param query (string) Query DB
-#' @param subject (string) Subject DB
-#' @param out_file (string) Ouput file (Optional)
-#' @param out_format (string) Ouput Format. 'ipc'/'csv'/'parquet' (Optional) (Default: 'parquet').
-NULL
-
 #' @name BLASTFile2DB
 #'
 #' @title BLAST File to a on-disk BLAST DB
@@ -75,6 +61,9 @@ RecordBatchVectorToFlattenedDFList <- function(rbv_sexp) {
 #' @param save_sequences (bool) Save Full Sequences to output?. (Default: FALSE)
 #' @param save_hsp_sequences (bool) Save HSP Sequences to output?. (Default: FALSE)
 #' @return (Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST Instance (Cannot be used in R)
+#' 
+#' @note Set save_sequences AND/OR save_hsp_sequences when using Genomes
+#' 
 #' @examples
 #' \dontrun{
 #' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
@@ -206,6 +195,7 @@ GetQuickBLASTOptions <- function(ptr) {
 #' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
 #' @param program_name (string) Name of the BLAST program
 #' @param options (string (or) Named List) List of BLAST options - check QuickBLAST::GetAvailableBLASTOptions(). String should be of the format "-option1 value1 -option2 value2"
+#' @param verbose (bool) Verbose?
 #' @return (bool) TRUE - if options set for the QuickBLAST instance, FALSE otherwise
 #' @examples
 #' \dontrun{
@@ -223,8 +213,8 @@ GetQuickBLASTOptions <- function(ptr) {
 #' )
 #' }
 #' @export
-SetQuickBLASTOptions <- function(ptr, program_name, options) {
-    .Call(`_QuickBLAST_SetQuickBLASTOptions`, ptr, program_name, options)
+SetQuickBLASTOptions <- function(ptr, program_name, options, verbose = TRUE) {
+    .Call(`_QuickBLAST_SetQuickBLASTOptions`, ptr, program_name, options, verbose)
 }
 
 #' @name BLAST2Seqs
@@ -526,7 +516,20 @@ MakeBLASTDB <- function(ptr, input_file, database_name, parse_seqids = FALSE) {
     .Call(`_QuickBLAST_MakeBLASTDB`, ptr, input_file, database_name, parse_seqids)
 }
 
+#' @name BLAST2DBs
+#'
+#' @title BLAST 2 on-disk BLAST DBs
+#'
+#' @description Calls makeblastdb to create a BLAST DB of a FASTA file
+#'
+#' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::MakeBLASTDB()], [QuickBLAST::isBLASTDB()]
+#' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+#' @param query (string) Query DB
+#' @param subject (string) Subject DB
+#' @param out_file (string) Ouput file (Optional)
+#' @param out_format (string) Ouput Format. 'ipc'/'csv'/'parquet' (Optional) (Default: 'parquet').
 #' @param num_threads (unsigned int) Number of threads. (Optional)
+#' @param refresh_db (bool) If TRUE, re-creates the DBs
 #' @param return_values (bool) Return BLAST Hits as Rcpp::List (Default: TRUE) (Optional)
 #' @param min_batch_size (unsigned int) Minimum batch size - Size of file write buffer (Optional).
 #' @param verbose (bool) Verbose? (Default: TRUE)
@@ -588,8 +591,8 @@ MakeBLASTDB <- function(ptr, input_file, database_name, parse_seqids = FALSE) {
 #' )
 #' }
 #' @export
-BLAST2DBs <- function(ptr, query, subject, out_file = NULL, out_format = NULL, num_threads = 0L, return_values = TRUE, min_batch_size = 0L, verbose = TRUE) {
-    .Call(`_QuickBLAST_BLAST2DBs`, ptr, query, subject, out_file, out_format, num_threads, return_values, min_batch_size, verbose)
+BLAST2DBs <- function(ptr, query, subject, out_file = NULL, out_format = NULL, num_threads = 0L, refresh_db = FALSE, return_values = TRUE, min_batch_size = 0L, enable_chunking = FALSE, chunk_size = 50000L, overlap = 1000L, verbose = TRUE) {
+    .Call(`_QuickBLAST_BLAST2DBs`, ptr, query, subject, out_file, out_format, num_threads, refresh_db, return_values, min_batch_size, enable_chunking, chunk_size, overlap, verbose)
 }
 
 #' @name GetFASTAHeaders

@@ -210,7 +210,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_remote(
   //   remote.SetMaxTargetSequences(max_results); // API-dependent
   
   // Build CRemoteBlast
-  CRemoteBlast remote(SetQuickBLASTOptions(program, GetQuickBLASTOptionString(), CBlastOptions::eRemote));
+  CRemoteBlast remote(SetQuickBLASTOptions(program, GetQuickBLASTOptionString(), CBlastOptions::eRemote, verbose));
   remote.SetQueries(bss);
   remote.SetDatabase(database);
   // Submit synchronously, wait, then get results

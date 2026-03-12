@@ -111,7 +111,7 @@ struct ArrowWrapper::Impl
     std::shared_ptr<arrow::ipc::RecordBatchWriter> rec_writer;
     std::unique_ptr<parquet::arrow::FileWriter> parquet_writer;
     std::shared_ptr<arrow::RecordBatchVector> rbv_batch;
-    std::vector<std::thread> writer_threads;
+    std::vector<safe_jthread> writer_threads;
     std::thread finisher_thread;
     std::string output_filename, output_format;
     bool save2file;

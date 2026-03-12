@@ -6,7 +6,16 @@
 
 SET(CMAKE_SKIP_BUILD_RPATH FALSE)
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-SET(CMAKE_INSTALL_RPATH "$ORIGIN") # Or CMAKE_INSTALL_RPATH "$ORIGIN/../lib" for relative paths
+
+if(APPLE)
+    set(CMAKE_INSTALL_RPATH "@loader_path")
+    # Note: Sometimes @executable_path is used depending on if it's an app or library, 
+    # but @loader_path is the exact equivalent to $ORIGIN.
+else()
+    # Assume Linux/Unix
+    # We use \$ to escape the dollar sign so CMake doesn't try to read a CMake variable named ORIGIN
+    set(CMAKE_INSTALL_RPATH "\\$$ORIGIN")
+endif()
 
 if(NOT WIN32 AND NOT MINGW32)
 	execute_process(
@@ -111,8 +120,11 @@ find_library(PARQUET_LIB
 		*.h
 		*.hpp
 	)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TOOLKIT_CPPFLAGS} --std=gnu++20 -fdiagnostics-color=always -march=native -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLKIT_CPPFLAGS} --std=gnu2x -fdiagnostics-color=always -march=native -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
+	#-fdiagnostics-color=always
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TOOLKIT_CPPFLAGS} --std=gnu++20 -march=native -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
+  set(CMAKE_EXE_LINKER_FLAGS "-rpath \$ORIGIN")
+  set(CMAKE_SHARED_LINKER_FLAGS "-rpath \$ORIGIN")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLKIT_CPPFLAGS} --std=gnu2x -march=native -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
 	NCBI_add_include_directories(
 		"${RCPP_FOLDER}/include"
 		"${RCPPPROG_FOLDER}/include"
@@ -276,12 +288,12 @@ elseif(MINGW32)
 	
 	# set(R_INC "${R_HOME}/include")
 	#message("R inc:" ${R_INC})
-	cygpath_cmd(R_INC "${R_HOME}/include")
+	#cygpath_cmd(R_INC "${R_HOME}/include")
 	cygpath_cmd(R_HOME "${R_HOME}")
 
 	message("R HOME : " ${R_HOME})
 	message("R ARCH : " ${R_ARCH})
-	message("R INC : " ${R_INC})
+	#message("R INC : " ${R_INC})
 
 	# if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/R_src/")
 	# message(STATUS "Downloading R-src...")	
@@ -300,32 +312,32 @@ elseif(MINGW32)
 	# 	)
 	# endif()
 
-	if (NOT EXISTS "${ROOT_SRC_DIR}/R_src/")
-	message(STATUS "Downloading R-src...")	
-	execute_process(
-			COMMAND bash -c "mkdir -p ${ROOT_SRC_DIR}/R_src/" ;
-			WORKING_DIRECTORY ${ROOT_SRC_DIR}
-		)
-		execute_process(
-			COMMAND bash -c "curl https://cran.r-project.org/src/base/R-latest.tar.gz -o R-latest.tar.gz" ;
-			WORKING_DIRECTORY ${ROOT_SRC_DIR}/R_src/
-			COMMAND_ERROR_IS_FATAL ANY
-		)
-		execute_process(
-			COMMAND bash -c "tar xzf R-latest.tar.gz 2> /dev/null" ;
-			WORKING_DIRECTORY ${ROOT_SRC_DIR}/R_src/
-		)
-	endif()
+	#if (NOT EXISTS "${ROOT_SRC_DIR}/R_src/")
+	#message(STATUS "Downloading R-src...")	
+	#execute_process(
+	#		COMMAND bash -c "mkdir -p ${ROOT_SRC_DIR}/R_src/" ;
+	#		WORKING_DIRECTORY ${ROOT_SRC_DIR}
+	#	)
+	#	execute_process(
+	#		COMMAND bash -c "curl https://cran.r-project.org/src/base/R-latest.tar.gz -o R-latest.tar.gz" ;
+	#		WORKING_DIRECTORY ${ROOT_SRC_DIR}/R_src/
+	#		COMMAND_ERROR_IS_FATAL ANY
+	#	)
+	#	execute_process(
+	#		COMMAND bash -c "tar xzf R-latest.tar.gz 2> /dev/null" ;
+	#		WORKING_DIRECTORY ${ROOT_SRC_DIR}/R_src/
+	#	)
+	#endif()
 
-	execute_process(
-		# COMMAND bash -c "cygpath ${FOLDER_MODE} $(echo $(realpath $(find . -maxdepth 1 -iname 'R-*' -type d ))/src/include/)" ;
-		COMMAND bash -c "cygpath ${FOLDER_MODE} $(echo $(realpath $(find . -maxdepth 1 -iname 'R-*' -type d ))/src/include/)" ;
-		OUTPUT_VARIABLE R_INC_UNIX
-    	OUTPUT_STRIP_TRAILING_WHITESPACE
-		WORKING_DIRECTORY ${ROOT_SRC_DIR}/R_src/
-		COMMAND_ERROR_IS_FATAL ANY
-	)
-	message("R INC (SRC) : " ${R_INC_UNIX})
+	#execute_process(
+	#	# COMMAND bash -c "cygpath ${FOLDER_MODE} $(echo $(realpath $(find . -maxdepth 1 -iname 'R-*' -type d ))/src/include/)" ;
+	#	COMMAND bash -c "cygpath ${FOLDER_MODE} $(echo $(realpath $(find . -maxdepth 1 -iname 'R-*' -type d ))/src/include/)" ;
+	#	OUTPUT_VARIABLE R_INC_UNIX
+  #  	OUTPUT_STRIP_TRAILING_WHITESPACE
+	#	WORKING_DIRECTORY ${ROOT_SRC_DIR}/R_src/
+	#	COMMAND_ERROR_IS_FATAL ANY
+	#)
+	#message("R INC (SRC) : " ${R_INC_UNIX})
 
 	#execute_process(
   #  	COMMAND ${R_HOME}/bin/Rscript -e "cat(system.file(package = 'Rcpp'))" ;
@@ -404,9 +416,11 @@ elseif(MINGW32)
 #   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLKIT_CPPFLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TOOLKIT_CPPFLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLKIT_CPPFLAGS} --std=gnu20 -fopenmp -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS}")
+   set(CMAKE_EXE_LINKER_FLAGS "-rpath \$ORIGIN")
+   set(CMAKE_SHARED_LINKER_FLAGS "-rpath \$ORIGIN")
 	NCBI_add_include_directories(
-		"${R_INC_UNIX}"
-		"${R_INC}"
+		#"${R_INC_UNIX}"
+		#"${R_INC}"
 		"${RCPP_FOLDER}/include"
 		"${RCPPPROG_FOLDER}/include"
 		"${RCPPTHREAD_FOLDER}/include"

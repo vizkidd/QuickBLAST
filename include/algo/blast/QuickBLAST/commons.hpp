@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <thread>
+#include <utility>
 #include <algorithm>   // std::max
 #include <mutex>
 #include <typeinfo>
@@ -22,7 +23,7 @@
 #include <progress.hpp> //RcppProgress
 #include <progress_bar.hpp> //RcppProgress
 #include <RcppThread.h> //RcppThread
-#include <R_ext/Rdynload.h>
+// #include <R_ext/Rdynload.h>
 
 #if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
 #include "omp.h"
@@ -51,4 +52,44 @@ struct BLASTHitData
     int rec_no = 1;
     std::vector<std::string_view> col_names();
     std::vector<std::string_view> col_values();
+};
+
+struct safe_jthread {
+  std::thread t;
+
+  // 1. Default constructor (needed for std::vector sizing)
+  safe_jthread() noexcept = default;
+
+  // 2. Accept an already-constructed thread
+  explicit safe_jthread(std::thread&& t_) noexcept : t(std::move(t_)) {}
+
+  // 3. Accept a lambda/function with arguments
+  template<class Function, class... Args>
+  explicit safe_jthread(Function&& f, Args&&... args)
+    : t(std::forward<Function>(f), std::forward<Args>(args)...) {}
+
+  // 4. Destructor guarantees join
+  ~safe_jthread() {
+    if (t.joinable()) {
+      t.join();
+    }
+  }
+
+  // 5. Delete copy operations (Threads CANNOT be copied)
+  safe_jthread(const safe_jthread&) = delete;
+  safe_jthread& operator=(const safe_jthread&) = delete;
+
+  // 6. Move operations MUST be marked noexcept for std::vector compatibility!
+  safe_jthread(safe_jthread&& other) noexcept : t(std::move(other.t)) {}
+
+  safe_jthread& operator=(safe_jthread&& other) noexcept {
+    if (this != &other) {
+      // If the current thread is running, we must join it before overwriting it
+      if (t.joinable()) t.join();
+      t = std::move(other.t);
+    }
+    return *this;
+  }
+
+  std::thread& get() { return t; }
 };
