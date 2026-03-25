@@ -1,8 +1,8 @@
 Package: QuickBLAST
 Type: Package
 Title: BLAST Files/Sequences/DBs from R
-Version: 1.4.7
-Date: 2026-03-13
+Version: 1.5.0
+Date: 2026-03-25
 Author: Vishvesh Karthik
 Authors@R: person(given = "Vishvesh Karthik",
                     family = "",

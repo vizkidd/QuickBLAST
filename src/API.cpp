@@ -2933,36 +2933,6 @@ RcppExport SEXP BLASTFile2DB(SEXP ptr, SEXP query, SEXP subject, SEXP out_file =
  }
 
 
-static void add_int_column(FlatDF &out, const std::string &name, int64_t nrows) {
-  ColumnData cd;
-  cd.name = name;
-  cd.kind = ColKind::INT;
-  cd.int_vals.resize(static_cast<std::size_t>(nrows), NA_INTEGER); // Pre-fill with NA
-  out.cols.push_back(std::move(cd));
-}
-static void add_double_column(FlatDF &out, const std::string &name, int64_t nrows) {
-  ColumnData cd;
-  cd.name = name;
-  cd.kind = ColKind::DOUBLE;
-  cd.dbl_vals.resize(static_cast<std::size_t>(nrows), std::numeric_limits<double>::quiet_NaN());
-  out.cols.push_back(std::move(cd));
-}
-static void add_string_column(FlatDF &out, const std::string &name, int64_t nrows) {
-  ColumnData cd;
-  cd.name = name;
-  cd.kind = ColKind::STRING;
-  cd.str_vals.resize(static_cast<std::size_t>(nrows));
-  cd.str_valid.resize(static_cast<std::size_t>(nrows), false); // Default to NA
-  out.cols.push_back(std::move(cd));
-}
-static void add_logical_column(FlatDF &out, const std::string &name, int64_t nrows) {
-  ColumnData cd;
-  cd.name = name;
-  cd.kind = ColKind::LOGICAL;
-  cd.logical_vals.resize(static_cast<std::size_t>(nrows), INT_MIN);
-  out.cols.push_back(std::move(cd));
-}
-
 // Extracts base primitives into FlatDF
 static void ExtractPrimitive_worker(const std::shared_ptr<arrow::Array>& array,
                                     const std::shared_ptr<arrow::DataType>& type,
@@ -3110,6 +3080,62 @@ static void ExtractListPrimitive_worker(const std::shared_ptr<arrow::ListArray>&
 }
 
 
+// static void CollectFlattenedColumns_worker(const std::shared_ptr<arrow::Array>& array,
+//                                            const std::shared_ptr<arrow::DataType>& type,
+//                                            const std::string& prefix,
+//                                            int64_t nrows,
+//                                            FlatDF& out) {
+//   if (!array) return;
+//   
+//   // 1. STRUCT LOGIC
+//   if (type->id() == arrow::Type::STRUCT) {
+//     auto sarr = std::static_pointer_cast<arrow::StructArray>(array);
+//     int nf = sarr->num_fields();
+//     for (int f = 0; f < nf; ++f) {
+//       std::string child_name = type->field(f)->name();
+//       // Using your original naming logic here
+//       // std::string colname = child_name; 
+//       std::string colname = prefix + "_" + child_name;
+//       CollectFlattenedColumns_worker(sarr->field(f), type->field(f)->type(), colname, nrows, out);
+//     }
+//     return;
+//   }
+//   
+//   // 2. LIST LOGIC
+//   if (type->id() == arrow::Type::LIST) {
+//     auto larr = std::static_pointer_cast<arrow::ListArray>(array);
+//     auto val_type = type->field(0)->type();
+//     auto values = larr->values();
+//     
+//     int64_t maxlen = 0;
+//     for (int64_t i = 0; i < nrows; ++i) {
+//       int64_t len = larr->value_length(i);
+//       if (len > maxlen) maxlen = len;
+//     }
+//     
+//     for (int64_t p = 0; p < maxlen; ++p) {
+//       if (val_type->id() == arrow::Type::STRUCT) {
+//         auto vals_struct = std::static_pointer_cast<arrow::StructArray>(values);
+//         int sub_nf = vals_struct->num_fields();
+//         for (int sf = 0; sf < sub_nf; ++sf) {
+//           std::string sf_name = val_type->field(sf)->name();
+//           std::string colname = prefix + "_" + std::to_string(p) + "_" + sf_name;
+//           auto subfield_array = vals_struct->field(sf);
+//           auto sub_type = val_type->field(sf)->type();
+//           ExtractListPrimitive_worker(larr, subfield_array, sub_type, colname, p, nrows, out);
+//         }
+//       } else {
+//         std::string colname = prefix + "_" + std::to_string(p);
+//         ExtractListPrimitive_worker(larr, values, val_type, colname, p, nrows, out);
+//       }
+//     }
+//     return;
+//   }
+//   
+//   // 3. BASE PRIMITIVE LOGIC
+//   ExtractPrimitive_worker(array, type, prefix, nrows, out);
+// }
+
 static void CollectFlattenedColumns_worker(const std::shared_ptr<arrow::Array>& array,
                                            const std::shared_ptr<arrow::DataType>& type,
                                            const std::string& prefix,
@@ -3123,8 +3149,6 @@ static void CollectFlattenedColumns_worker(const std::shared_ptr<arrow::Array>& 
     int nf = sarr->num_fields();
     for (int f = 0; f < nf; ++f) {
       std::string child_name = type->field(f)->name();
-      // Using your original naming logic here
-      // std::string colname = child_name; 
       std::string colname = prefix + "_" + child_name;
       CollectFlattenedColumns_worker(sarr->field(f), type->field(f)->type(), colname, nrows, out);
     }
@@ -3151,19 +3175,23 @@ static void CollectFlattenedColumns_worker(const std::shared_ptr<arrow::Array>& 
           std::string sf_name = val_type->field(sf)->name();
           std::string colname = prefix + "_" + std::to_string(p) + "_" + sf_name;
           auto subfield_array = vals_struct->field(sf);
-          auto sub_type = val_type->field(sf)->type();
-          ExtractListPrimitive_worker(larr, subfield_array, sub_type, colname, p, nrows, out);
+          
+          // Use the List Visitor directly on the leaf primitive!
+          ListElementVisitor visitor(out, colname, nrows, *larr, p);
+          ARROW_UNUSED(arrow::VisitArrayInline(*subfield_array, &visitor));
         }
       } else {
         std::string colname = prefix + "_" + std::to_string(p);
-        ExtractListPrimitive_worker(larr, values, val_type, colname, p, nrows, out);
+        ListElementVisitor visitor(out, colname, nrows, *larr, p);
+        ARROW_UNUSED(arrow::VisitArrayInline(*values, &visitor));
       }
     }
     return;
   }
   
-  // 3. BASE PRIMITIVE LOGIC
-  ExtractPrimitive_worker(array, type, prefix, nrows, out);
+  // 3. BASE PRIMITIVE LOGIC (Using Inline Visitor)
+  PrimitiveVisitor visitor(out, prefix, nrows);
+  ARROW_UNUSED(arrow::VisitArrayInline(*array, &visitor));
 }
 
 // Worker: convert a single RecordBatch into FlatDF (C++ only).
