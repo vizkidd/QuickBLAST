@@ -5,7 +5,7 @@ rm -rf BUILD/ inst/libs/
 Rscript -e "Rcpp::compileAttributes(verbose = T)"
 
 ## Run this in your R console BEFORE devtools::document()
-Rscript -e "devtools::install(); Sys.setenv(LD_LIBRARY_PATH = paste('$HOME/R/packages/QuickBLAST/libs', Sys.getenv('LD_LIBRARY_PATH'), sep = ':')); devtools::document(quiet = T)" #roxygen2::roxygenize(clean = T)
+Rscript -e "devtools::install(); Sys.setenv(LD_LIBRARY_PATH = paste('$HOME/R/packages/QuickBLAST/libs', Sys.getenv('LD_LIBRARY_PATH'), sep = ':')); devtools::document(quiet = T); devtools::build_site(quiet = F); pkgdown::build_llm_docs(); pkgdown::build_news(); pkgdown::build_favicons(); " #roxygen2::roxygenize(clean = T)
 
 # rm -f src/RcppExports.cpp R/RcppExports.R
 # 

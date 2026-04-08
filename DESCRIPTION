@@ -1,15 +1,15 @@
 Package: QuickBLAST
 Type: Package
-Title: BLAST Files/Sequences/DBs from R
-Version: 1.5.0
-Date: 2026-03-25
+Title: QuickBLAST for FASTA Files/Sequences/DBs
+Version: 1.6.4
+Date: 2026-04-09
 Author: Vishvesh Karthik
 Authors@R: person(given = "Vishvesh Karthik",
                     family = "",
                     role = c("aut", "cre"),
                     email = "vishveshkarthik@gmail.com")
 Maintainer: Vishvesh Karthik <vishveshkarthik@gmail.com>
-Description: A BLAST Wrapper to call BLAST directly from R (interoperable and without Sys.call()) coupled with Apache Arrow's IPC and columnar format.
+Description: A BLAST Wrapper to call BLAST directly from R (interoperable and without Sys.call()) coupled with Apache Arrow's columnar format with parquet, IPC and csv file support.
 License: GPL (>= 2)
 Depends:
   R (>= 4.4.0),
@@ -31,7 +31,8 @@ Imports:
   RcppThread (>= 2.3.0),
   future (>= 1.69.0),
   future.apply (>= 1.20.2),
-  future.callr (>= 0.10.2)
+  future.callr (>= 0.10.2),
+  xfun (>= 0.56)
 LinkingTo:
     Rcpp,
     RcppProgress,

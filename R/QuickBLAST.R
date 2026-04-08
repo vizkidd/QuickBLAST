@@ -178,8 +178,8 @@ LoadBLASTHits <- function(infile, sep = "\t", header = F, format = 'parquet') {
 #' @examples
 #' \dontrun{
 #' QuickBLAST::one2one(
-#'  first_list="ungrouped.cds",
-#'  second_list="ungrouped.cds", 
+#'  first_list=fs::path_package("QuickBLAST", "extdata", "protein_query.fasta")
+#'  second_list=fs::path_package("QuickBLAST", "extdata", "protein_subject.fasta"), 
 #'  blast_fun=QuickBLAST::BLAST2Files
 #'  seq_type = 0, 
 #'  strand=0,
@@ -327,8 +327,8 @@ one2one <- function(first_list, second_list, blast_fun, seq_type, strand, blast_
 #' @examples
 #' \dontrun{
 #' QuickBLAST::all2all(
-#'   first_list="ungrouped.cds",
-#'   second_list="ungrouped.cds", 
+#'   first_list=fs::path_package("QuickBLAST", "extdata", "protein_query.fasta"),
+#'   second_list=fs::path_package("QuickBLAST", "extdata", "protein_subject.fasta"), 
 #'   blast_fun=QuickBLAST::BLAST2Files
 #'   seq_type = 0, 
 #'   strand=0,
@@ -461,7 +461,11 @@ dll_obj_list <-  list()
 .onLoad <- function(libname, pkgname) {
   # Sys.setenv("ASAN_OPTIONS"="detect_leaks=0") #ASAN - remove in prod
   # Sys.setenv("LD_PRELOAD"="/usr/lib/x86_64-linux-gnu/libasan.so.8") #ASAN - remove in prod
-  Sys.setenv("ARROW_DEFAULT_MEMORY_POOL"="jemalloc") #="system")
+  if(xfun::is_windows()){
+    Sys.setenv("ARROW_DEFAULT_MEMORY_POOL"="system")
+  }else{
+    Sys.setenv("ARROW_DEFAULT_MEMORY_POOL"="jemalloc")
+  }
   Sys.setenv("ARROW_DEBUG_MEMORY_POOL"="warn")
   Sys.setenv("OMP_NUM_THREADS"=parallel::detectCores(all.tests = T, logical = T))
   Sys.setenv("OMP_DYNAMIC"="TRUE")

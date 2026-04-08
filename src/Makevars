@@ -1,4 +1,4 @@
-CXXSTD = CXX17
+CXXSTD = CXX20
 
 # Adjust these paths based on where Make is executed. 
 # Assuming Make runs in src/, so we step back to the package root.
@@ -7,6 +7,9 @@ MAIN_LIB = src/QuickBLAST.so
 LIB_DIR = inst/libs
 
 PATCHELF ?= BUILD/patchelf/src/patchelf   # fallback if patchelf not in PATH
+
+PKG_CFLAGS = -std=gnu2x -DARROW_STATIC -DPARQUET_STATIC -DLIBICONV_STATIC 
+PKG_CPPFLAGS = -std=gnu++20 -DARROW_STATIC -DPARQUET_STATIC -DLIBICONV_STATIC 
 
 #LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.8
 TOOLKIT_CPPFLAGS = "$(CLINK_CPPFLAGS) $(PKG_CPPFLAGS)"
@@ -17,7 +20,7 @@ RCPPTHREAD_FOLDER = $(shell $(R_HOME)/bin/Rscript -e "cat(system.file(package='R
 BOOST_LIBS = $(shell ld -lboost_system --verbose > /dev/null 2>&1 && echo "-lboost_system")
 STDCPPFS_LIBS = $(shell ld -lstdc++fs --verbose > /dev/null 2>&1 && echo "-lstdc++fs")
 
-PKG_LIBS = -Wl,-rpath,\$$ORIGIN -Wl,-rpath,@loader_path/ -L../BUILD/arrow/cpp/BUILD/release/ -L../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ -L../BUILD/arrow/cpp/BUILD/release/ -L/usr/local/lib/ -L/usr/lib/ -larrow -lparquet -lrt -lxncbi -lgeneral -lseqcode -lseq -lseqset -lseqsplit -lseqedit -lgenome_collection -lxobjmgr -lsequtil -lxutil -lxser -lscoremat -lxnetblast -lxconnect -lxobjutil -lbiblio -lmedline -lpub -lxlogging -lsubmit -lxobjread -lsqlitewrapp -llmdb -lseqdb -ltables -lconnect -lcomposition_adjustment -lutrtprof -lxnetblastcli -lblastdb -lseqmasks_io -lxalgowinmask -lxalgodustmask -lblast -lxalgoblastdbindex -lxblast -lxalnmgr -lxalgoalignutil -lQuickBLASTcpp $(STDCPPFS_LIBS) $(BOOST_LIBS) $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) -O3
+PKG_LIBS = -Wl,-rpath,\$$ORIGIN -Wl,-rpath,@loader_path/ -L../BUILD/arrow/cpp/BUILD/release/ -L../BUILD/arrow/cpp/BUILD/lib/ -L../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ -L/usr/local/lib/ -L/usr/lib/ -Wl,--start-group -larrow -lparquet -lthrift -larrow_bundled_dependencies -lbrotlicommon -lbrotlienc -lbrotlidec -llz4 -lz -llmdb -lrt -lalign_format -lbiblio -lblast -lblastdb -lblastdb_format -lblastinput -lblast_services -lcomposition_adjustment -lconnect -lct_ftds14 -ldbapi_driver -lefetch -legquery -lehistory -leinfo -lelink -lepost -lesearch -lespell -lesummary -leutils -lgeneral -lgenome_collection -lid1 -lid2 -lmedline -lncbi_xdbapi_ftds -lncbi_xloader_blastdb -lncbi_xloader_blastdb_rmt -lncbi_xloader_genbank -lncbi_xreader -lncbi_xreader_cache -lncbi_xreader_id1 -lncbi_xreader_id2 -lpub -lpubmed -lQuickBLASTcpp -lscoremat -lseq -lseqcode -lseqdb -lseqedit -lseqmasks_io -lseqset -lseqsplit -lsequtil -lsqlitewrapp -lsubmit -ltables -ltaxon1 -ltaxon3 -ltds_ftds14 -luilist -lutrtprof -lvalid -lwritedb -lxalgoalignutil -lxalgoblastdbindex -lxalgodustmask -lxalgoseq -lxalgowinmask -lxalnmgr -lxblast -lxcgi -lxcleanup -lxcompress -lxconnect -lxflatfile -lxhtml -lxlogging -lxncbi -lxnetblast -lxnetblastcli -lxobjedit -lxobjmgr -lxobjread -lxobjsimple -lxobjutil -lxqueryparse -lxregexp -lxser -lxutil -lzcf $(STDCPPFS_LIBS) $(BOOST_LIBS) $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) -O3 -Wl,--end-group
 
 #-fdiagnostics-color=always 
 #-fsanitize=address -fno-omit-frame-pointer 
@@ -37,7 +40,8 @@ PKG_CXXFLAGS = -O3 -fPIC -Wextra -shared -Ilibsrc $(SHLIB_OPENMP_CXXFLAGS) $(TOO
 
 #-I/usr/local/include/ncbi-tools++/ -I/usr/include/arrow/ -I/usr/include/parquet/ 
 
-all: builddeps build_patchelf $(SHLIB) copy_lib fix-rpath
+#build_patchelf #fix-rpath
+all: builddeps $(SHLIB) copy_lib
 $(SHLIB): install_libs
 #install_libs
 
@@ -62,45 +66,46 @@ builddeps:
 	-DRCPPTHREAD_FOLDER="$(RCPPTHREAD_FOLDER)"; \
 	$(MAKE))
 	
-build_patchelf:
-	(cd ../BUILD/patchelf ; \
-	./bootstrap.sh ; \
-	./configure ; \
-	$(MAKE) ; \
-	#$(MAKE) check ; \
-	)
+#build_patchelf:
+#	(cd ../BUILD/patchelf ; \
+#	./bootstrap.sh ; \
+#	./configure ; \
+#	$(MAKE) ; \
+#	#$(MAKE) check ; \
+#	)
 	
 install_libs:
 	(mkdir -p ../inst/libs/$(R_ARCH) ; \
 	cd ../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ ; \
-	cp -uf *.so ../../../../inst/libs/$(R_ARCH)/ ; \
 	cd ../bin ; \
 	cp -uf makeblastdb ../../../../inst/libs/$(R_ARCH)/ ; \
-	cd ../../../arrow/cpp/BUILD/release/ ; \
-	cp -uf *.so* ../../../../../inst/libs/$(R_ARCH)/ ; \
 	cd ../../../../../src; \
 	echo $(R_ARCH) ; \
 	)
 
+#	cd ../../../arrow/cpp/BUILD/release/ ; \
+#	cp -uf *.so* ../../../../../inst/libs/$(R_ARCH)/ ; \
+#	cp -uf *.so ../../../../inst/libs/$(R_ARCH)/ ; 
+
 copy_lib:
-		cp -uf *.so ../inst/libs/$(R_ARCH) ; 
+		strip -S *.so && cp -uf *.so ../inst/libs/$(R_ARCH) ; 
 	
-fix-rpath:
-	@cd ../ ; \
-	find "inst/libs" -type f -iname '*.so*' -or -type f -iname "makeblastdb" | \
-		while IFS= read -r -d $$'\n' f; do \
-			echo "patching $$f"; \
-			$(PATCHELF) --set-rpath '$$ORIGIN' "$$f"; \
-			strip -S "$$f"; \
-		done
-		
-#	TARGET="QuickBLAST.so"; \
-#	UNUSED_LIBS=$(ldd -u -r "$$TARGET" | grep 'Unused direct dependencies' -A 1000 | tail -n +2 | awk '{print $$1}' | sed '/^\s*$$/d'); \
-#	for lib in $$UNUSED_LIBS; do \
-#   	echo "Stripping overlinked dependency from ELF: $$lib"; \
-#   	$(PATCHELF) --remove-needed "$$lib" "$$TARGET" ; \
-#  done ; \
-#  echo "Done. $$TARGET is now perfectly lean."
+#fix-rpath:
+#	@cd ../ ; \
+#	find "inst/libs" -type f -iname '*.so*' -or -type f -iname "makeblastdb" | \
+#		while IFS= read -r -d $$'\n' f; do \
+#			echo "patching $$f"; \
+#			$(PATCHELF) --set-rpath '$$ORIGIN' "$$f"; \
+#			strip -S "$$f"; \
+#		done
+#		
+##	TARGET="QuickBLAST.so"; \
+##	UNUSED_LIBS=$(ldd -u -r "$$TARGET" | grep 'Unused direct dependencies' -A 1000 | tail -n +2 | awk '{print $$1}' | sed '/^\s*$$/d'); \
+##	for lib in $$UNUSED_LIBS; do \
+##   	echo "Stripping overlinked dependency from ELF: $$lib"; \
+##   	$(PATCHELF) --remove-needed "$$lib" "$$TARGET" ; \
+##  done ; \
+##  echo "Done. $$TARGET is now perfectly lean."
 
 
 #find "inst/libs" -type f -name '*.so*' -print0 		

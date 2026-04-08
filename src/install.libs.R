@@ -1,15 +1,20 @@
-if(grepl(Sys.getenv("R_PLATFORM"), pattern ="linux", ignore.case = T)){
-  dest <- file.path(R_PACKAGE_DIR, paste0('libs'))
-}else{
-  dest <- file.path(R_PACKAGE_DIR, paste0('libs', R_ARCH)) 
-}
+# Determine the correct destination directory (usually inst/libs/x64)
+libarch <- if (nzchar(R_ARCH)) paste0("libs", R_ARCH) else "libs"
+dest <- file.path(R_PACKAGE_DIR, libarch)
 dir.create(dest, recursive = TRUE, showWarnings = FALSE)
 
-# staged_dest <- file.path(R_PACKAGE_DIR,"..","..","..","QuickBLAST", paste0('libs', R_ARCH))
-# dir.create(staged_dest, recursive = TRUE, showWarnings = FALSE)
+# if(grepl(Sys.getenv("R_PLATFORM"), pattern ="linux", ignore.case = T)){
+#   dest <- file.path(R_PACKAGE_DIR, paste0('libs'))
+# }else{
+#   dest <- file.path(R_PACKAGE_DIR, paste0('libs', R_ARCH)) 
+# }
+# dir.create(dest, recursive = TRUE, showWarnings = FALSE)
 
-#C:/Users/vishv/AppData/Local/Temp/RtmpOSDZyI/temp_libpath1bacef43ec2/00LOCK-QuickBLAST_cmake_test/00new/QuickBLAST
-#  C:/Users/vishv/AppData/Local/Temp/RtmpO6DZ4p/temp_libpath2fb068301991/QuickBLAST/ 
+## staged_dest <- file.path(R_PACKAGE_DIR,"..","..","..","QuickBLAST", paste0('libs', R_ARCH))
+## dir.create(staged_dest, recursive = TRUE, showWarnings = FALSE)
+
+##C:/Users/vishv/AppData/Local/Temp/RtmpOSDZyI/temp_libpath1bacef43ec2/00LOCK-QuickBLAST_cmake_test/00new/QuickBLAST
+##  C:/Users/vishv/AppData/Local/Temp/RtmpO6DZ4p/temp_libpath2fb068301991/QuickBLAST/ 
 
 cat(paste("INSTALLING....", R_PACKAGE_NAME, " FOR R - ", R_ARCH, "\n", sep=""))
 # cat(paste0(dest, "\n"))
@@ -25,21 +30,50 @@ cat(paste("INSTALLING....", R_PACKAGE_NAME, " FOR R - ", R_ARCH, "\n", sep=""))
 # cat(paste0( fs::path_package("QuickBLAST", "libs", Sys.getenv("R_ARCH")), .Platform$file.sep,"*", SHLIB_EXT,"\n"))
 # cat(paste0(Sys.glob(paste0( fs::path_package("QuickBLAST", "libs", Sys.getenv("R_ARCH")), .Platform$file.sep,"*", SHLIB_EXT)),"\n"))
 
-#Sys.glob(paste0("*", SHLIB_EXT)
-if(grepl(Sys.getenv("R_PLATFORM"), pattern ="linux", ignore.case = T)){
-  files <- c(Sys.glob(paste0(file.path(R_PACKAGE_SOURCE,"inst","libs"), .Platform$file.sep,"*", SHLIB_EXT)))
-}else{
-  files <- c(Sys.glob(paste0(file.path(R_PACKAGE_SOURCE,"inst","libs",Sys.getenv("R_ARCH")), .Platform$file.sep,"*", SHLIB_EXT)))
-}
-# if(WINDOWS) files <- c(files, list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=SHLIB_EXT, full.names = T))
+##Sys.glob(paste0("*", SHLIB_EXT)
+#if(grepl(Sys.getenv("R_PLATFORM"), pattern ="linux", ignore.case = T)){
+#  files <- c(Sys.glob(paste0(file.path(R_PACKAGE_SOURCE,"inst","libs"), .Platform$file.sep,"*", SHLIB_EXT)))
+#}else{
+#  files <- c(Sys.glob(paste0(file.path(R_PACKAGE_SOURCE,"inst","libs",Sys.getenv("R_ARCH")), .Platform$file.sep,"*", SHLIB_EXT)))
+#}
+## if(WINDOWS) files <- c(files, list.files(file.path(Sys.getenv("R_HOME"),"bin",Sys.getenv("R_ARCH")),pattern=SHLIB_EXT, full.names = T))
 
-# cat(files)
-# cat(dest)
-file.copy(files, dest, overwrite = TRUE)
-# file.copy(files, staged_dest, overwrite = TRUE)
-# file.copy(files, fs::path_package("QuickBLAST", "libs", Sys.getenv("R_ARCH")), overwrite = FALSE)
+## cat(files)
+## cat(dest)
+#file.copy(files, dest, overwrite = TRUE)
+## file.copy(files, staged_dest, overwrite = TRUE)
+## file.copy(files, fs::path_package("QuickBLAST", "libs", Sys.getenv("R_ARCH")), overwrite = FALSE)
+
+# Look for the DLL. Adjust this path if your CMake outputs it elsewhere!
+dll_paths <- c(
+  "QuickBLAST.so",
+  "QuickBLAST.dll",                     # If SHLIB_LINK put it in src/
+  "../BUILD/QuickBLAST.so",
+  "../BUILD/QuickBLAST.dll",            # If it's still in the build dir
+  "../BUILD/libQuickBLAST.so",
+  "../BUILD/libQuickBLAST.dll"
+)
+
+src_dir <- getwd()
+# print(list.files(src_dir))
+# print(dest)
+dll_found <- FALSE
+for (dll in dll_paths) {
+  # print(file.path(src_dir,dll))
+  # if (fs::file_exists(file.path(src_dir,dll))) {
+  if (fs::file_exists(dll)) {
+    file.copy(dll, dest, overwrite = TRUE)
+    dll_found <- TRUE
+    break
+  }
+}
+
+if (!dll_found) {
+  stop("install.libs.R could not find QuickBLAST.dll to copy!")
+}
+
 if(file.exists("symbols.rds"))
-    file.copy("symbols.rds", dest, overwrite = TRUE)
+  file.copy("symbols.rds", dest, overwrite = TRUE)
 
 # require(Rcpp)
 # require(RcppProgress)
