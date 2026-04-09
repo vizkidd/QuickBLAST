@@ -855,7 +855,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHitsRemote(co
         ret_val->emplace_back(empty_rb); 
       }
     }else{
-      Rcpp::Rcerr << "[ExtractHitsRemote()] - Empty alignment_rb..." << std::endl << std::flush; //DEBUG
+      // Rcpp::Rcerr << "[ExtractHitsRemote()] - Empty alignment_rb..." << std::endl << std::flush; //DEBUG
       ret_val->emplace_back(empty_rb);
     }
     

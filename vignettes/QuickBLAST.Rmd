@@ -1,6 +1,5 @@
 ---
 title: "QuickBLAST"
-#output: rmarkdown::html_vignette
 author: "Vishvesh Karthik"
 date: "`r Sys.Date()`"
 urlcolor: blue
@@ -8,22 +7,15 @@ output:
   rmarkdown::html_vignette:
     highlight: espresso
     self_contained: true
-#theme: flatly
     wrap: 60
     columns: 60
     toc: true
     toc_depth: 4
-    # toc_float:
-      # collapsed: true
     number_sections: true
 vignette: >
   %\VignetteIndexEntry{QuickBLAST}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
----
-
----
-title: "Introduction to QuickBLAST"
 ---
 
 ```{r, include = FALSE}
@@ -33,44 +25,367 @@ knitr::opts_chunk$set(
 )
 ```
 
+---
+title: "Introduction to QuickBLAST"
+---
+
+R is widely used for data analysis, but running NCBI's standard BLAST tools within R has traditionally been slow. Because the NCBI C++ toolkit is massive and difficult to compile for R, existing packages are forced to run BLAST as an external subprocess, creating major read/write bottlenecks.
+
+QuickBLAST solves this by building a direct bridge between R and the NCBI C++ toolkit via Rcpp. By bypassing traditional text-based formatting and transporting data directly into memory using Apache Arrow, QuickBLAST performs sequence comparisons exceptionally fast.
+1. Setup and Instance Management
+
+QuickBLAST operates using "instances". An instance is an active C++ object pointer (QuickBLAST_XPtr) that holds your BLAST configuration open in memory.
+
 ```{r setup, echo=TRUE,include=T, tidy=TRUE}
 library(QuickBLAST)
+#> Loading required package: Rcpp
+#> Loading required package: RcppProgress
+#> Loading required package: dplyr
+#> Loading required package: BH
+#> QuickBLAST Loaded!
+#> Version: 1.4.7
+#> Github: [https://github.com/vizkidd/QuickBLAST](https://github.com/vizkidd/QuickBLAST)
+
 QuickBLAST::isQuickBLASTLoaded()
+#> [1] TRUE
+
+# Create instances for different sequence types and programs.
+# Note: seq_type = 1 (Protein), seq_type = 0 (Nucleotide)
 blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 1, strand = 0, program = "blastp", save_sequences = TRUE, options = "-evalue 100000")
+#> Option: evalue set to : 100000
+
 blastn_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 0, strand = 0, program = "blastn", options = "-evalue 100000")
+#> Option: evalue set to : 100000
+
 tblastx_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 0, strand = 0, program = "tblastx")
-blastp_inst
+#> Using tblastx Defaults...
+
+# Inspecting an instance reveals its underlying C++ pointer and attributes
 blastn_inst
-tblastx_inst
+#> <pointer: 0x61241543c840>
+#> attr(,"seq_type")
+#> [1] 0
+#> attr(,"strand")
+#> [1] 0
+#> attr(,"program")
+#> [1] "blastn"
+#> attr(,"options")
+#> [1] "-evalue 100000"
+#> attr(,"save_sequences")
+#> [1] FALSE
+#> attr(,"save_hsp_sequences")
+#> [1] FALSE
+#> attr(,"class")
+#> [1] "QuickBLAST_XPtr"
 ```
+
+### Managing Memory
+
+Because QuickBLAST creates objects in C++, we provide convenience functions to track, verify, and clean up instances to prevent memory leaks.
 
 ```{r inst_man, echo=TRUE,include=T, tidy=TRUE}
 QuickBLAST::GetInstanceCount()
+#> [1] 3
+
 QuickBLAST::GetInstanceID(blastp_inst)
-QuickBLAST::GetInstanceID(blastn_inst)
-QuickBLAST::GetInstanceID(tblastx_inst)
-QuickBLAST::GetQuickBLASTInstance(0)
-QuickBLAST::GetQuickBLASTInstance(1)
-QuickBLAST::GetQuickBLASTInstance(2)
-identical(QuickBLAST::GetQuickBLASTInstance(0), blastp_inst)
-identical(QuickBLAST::GetQuickBLASTInstance(1), blastn_inst)
-identical(QuickBLAST::GetQuickBLASTInstance(2), tblastx_inst)
-identical(QuickBLAST::GetQuickBLASTInstance(0), tblastx_inst)
-QuickBLAST::DeleteQuickBLASTInstance(QuickBLAST::GetQuickBLASTInstance(1))
-QuickBLAST::DeleteQuickBLASTInstance(2)
+#> [1] 0
+
+# Clean up memory by deleting specific instances
+QuickBLAST::DeleteQuickBLASTInstance(QuickBLAST::GetQuickBLASTInstance(1)) 
+#> [1] TRUE
+
+QuickBLAST::DeleteQuickBLASTInstance(2) 
+#> [1] TRUE
+
 QuickBLAST::GetInstanceCount()
-QuickBLAST::GetQuickBLASTInstance(0)
+#> [1] 1
+
+# Attempting to fetch a deleted instance securely throws a C++ map error
 try(identical(QuickBLAST::GetQuickBLASTInstance(1), blastn_inst))
+#> Error fetching QuickBLAST instance (1): map::at
+#> [1] FALSE
+
+# Recreate the blastn instance for later steps
 blastn_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 0, strand = 0, program = "blastn")
+#> Using blastn Defaults...
 ```
 
+## 2) Raw Sequence Comparison
 
-```{r test}
+You can pass raw character strings directly to QuickBLAST. The engine evaluates the sequences in memory instantly. Notice that QuickBLAST includes automatic recovery: if a pointer is dead, it will attempt to reload it.
+
+```{r}
+# (~)Successful TBLASTX execution : Garbage low information nucleotide sequences
 QuickBLAST::BLAST2Seqs(tblastx_inst, "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG")
-try(QuickBLAST::BLAST2Seqs(blastn_inst, "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG"))
-try(QuickBLAST::BLAST2Seqs(blastp_inst, "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG"))
-try(QuickBLAST::BLAST2Seqs(blastp_inst, "MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", "MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE"))
-try(QuickBLAST::RemoteBLAST(blastn_inst, query_input="AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", database= "nr", input_type=1, return_values=T))
+#> Dead pointer detected. Attempting to reload...
+#> Using tblastx Defaults...
+#> Clock : ... seconds
+#> 1
+#> RecordBatchVector size: 1
+#> Total rows across all batches: 1
+#> [[1]]
 
-try(QuickBLAST::RemoteBLAST(blastp_inst, query_input="MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", database= "pdb", input_type=1, return_values=T))
+# Expected empty results due to mismatched pointer type (Nucleotide vs Nucleotide with a blastp pointer) 
+try(QuickBLAST::BLAST2Seqs(blastp_inst, "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG"))
+#> [BLAST2Seqs()] No alignments could be computed
+#> Clock : ... seconds
+#> 1
+#> RecordBatchVector size: 1
+#> list()
+
+# (~)Successful Protein-Protein search : Same protein
+try(QuickBLAST::BLAST2Seqs(blastp_inst, "MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", "MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE"))
+#> Clock : ... seconds
+#> 1
+#> RecordBatchVector size: 1
+#> Total rows across all batches: 1
+#> [[1]]
+
+# Successful NT-NT search
+try(QuickBLAST::BLAST2Seqs(blastn_inst, "ATGGAGGAGCCGCAGTCAGATCCTAGCGTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA", "ATGGAGGAGCCGCAGTCAGATCCTAGCCTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA"))
+#> Clock : ... seconds
+#> 1
+#> RecordBatchVector size: 1
+#> Total rows across all batches: 1
+#> [[1]]
+#>  seq_info_num_alignments seq_info_seqids_qseqid seq_info_seqids_sseqid seq_info_seqs_qseq seq_info_seqs_sseq seq_info_strands seq_info_lengths_qlen
+#> 1                       1                      3                      4                                                    +/+                    60
+#>  seq_info_lengths_slen hsps_qhsp hsps_shsp hsps_pident hsps_pident_gap hsps_frames  hsps_evalue hsps_length hsps_length01 hsps_qstart hsps_qend
+#>1                    60                        98.33333        98.33333         2/2 2.763249e-29          60             1           1        60
+#>  hsps_sstart hsps_send hsps_bitscore hsps_score hsps_qcovhsp hsps_blast_score hsps_gaps hsps_nident hsps_mismatch hsps_positive hsps_n_splices
+#>1           1        60      106.3793         57            0               57         0          59             1             0              0
+#>  hsps_hsp_num hsps_sum_evalue hsps_product_coverage hsps_overall_identity hsps_negative_count hsps_matches hsps_high_quality_percent_coverage
+#>1            1               0                     0                     0                   0            0                                  0
+#>  hsps_exon_identity hsps_consensus_splices hsps_comp_adj_method
+#>1                  0                      0                    0
+
 ```
+
+## 3) Remote NCBI Searching
+
+If you do not want to compile databases locally, QuickBLAST can interface directly with NCBI's remote servers.
+
+```{r}
+# Example of a remote timeout handling
+try(QuickBLAST::RemoteBLAST(blastn_inst, query_input="AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", database= "nr", input_type=1, return_values=TRUE))
+#> Using blastn Defaults...
+#> Max wait time: 360 seconds
+#> 0%   10   20   30   40   50   60   70   80   90   100%
+#> [----|----|----|----|----|----|----|----|----|----|
+#> **************************************************|
+#> RemoteBLAST(): C++ Runtime Error : Remote BLAST timed out
+#> [1] FALSE
+
+# Successful Remote Protein Query against the PDB database
+try(QuickBLAST::RemoteBLAST(blastp_inst, query_input="MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", database= "pdb", input_type=1, return_values=TRUE))
+#> Option: evalue set to : 100000
+#> Max wait time: 360 seconds
+#> 0%   10   20   30   40   50   60   70   80   90   100%
+#> [----|----|----|----|----|----|----|----|----|----|
+#> **************************************************|
+#> (Success) Remote BLAST run ID: XDJNU28M014
+#> Clock : ... seconds
+#> RecordBatchVector size: 1
+#> Total rows across all batches: 586
+#> [[1]]
+```
+
+## 4) File-to-File Comparisons
+
+For large-scale genomics, sequences are often stored in FASTA files. QuickBLAST can compare two files directly via multi-threaded reading, without loading everything into the R global environment first.
+
+```{r}
+# Create temporary FASTA files
+query_fasta <- tempfile(fileext = ".fasta")
+subject_fasta <- tempfile(fileext = ".fasta")
+
+# Human TP53 gene fragment (Query)
+writeLines(c(
+  ">Human_p53_fragment\nATGGAGGAGCCGCAGTCAGATCCTAGCGTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA"
+), query_fasta)
+
+# Slightly mutated version (Subject - e.g., an ortholog or variant)
+writeLines(c(
+  ">Variant_p53_fragment\nATGGAGGAGCCGCAGTCAGATCCTAGCCTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA"
+), subject_fasta)
+
+# Efficiently compare the files using the BLASTN instance
+file_results <- QuickBLAST::BLAST2Files(
+  blastn_inst, 
+  query = query_fasta, 
+  subject = subject_fasta,
+  return_values = TRUE,
+  num_threads = 1
+)
+#>Num Threads: 1
+#>Total Records (Q + S): 2 (1 + 1)
+#>Batch Size: 2
+#>Computing: [========================================] 100% (done)                         
+#>Total Records Processed: 2
+#>Clock : ... seconds
+#>RecordBatchVector size: 1
+#>Total rows across all batches: 1
+
+print(file_results)
+#>[[1]]
+#>  seq_info_num_alignments seq_info_seqids_qseqid seq_info_seqids_sseqid seq_info_seqs_qseq
+#>1                       1     Human_p53_fragment   Variant_p53_fragment                   
+#>  seq_info_seqs_sseq seq_info_strands seq_info_lengths_qlen seq_info_lengths_slen
+#>1                                 +/+                    60                    60
+#>                                                     hsps_qhsp
+#>1 ATGGAGGAGCCGCAGTCAGATCCTAGCGTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA
+#>                                                     hsps_shsp hsps_pident hsps_pident_gap
+#>1 ATGGAGGAGCCGCAGTCAGATCCTAGCCTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA    98.33333        98.33333
+#>  hsps_frames  hsps_evalue hsps_length hsps_length01 hsps_qstart hsps_qend hsps_sstart
+#>1         2/2 2.763249e-29          60             1           1        60           1
+#>  hsps_send hsps_bitscore hsps_score hsps_qcovhsp hsps_blast_score hsps_gaps hsps_nident
+#>1        60      106.3793         57            0               57         0          59
+#>  hsps_mismatch hsps_positive hsps_n_splices hsps_hsp_num hsps_sum_evalue
+#>1             1             0              0            1               0
+#>  hsps_product_coverage hsps_overall_identity hsps_negative_count hsps_matches
+#>1                     0                     0                   0            0
+#>  hsps_high_quality_percent_coverage hsps_exon_identity hsps_consensus_splices
+#>1                                  0                  0                      0
+#>  hsps_comp_adj_method
+#>1                    0
+```
+
+## 5) Local Database Creation and Searching
+
+For high-throughput homology searches against a fixed reference, compiling the sequences into an indexed BLAST database is much faster than raw file-to-file comparisons. QuickBLAST wraps the NCBI makeblastdb functionality directly into R.
+
+
+```{r}
+db_path <- tempfile()
+
+# 1. Compile the local BLAST database
+# db_type can be "nucl" or "prot"
+QuickBLAST::MakeBLASTDB(
+  ptr = blastn_inst,
+  input_file = subject_fasta,
+  database_name = file.path(tempdir(),"My_Test_DB"),
+)
+
+#>Building a new DB, current time: ...
+#>New DB name:   /tmp/Rtmp8UacQU/My_Test_DB
+#>New DB title:  /tmp/RtmpjpBk7u/file214ace524c2945.fasta
+#>Sequence type: Nucleotide
+#>Keep MBits: T
+#>Maximum file size: 3000000000B
+#>Adding sequences from FASTA; added 1 sequences in ... seconds.
+#>
+#>
+#>makeblastdb finished successfully
+#>[1] "/tmp/Rtmp8UacQU/My_Test_DB"
+ 
+# 2. Search a query file against the custom local database
+db_results <- QuickBLAST::BLAST2DBs(
+ blastn_inst, 
+ query = query_fasta, 
+ subject = file.path(tempdir(),"My_Test_DB"),
+ return_values = TRUE,
+ num_threads = 2
+)
+ 
+#>Building a new DB, current time: ...
+#>New DB name:   /tmp/Rtmp8UacQU/file22d37f699b82f7.fasta.db
+#>New DB title:  /tmp/Rtmp8UacQU/file22d37f699b82f7.fasta
+#>Sequence type: Nucleotide
+#>Keep MBits: T
+#>Maximum file size: 3000000000B
+#>Adding sequences from FASTA; added 1 sequences in ... seconds.
+#>
+#>
+#>makeblastdb finished successfully
+#>Q :/tmp/Rtmp8UacQU/file22d37f699b82f7.fasta.db
+#>S :/tmp/Rtmp8UacQU/My_Test_DB
+#>Num Threads: 2
+#>Total Records (Q + S): 2 (1 + 1)
+#>Batch Size: 3
+#>0%   10   20   30   40   50   60   70   80   90   100%
+#>[----|----|----|----|----|----|----|----|----|----|
+#>Batch Hits: 1
+#>**************************************************|
+#>Processed Batches:1
+#>Total Records Processed: 1
+#>Clock : ... seconds
+#>RecordBatchVector size: 1
+#>Total rows across all batches: 1
+ 
+print(db_results)
+#>[[1]]
+#>  seq_info_num_alignments seq_info_seqids_qseqid seq_info_seqids_sseqid
+#>1                       1     Human_p53_fragment     Human_p53_fragment
+#>  seq_info_seqs_qseq seq_info_seqs_sseq seq_info_strands seq_info_lengths_qlen
+#>1                                                    +/+                    60
+#>  seq_info_lengths_slen                                                    hsps_qhsp
+#>1                    60 ATGGAGGAGCCGCAGTCAGATCCTAGCGTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA
+#>                                                     hsps_shsp hsps_pident
+#>1 ATGGAGGAGCCGCAGTCAGATCCTAGCGTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA    98.33333
+#>  hsps_pident_gap hsps_frames  hsps_evalue hsps_length hsps_length01 hsps_qstart
+#>1        98.33333         1/1 2.763249e-29          60             1           0
+#>  hsps_qend hsps_sstart hsps_send hsps_bitscore hsps_score hsps_qcovhsp
+#>1        59           0        59      106.3793         57            0
+#>  hsps_blast_score hsps_gaps hsps_nident hsps_mismatch hsps_positive hsps_n_splices
+#>1               57         0          59             1             0              0
+#>  hsps_hsp_num hsps_sum_evalue hsps_product_coverage hsps_overall_identity
+#>1            1               0                     0                     0
+#>  hsps_negative_count hsps_matches hsps_high_quality_percent_coverage
+#>1                   0            0                                  0
+#>  hsps_exon_identity hsps_consensus_splices hsps_comp_adj_method
+#>1                  0                      0                    0
+
+
+```
+
+## 6) High-Performance Output with Apache Arrow
+
+By default, the return_values = TRUE flag seen above brings data directly into R as an Rcpp::List. However, when processing millions of alignments, memory can max out quickly.
+
+To solve this, QuickBLAST writes results asynchronously using Apache Arrow formats (arrow::ipc or arrow::parquet). This creates a highly compressed, blazingly fast columnar storage file instead of a clunky TSV or CSV.
+
+
+```{r}
+# Specify an output path
+out_parquet <- tempfile(fileext = ".parquet")
+
+# Perform the search and write straight to an Arrow IPC file
+QuickBLAST::BLAST2Files(
+  blastn_inst, 
+  query = query_fasta, 
+  subject = subject_fasta,
+  out_file = out_parquet,
+  out_format = "parquet",
+  return_values = FALSE # We don't need it in RAM, we are writing to disk
+)
+#>Writing to : /tmp/Rtmp8UacQU/file22d37f7207ae58.parquet
+#>Output Format : parquet
+#>Num Threads: 2
+#>Total Records (Q + S): 2 (1 + 1)
+#>Batch Size: 3
+#>Computing: [========================================] 100% (done)                         
+#>/tmp/Rtmp8UacQU/file22d37f7207ae58.parquet
+#>Done writing to file.
+#>Total Records Processed: 2
+#>Clock : ... seconds
+#>[1] TRUE
+
+# Load the hits back into an R data.frame natively via QuickBLAST
+hits_df <- QuickBLAST::LoadBLASTHits(out_parquet, format = "parquet")
+head(hits_df)
+#># A tibble: 1 × 2
+#>  seq_info$num_alignments $seqids$qseqid     $seqs$qseq $strands $lengths$qlen hsps$qhsp
+#>                    <int> <chr>              <chr>      <chr>            <int> <chr>    
+#>1                       1 Human_p53_fragment ""         +/+                 60 ""       
+#># ℹ 33 more variables: seq_info$seqids$sseqid <chr>, seq_info$seqs$sseq <chr>,
+#>#   seq_info$lengths$slen <int>, hsps$shsp <chr>, $pident <dbl>, $pident_gap <dbl>,
+#>#   $frames <chr>, $evalue <dbl>, $length <int>, $length01 <dbl>, $qstart <int>,
+#>#   $qend <int>, $sstart <int>, $send <int>, $bitscore <dbl>, $score <dbl>, $qcovhsp <dbl>,
+#>#   $blast_score <dbl>, $gaps <int>, $nident <int>, $mismatch <int>, $positive <int>,
+#>#   $n_splices <int>, $hsp_num <int>, $sum_evalue <dbl>, $product_coverage <dbl>,
+#>#   $overall_identity <dbl>, $negative_count <int>, $matches <dbl>, …
+```
+
+## Conclusion
+
+QuickBLAST modernizes sequence alignment in R. By managing your instances appropriately, keeping data in native C++ structures, and offloading massive search results to Apache Arrow formats, you can run high-throughput bioinformatic pipelines natively without relying on slow Sys.Call() bash wrappers.

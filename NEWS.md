@@ -7,6 +7,21 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+# Version 1.6.5 - 2026-04-09
+
+## Updated:
+- README
+- vignettes
+- R doc site
+
+## Fixed:
+- roxygen //' tags
+- File existence check for file BLAST
+- Race conditions and corruptions in file BLAST when the no. of threads was greater than the input sequence count
+- When return_values==F and writing to output file, return of empty record batch is not erroreous.
+
+---
+
 # Version 1.6.4 - 2026-04-08
 
 ## Updated:

@@ -1932,6 +1932,7 @@ return std::make_shared<arrow::RecordBatchVector>(ret_results);
   }
   return std::make_shared<arrow::RecordBatchVector>();
 }
+
 std::shared_ptr<arrow::RecordBatchVector> ArrowWrapper::SplitFilesIntoEntries(const std::string_view &filename, const char *delim, const int &num_threads, const std::function<std::shared_ptr<arrow::RecordBatchVector>(std::shared_ptr<FastaSequenceData>)> &Entry_callback, bool return_values)
 {
   return pImpl->SplitFilesIntoEntries(filename, delim, num_threads, Entry_callback, return_values);

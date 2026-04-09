@@ -1,54 +1,58 @@
-# QuickBLAST v1.2.4
+---
+title: "QuickBLAST README"
+author: "Vishvesh Karthik <vishveshkarthik@gmail.com>"
+---
 
-Current BUILD is being tested on linux and is not guaranteed to work on Windows. [Binaries of older version available here](https://github.com/vizkidd/QuickBLAST/releases/tag/binaries)
+# QuickBLAST v1.6.5
+
+R is widely used for data analysis, but running NCBI's standard BLAST tools within R has traditionally been slow. Because the NCBI C++ toolkit is massive and inflexible, existing R packages are forced to run BLAST as an external subprocess, which creates major read/write bottlenecks.
+
+QuickBLAST solves this by building a direct bridge between R and the NCBI C++ toolkit via Rcpp. By bypassing traditional text-based formatting and transporting data directly into memory using Apache Arrow, QuickBLAST performs sequence comparisons exceptionally fast.
+
+## Key Features
+
+-   Zero Subprocesses: Runs entirely natively within your R session. QuickBLAST completely avoids Sys.Call() and does not require pre-installed BLAST executables.
+-   True Multi-Threading: Employs a concurrent architecture where file reading (in chunks), sequence alignment, Arrow wrapping, and disk writing all occur simultaneously in separate threads.
+-   Memory & I/O Efficiency: Wraps hits natively into Arrow data structures (Arrow::RecordBatches) for large-scale disk writing, or returns an Rcpp::List directly to R for smaller queries.
+-   No Length Limits: Removes legacy limits on sequence and header lengths.
+-   Versatile: Instantly compare raw sequences, local FASTA files, local databases, or remote NCBI databases.
 
 ## Requires
 
--   GNU GCC >= 13.3.0
+-   GNU GCC \>= 13.3.0 with C++20 support
 -   CMake
 -   OpenMP support (-fopenmp)
 -   R \> 4.4.0
 -   Rtools \>= 4.4 (Windows)
 -   `sudo apt install libsqlite3-dev libeigen3-dev libboost-dev libfontconfig1-dev libcurl4-openssl-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev cmake` (Linux)
 
-``` r
-??QuickBLAST
-```
+Written in C++ and interfaced with R using Rcpp, the package is wrapped directly around the NCBI-C++ Toolkit's BLAST-specific classes and Apache Arrow, exposing these functions to R with C linkage.
 
-Written in C++ and interfaced with R using Rcpp, the package is wrapped around ncbi-c++ toolkit's BLAST specific classes (same with arrow) and exposing the functions to R with C linkage. I use getlogin() to store username in output metadata, this might raise red flags (in ArrowWrapper.cpp). QuickBLAST provides better interoperability with R for NCBI-BLAST. After much poking around, dependent libraries (Apache Arrow and NCBI-C++ Toolkit) are now compiled from scratch using MSYS2 and MinGW provided with RTools4.5. For Windows, the NCBI-C++ Toolkit is configured with both \*Nix and Windows options. \*Nix options are patched and only the Windows env is preserved during build.
+The main difference between this package and legacy wrappers is the data lifecycle. Instead of waiting for a sequence alignment to finish before parsing a TSV, QuickBLAST sets up a sophisticated pipeline:
 
-The main difference between this PKG and the rest would be that + Quick blast is multi-threaded with { file reading (as chunks), BLASTing, wrapping hits into Arrow data structures }, and { writing of Arrow::RecordBatches to the output file in batches } is done in seperate threads. Hits are also converted into Rcpp::List if you want values to be returned to R. + QuickBLAST does not use Sys.Calls to invoke BLAST exes. You don't need BLAST programs in you system + BLAST DBs are not explicitly created
+1)  Producer Threads: Read sequence files in chunks and perform the mathematical sequence comparisons.
+2)  Transformer Threads: Immediately wrap the alignments into Arrow data structures in memory.
+3)  Consumer Threads: Batch write Arrow::RecordBatches directly to an output file. (Because these operate independently, your CPU is fully utilized without I/O blocking).
 
-~~Cons : + Limited score attributes~~
+## Installation
 
-Let me know if you want more information and please address bugs to me on github.
-
-## Installation (under construction)
-
--   [Install Apache Arrow](https://arrow.apache.org/install/) - (Optional).
 -   [Install RTools 4.4 or greater](https://cran.r-project.org/bin/windows/Rtools/) - (For Windows. Rtools must be the same Major and Minor version of R)
 
 ``` r
 devtools::install_github("https://github.com/vizkidd/QuickBLAST", force=T)
 ```
 
-## Usage
-
-``` r
-
-```
-
 <a name="blast_options"/>
 
 #### QuickBLAST Options
 
-List of available options can be checked with `QuickBLAST::GetAvailableBLASTOptions()` (Empty elements from the list are removed and BLAST defaults are set on the c++ side). Inputs and Outputs are provided as parameters and sequence specification(strand, sequence type) can be provided during QuickBLAST object creation with `QuickBLAST::GetQuickBLASTInstance()` (or use the QuickBLAST::BLAST\*() functions in R). Enums used by QuickBLAST in C++ are not exposed in R and only integers are used, check `QuickBLAST::GetQuickBLASTEnums()`.
+List of available options can be checked with `QuickBLAST::GetAvailableBLASTOptions()`. Enums used by QuickBLAST in C++ are not exposed in R and only integers are used, check `QuickBLAST::GetQuickBLASTEnums()`.
 
 #### Output Formats
 
-+ [arrow::ipc](https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc)
-+ [~~arrow::csv~~]()
-+ [arrow::parquet](https://parquet.apache.org/docs/file-format/)
+-   [arrow::ipc](https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc)
+-   [arrow::csv]()
+-   [arrow::parquet](https://parquet.apache.org/docs/file-format/)
 
 ``` r
 ?QuickBLAST::LoadBLASTHits
@@ -58,12 +62,94 @@ List of available options can be checked with `QuickBLAST::GetAvailableBLASTOpti
 
 [Currently supported scores](https://www.ncbi.nlm.nih.gov/IEB/ToolBox/CPP_DOC/lxr/source/include/objects/seqalign/Seq_align.hpp#0128)
 
-#### Future : (Looking for suggestions)
+## Usage
 
--   Implement more scores and filtering options
--   Include function for reading the arrow output files
--   Convert from arrow to GRanges (maybe with the use of arrow::Visit() functions)
+``` r
+??QuickBLAST
+```
 
-Disclaimers for disclaimers, legal stuff for legal stuff and respect for respect, wherever it should go.
+## Quick Start Guide
 
-Inherits and follows the licenses of Apache Arrow and NCBI-C++-Toolkit
+#### 1) Initialize QuickBLAST
+
+QuickBLAST uses "instances" to maintain search parameters (like E-values and programs) in the background.
+
+``` r
+library(QuickBLAST)
+
+# Create a Nucleotide (blastn) instance
+blastn_inst <- QuickBLAST::CreateQuickBLASTInstance(
+  seq_type = 0, strand = 0, program = "blastn", options = "-evalue 100000"
+)
+
+# Create a Protein (blastp) instance
+blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+  seq_type = 1, strand = 0, program = "blastp", save_sequences = TRUE
+)
+```
+
+#### 2) Compare Raw Sequences
+
+You can pass raw character strings directly to QuickBLAST without needing to write temporary FASTA files to your disk. Results are returned natively as an Rcpp::List.
+
+``` r
+QuickBLAST::BLAST2Seqs(
+  blastn_inst, 
+  query = "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", 
+  subject = "TTTTTTTTTTTGGGGGGGGGGGG"
+)
+```
+
+#### 3) File and Database Comparisons
+
+QuickBLAST makes large-scale genomics easy with built-in file and database tools.
+
+##### BLASTing Two Files:
+
+``` r
+QuickBLAST::BLAST2Files(blastn_inst, query = "query.fasta", subject = "genome.fasta")
+```
+
+##### Creating and Searching a Local Database:
+
+``` r
+# 1. Compile the database
+QuickBLAST::MakeBLASTDB(
+  in_seq = "reference_genome.fasta", 
+  db_type = "nucl", 
+  out_db = "my_custom_db"
+)
+
+# 2. Search against it
+QuickBLAST::BLAST2DBs(blastn_inst, query = "query.fasta", db = "my_custom_db")
+```
+
+#### 4) Remote NCBI Searching
+
+If you don't want to download databases, you can query NCBI's remote servers directly from R:
+
+``` r
+QuickBLAST::RemoteBLAST(
+  blastp_inst, 
+  query_input="MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFG...", 
+  database= "pdb", 
+  input_type=1, 
+  return_values=TRUE
+)
+```
+
+#### 5) Instance Management
+
+Because QuickBLAST opens direct connections to C++ libraries, it includes utility functions to track and clean up memory.
+
+``` r
+# See how many instances are running
+QuickBLAST::GetInstanceCount()
+
+# Delete a specific instance by its ID
+QuickBLAST::DeleteQuickBLASTInstance(1)
+```
+
+Inherits and follows the licenses of Apache Arrow and NCBI-C++-Toolkit.
+
+Developed and maintained by [vizkidd](https://github.com/vizkidd/QuickBLAST).

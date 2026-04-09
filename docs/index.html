@@ -6,6 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>QuickBLAST for FASTA Files/Sequences/DBs • QuickBLAST</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="48x48" href="favicon-48x48.png">
+<link rel="icon" type="”image/svg+xml”" href="favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" sizes="any" href="favicon.ico">
+<link rel="manifest" href="site.webmanifest">
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="bootstrap-toc.css">
 <script src="bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
@@ -13,6 +18,7 @@
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
 <script src="pkgdown.js"></script><meta property="og:title" content="QuickBLAST for FASTA Files/Sequences/DBs">
 <meta property="og:description" content="A BLAST Wrapper to call BLAST directly from R (interoperable and without Sys.call()) coupled with Apache Arrow's columnar format with parquet, IPC and csv file support.">
+<meta property="og:image" content="/logo.png">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -33,7 +39,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">QuickBLAST</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.5.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.6.5</span>
       </span>
     </div>
 
@@ -62,14 +68,26 @@
       </header><div class="row">
   <div class="contents col-md-9">
 <div class="section level1">
-<div class="page-header"><h1 id="quickblast-v124">QuickBLAST v1.2.4<a class="anchor" aria-label="anchor" href="#quickblast-v124"></a>
+<div class="page-header"><h1 id="quickblast-v165">QuickBLAST v1.6.5<a class="anchor" aria-label="anchor" href="#quickblast-v165"></a>
 </h1></div>
-<p>Current BUILD is being tested on linux and is not guaranteed to work on Windows. <a href="https://github.com/vizkidd/QuickBLAST/releases/tag/binaries" class="external-link">Binaries of older version available here</a></p>
+<p>R is widely used for data analysis, but running NCBI’s standard BLAST tools within R has traditionally been slow. Because the NCBI C++ toolkit is massive and inflexible, existing R packages are forced to run BLAST as an external subprocess, which creates major read/write bottlenecks.</p>
+<p>QuickBLAST solves this by building a direct bridge between R and the NCBI C++ toolkit via Rcpp. By bypassing traditional text-based formatting and transporting data directly into memory using Apache Arrow, QuickBLAST performs sequence comparisons exceptionally fast.</p>
+<div class="section level2">
+<h2 id="key-features">Key Features<a class="anchor" aria-label="anchor" href="#key-features"></a>
+</h2>
+<ul>
+<li>Zero Subprocesses: Runs entirely natively within your R session. QuickBLAST completely avoids Sys.Call() and does not require pre-installed BLAST executables.</li>
+<li>True Multi-Threading: Employs a concurrent architecture where file reading (in chunks), sequence alignment, Arrow wrapping, and disk writing all occur simultaneously in separate threads.</li>
+<li>Memory &amp; I/O Efficiency: Wraps hits natively into Arrow data structures (Arrow::RecordBatches) for large-scale disk writing, or returns an Rcpp::List directly to R for smaller queries.</li>
+<li>No Length Limits: Removes legacy limits on sequence and header lengths.</li>
+<li>Versatile: Instantly compare raw sequences, local FASTA files, local databases, or remote NCBI databases.</li>
+</ul>
+</div>
 <div class="section level2">
 <h2 id="requires">Requires<a class="anchor" aria-label="anchor" href="#requires"></a>
 </h2>
 <ul>
-<li>GNU GCC &gt;= 13.3.0</li>
+<li>GNU GCC &gt;= 13.3.0 with C++20 support</li>
 <li>CMake</li>
 <li>OpenMP support (-fopenmp)</li>
 <li>R &gt; 4.4.0</li>
@@ -77,45 +95,38 @@
 <li>
 <code>sudo apt install libsqlite3-dev libeigen3-dev libboost-dev libfontconfig1-dev libcurl4-openssl-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev cmake</code> (Linux)</li>
 </ul>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="op">?</span><span class="op">?</span><span class="va">QuickBLAST</span></span></code></pre></div>
-<p>Written in C++ and interfaced with R using Rcpp, the package is wrapped around ncbi-c++ toolkit’s BLAST specific classes (same with arrow) and exposing the functions to R with C linkage. I use getlogin() to store username in output metadata, this might raise red flags (in ArrowWrapper.cpp). QuickBLAST provides better interoperability with R for NCBI-BLAST. After much poking around, dependent libraries (Apache Arrow and NCBI-C++ Toolkit) are now compiled from scratch using MSYS2 and MinGW provided with RTools4.5. For Windows, the NCBI-C++ Toolkit is configured with both *Nix and Windows options. *Nix options are patched and only the Windows env is preserved during build.</p>
-<p>The main difference between this PKG and the rest would be that + Quick blast is multi-threaded with { file reading (as chunks), BLASTing, wrapping hits into Arrow data structures }, and { writing of Arrow::RecordBatches to the output file in batches } is done in seperate threads. Hits are also converted into Rcpp::List if you want values to be returned to R. + QuickBLAST does not use Sys.Calls to invoke BLAST exes. You don’t need BLAST programs in you system + BLAST DBs are not explicitly created</p>
-<p><del>Cons : + Limited score attributes</del></p>
-<p>Let me know if you want more information and please address bugs to me on github.</p>
+<p>Written in C++ and interfaced with R using Rcpp, the package is wrapped directly around the NCBI-C++ Toolkit’s BLAST-specific classes and Apache Arrow, exposing these functions to R with C linkage.</p>
+<p>The main difference between this package and legacy wrappers is the data lifecycle. Instead of waiting for a sequence alignment to finish before parsing a TSV, QuickBLAST sets up a sophisticated pipeline:</p>
+<ol style="list-style-type: decimal">
+<li>Producer Threads: Read sequence files in chunks and perform the mathematical sequence comparisons.</li>
+<li>Transformer Threads: Immediately wrap the alignments into Arrow data structures in memory.</li>
+<li>Consumer Threads: Batch write Arrow::RecordBatches directly to an output file. (Because these operate independently, your CPU is fully utilized without I/O blocking).</li>
+</ol>
 </div>
 <div class="section level2">
-<h2 id="installation-under-construction">Installation (under construction)<a class="anchor" aria-label="anchor" href="#installation-under-construction"></a>
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <ul>
 <li>
-<a href="https://arrow.apache.org/install/" class="external-link">Install Apache Arrow</a> - (Optional).</li>
-<li>
 <a href="https://cran.r-project.org/bin/windows/Rtools/" class="external-link">Install RTools 4.4 or greater</a> - (For Windows. Rtools must be the same Major and Minor version of R)</li>
 </ul>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"https://github.com/vizkidd/QuickBLAST"</span>, force<span class="op">=</span><span class="cn">T</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
-</h2>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"></code></pre></div>
 <p><a name="blast_options"></a></p>
 <div class="section level4">
 <h4 id="quickblast-options">QuickBLAST Options<a class="anchor" aria-label="anchor" href="#quickblast-options"></a>
 </h4>
-<p>List of available options can be checked with <code><a href="reference/GetAvailableBLASTOptions.html">QuickBLAST::GetAvailableBLASTOptions()</a></code> (Empty elements from the list are removed and BLAST defaults are set on the c++ side). Inputs and Outputs are provided as parameters and sequence specification(strand, sequence type) can be provided during QuickBLAST object creation with <code><a href="reference/GetQuickBLASTInstance.html">QuickBLAST::GetQuickBLASTInstance()</a></code> (or use the QuickBLAST::BLAST*() functions in R). Enums used by QuickBLAST in C++ are not exposed in R and only integers are used, check <code><a href="reference/GetQuickBLASTEnums.html">QuickBLAST::GetQuickBLASTEnums()</a></code>.</p>
+<p>List of available options can be checked with <code><a href="reference/GetAvailableBLASTOptions.html">QuickBLAST::GetAvailableBLASTOptions()</a></code>. Enums used by QuickBLAST in C++ are not exposed in R and only integers are used, check <code><a href="reference/GetQuickBLASTEnums.html">QuickBLAST::GetQuickBLASTEnums()</a></code>.</p>
 </div>
 <div class="section level4">
 <h4 id="output-formats">Output Formats<a class="anchor" aria-label="anchor" href="#output-formats"></a>
 </h4>
 <ul>
 <li><a href="https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc" class="external-link">arrow::ipc</a></li>
-<li><a href=""><del>arrow::csv</del></a></li>
+<li><a href="">arrow::csv</a></li>
 <li><a href="https://parquet.apache.org/docs/file-format/" class="external-link">arrow::parquet</a></li>
 </ul>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">?</span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="va"><a href="reference/LoadBLASTHits.html">LoadBLASTHits</a></span></span></code></pre></div>
 </div>
 <div class="section level4">
@@ -123,16 +134,94 @@
 </h4>
 <p><a href="https://www.ncbi.nlm.nih.gov/IEB/ToolBox/CPP_DOC/lxr/source/include/objects/seqalign/Seq_align.hpp#0128" class="external-link">Currently supported scores</a></p>
 </div>
+</div>
+<div class="section level2">
+<h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
+</h2>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="op">?</span><span class="op">?</span><span class="va">QuickBLAST</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="quick-start-guide">Quick Start Guide<a class="anchor" aria-label="anchor" href="#quick-start-guide"></a>
+</h2>
 <div class="section level4">
-<h4 id="future--looking-for-suggestions">Future : (Looking for suggestions)<a class="anchor" aria-label="anchor" href="#future--looking-for-suggestions"></a>
+<h4 id="id_1-initialize-quickblast">1) Initialize QuickBLAST<a class="anchor" aria-label="anchor" href="#id_1-initialize-quickblast"></a>
 </h4>
-<ul>
-<li>Implement more scores and filtering options</li>
-<li>Include function for reading the arrow output files</li>
-<li>Convert from arrow to GRanges (maybe with the use of arrow::Visit() functions)</li>
-</ul>
-<p>Disclaimers for disclaimers, legal stuff for legal stuff and respect for respect, wherever it should go.</p>
-<p>Inherits and follows the licenses of Apache Arrow and NCBI-C++-Toolkit</p>
+<p>QuickBLAST uses “instances” to maintain search parameters (like E-values and programs) in the background.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">QuickBLAST</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Create a Nucleotide (blastn) instance</span></span>
+<span><span class="va">blastn_inst</span> <span class="op">&lt;-</span> <span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="reference/CreateQuickBLASTInstance.html">CreateQuickBLASTInstance</a></span><span class="op">(</span></span>
+<span>  seq_type <span class="op">=</span> <span class="fl">0</span>, strand <span class="op">=</span> <span class="fl">0</span>, program <span class="op">=</span> <span class="st">"blastn"</span>, options <span class="op">=</span> <span class="st">"-evalue 100000"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Create a Protein (blastp) instance</span></span>
+<span><span class="va">blastp_inst</span> <span class="op">&lt;-</span> <span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="reference/CreateQuickBLASTInstance.html">CreateQuickBLASTInstance</a></span><span class="op">(</span></span>
+<span>  seq_type <span class="op">=</span> <span class="fl">1</span>, strand <span class="op">=</span> <span class="fl">0</span>, program <span class="op">=</span> <span class="st">"blastp"</span>, save_sequences <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="id_2-compare-raw-sequences">2) Compare Raw Sequences<a class="anchor" aria-label="anchor" href="#id_2-compare-raw-sequences"></a>
+</h4>
+<p>You can pass raw character strings directly to QuickBLAST without needing to write temporary FASTA files to your disk. Results are returned natively as an Rcpp::List.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="reference/BLAST2Seqs.html">BLAST2Seqs</a></span><span class="op">(</span></span>
+<span>  <span class="va">blastn_inst</span>, </span>
+<span>  query <span class="op">=</span> <span class="st">"AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC"</span>, </span>
+<span>  subject <span class="op">=</span> <span class="st">"TTTTTTTTTTTGGGGGGGGGGGG"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="id_3-file-and-database-comparisons">3) File and Database Comparisons<a class="anchor" aria-label="anchor" href="#id_3-file-and-database-comparisons"></a>
+</h4>
+<p>QuickBLAST makes large-scale genomics easy with built-in file and database tools.</p>
+<div class="section level5">
+<h5 id="blasting-two-files">BLASTing Two Files:<a class="anchor" aria-label="anchor" href="#blasting-two-files"></a>
+</h5>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="reference/BLAST2Files.html">BLAST2Files</a></span><span class="op">(</span><span class="va">blastn_inst</span>, query <span class="op">=</span> <span class="st">"query.fasta"</span>, subject <span class="op">=</span> <span class="st">"genome.fasta"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level5">
+<h5 id="creating-and-searching-a-local-database">Creating and Searching a Local Database:<a class="anchor" aria-label="anchor" href="#creating-and-searching-a-local-database"></a>
+</h5>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># 1. Compile the database</span></span>
+<span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="reference/MakeBLASTDB.html">MakeBLASTDB</a></span><span class="op">(</span></span>
+<span>  in_seq <span class="op">=</span> <span class="st">"reference_genome.fasta"</span>, </span>
+<span>  db_type <span class="op">=</span> <span class="st">"nucl"</span>, </span>
+<span>  out_db <span class="op">=</span> <span class="st">"my_custom_db"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 2. Search against it</span></span>
+<span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="reference/BLAST2DBs.html">BLAST2DBs</a></span><span class="op">(</span><span class="va">blastn_inst</span>, query <span class="op">=</span> <span class="st">"query.fasta"</span>, db <span class="op">=</span> <span class="st">"my_custom_db"</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level4">
+<h4 id="id_4-remote-ncbi-searching">4) Remote NCBI Searching<a class="anchor" aria-label="anchor" href="#id_4-remote-ncbi-searching"></a>
+</h4>
+<p>If you don’t want to download databases, you can query NCBI’s remote servers directly from R:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="reference/RemoteBLAST.html">RemoteBLAST</a></span><span class="op">(</span></span>
+<span>  <span class="va">blastp_inst</span>, </span>
+<span>  query_input<span class="op">=</span><span class="st">"MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFG..."</span>, </span>
+<span>  database<span class="op">=</span> <span class="st">"pdb"</span>, </span>
+<span>  input_type<span class="op">=</span><span class="fl">1</span>, </span>
+<span>  return_values<span class="op">=</span><span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="id_5-instance-management">5) Instance Management<a class="anchor" aria-label="anchor" href="#id_5-instance-management"></a>
+</h4>
+<p>Because QuickBLAST opens direct connections to C++ libraries, it includes utility functions to track and clean up memory.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># See how many instances are running</span></span>
+<span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="reference/GetInstanceCount.html">GetInstanceCount</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Delete a specific instance by its ID</span></span>
+<span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="reference/DeleteQuickBLASTInstance.html">DeleteQuickBLASTInstance</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<p>Inherits and follows the licenses of Apache Arrow and NCBI-C++-Toolkit.</p>
+<p>Developed and maintained by <a href="https://github.com/vizkidd/QuickBLAST" class="external-link">vizkidd</a>.</p>
 </div>
 </div>
 </div>

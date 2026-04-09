@@ -731,7 +731,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
     
     if(n_threads > q_seq_count + s_seq_count)
       n_threads = q_seq_count + s_seq_count;
-    SetThreadCount(n_threads);
+    
     if(verbose){
       Rcpp::Rcout << "Num Threads: " << n_threads << std::endl << std::flush; //DEBUG
       // std::cout << "BLAST Sequence Limit: " << blast_sequence_limit << std::endl << std::flush; //DEBUG
@@ -750,6 +750,10 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
     else if(batch_size <= 1)
       batch_size = 2;
     
+    if(q_seq_count + s_seq_count < 3){
+      n_threads = 1; //prevent race-conditions and corruption on small files with less than 2 seqs
+    }
+    SetThreadCount(n_threads);
     arrow_wrapper->SetVerbosity(verbose);
     arrow_wrapper->SetBatchSize(batch_size);
     
@@ -3386,6 +3390,23 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHits(const TSeqAlig
       return empty_rb;
     }                                                             
     
+    // if (alignment_rb)
+    // {
+    //   const auto &wrt_sts = arrow_wrapper->AddRB2Batch(alignment_rb);
+    //   if (!wrt_sts.ok())
+    //   {
+    //     Rcpp::Rcerr << std::string("ExtractHits() - Error adding RecordBatch to write buffer...") + wrt_sts.detail()->ToString() + "\n" + wrt_sts.message() << std::endl << std::flush; 
+    //     return empty_rb;
+    //   }
+    //   
+    //   if(return_values){
+    //     return alignment_rb;
+    //   }else{
+    //     Rcpp::Rcerr << "ExtractHits() - Empty alignment_rb..." << std::endl << std::flush; //DEBUG
+    //     return empty_rb;
+    //   }
+    // }
+    
     if (alignment_rb)
     {
       const auto &wrt_sts = arrow_wrapper->AddRB2Batch(alignment_rb);
@@ -3397,8 +3418,9 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHits(const TSeqAlig
       
       if(return_values){
         return alignment_rb;
-      }else{
-        Rcpp::Rcerr << "ExtractHits() - Empty alignment_rb..." << std::endl << std::flush; //DEBUG
+      } else {
+        // Successfully added to the write buffer. 
+        // Return empty record batch to R to conserve memory.
         return empty_rb;
       }
     }
