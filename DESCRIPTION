@@ -5,7 +5,7 @@ Version: 1.7.0
 Date: 2026-04-12
 Authors@R: person(given = "Vishvesh Karthik",
                     family = "",
-                    role = c("aut", "cre"),
+                    role = c("aut", "cre", "cph"),
                     email = "vishveshkarthik@gmail.com")
 Maintainer: Vishvesh Karthik <vishveshkarthik@gmail.com>
 Description: A BLAST Wrapper to call BLAST directly from R (interoperable and without Sys.call()) coupled with Apache Arrow's columnar format with parquet, IPC and csv file support.

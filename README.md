@@ -1,8 +1,3 @@
----
-title: "QuickBLAST README"
-author: "Vishvesh Karthik <vishveshkarthik@gmail.com>"
----
-
 ![QuickBLAST Logo](man/figures/logo.png)
 
 # QuickBLAST v1.6.5

@@ -7,17 +7,20 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
-# Version 1.7.0
+# Version 1.7.0 - 2026-04-12
+
 ## Updated:
 - CXX STD to CXX20
 - Package directory structure
 - Startup message moved to .OnAttach()
 - manpages and vignettes
+
 ## Added:
 - Patch fix to arrow for timezone format with GCC > 14 and C++20
 - QuickBLAST logo
+
 ## Removed:
-- Many non-portable flags
+- Non-portable flags: -fPIC -O3 -Wall
 - pkgdown site files
 
 ---
