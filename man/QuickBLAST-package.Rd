@@ -4,14 +4,22 @@
 \name{QuickBLAST-package}
 \alias{QuickBLAST}
 \alias{QuickBLAST-package}
-\title{QuickBLAST: Fast Toolkit for BLAST Search with a direct Rcpp interface}
+\title{QuickBLAST: High-Performance Sequence Alignment using BLAST and Apache Arrow}
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
 A BLAST Wrapper to call BLAST directly from R (interoperable and without Sys.call()) coupled with Apache Arrow's columnar format with parquet, IPC and csv file support.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/vizkidd/QuickBLAST}
+  \item Report bugs at \url{https://github.com/vizkidd/QuickBLAST/issues}
+}
+
+}
 \author{
-\strong{Maintainer}: Vishvesh Karthik \email{vishveshkarthik@gmail.com}
+\strong{Maintainer}: Vishvesh Karthik \email{vishveshkarthik@gmail.com} [copyright holder]
 
 }
 \keyword{internal}

@@ -48,7 +48,7 @@ List of available options can be checked with `QuickBLAST::GetAvailableBLASTOpti
 #### Output Formats
 
 -   [arrow::ipc](https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc)
--   [arrow::csv]()
+-   arrow::csv
 -   [arrow::parquet](https://parquet.apache.org/docs/file-format/)
 
 ``` r
