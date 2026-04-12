@@ -52,3 +52,5 @@ Collate:
     'QuickBLAST-package.R'
     'RcppExports.R'
     'QuickBLAST.R'
+URL: https://github.com/vizkidd/QuickBLAST
+BugReports: https://github.com/vizkidd/QuickBLAST/issues
