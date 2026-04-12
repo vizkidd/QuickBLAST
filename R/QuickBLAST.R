@@ -472,9 +472,9 @@ dll_obj_list <-  list()
   Sys.setenv("OMP_WAIT_POLICY"="PASSIVE")
   # Sys.setenv("OMP_DISPLAY_ENV"="VERBOSE")
   Sys.setenv("OMP_DISPLAY_ENV"="FALSE")
-  packageStartupMessage("QuickBLAST Loaded!")
-  packageStartupMessage("Version: ", utils::packageVersion("QuickBLAST"))
-  packageStartupMessage("Github: https://github.com/vizkidd/QuickBLAST")
+  # packageStartupMessage("QuickBLAST Loaded!")
+  # packageStartupMessage("Version: ", utils::packageVersion("QuickBLAST"))
+  # packageStartupMessage("Github: https://github.com/vizkidd/QuickBLAST")
   # #R_dll_paths, msys_dll_paths
   # # library.dynam("Rcpp", "Rcpp", fs::path_package("Rcpp","..",".."))
   # if(Sys.info()['sysname'] != "Linux"){
@@ -507,6 +507,7 @@ dll_obj_list <-  list()
   # Sys.setenv("OMP_DISPLAY_ENV"="VERBOSE")
   packageStartupMessage("QuickBLAST Loaded!")
   packageStartupMessage("Version: ", utils::packageVersion("QuickBLAST"))
+  packageStartupMessage("Github: https://github.com/vizkidd/QuickBLAST")
 }
 
 # .onUnload() function

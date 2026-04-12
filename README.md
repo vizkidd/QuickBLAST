@@ -3,6 +3,8 @@ title: "QuickBLAST README"
 author: "Vishvesh Karthik <vishveshkarthik@gmail.com>"
 ---
 
+![QuickBLAST Logo](man/figures/logo.png)
+
 # QuickBLAST v1.6.5
 
 R is widely used for data analysis, but running NCBI's standard BLAST tools within R has traditionally been slow. Because the NCBI C++ toolkit is massive and inflexible, existing R packages are forced to run BLAST as an external subprocess, which creates major read/write bottlenecks.
@@ -11,7 +13,7 @@ QuickBLAST solves this by building a direct bridge between R and the NCBI C++ to
 
 ## Key Features
 
--   Zero Subprocesses: Runs entirely natively within your R session. QuickBLAST completely avoids Sys.Call() and does not require pre-installed BLAST executables.
+-   Zero Subprocesses: Runs entirely natively within your R session. QuickBLAST completely avoids \code{Sys.Call()} and does not require pre-installed BLAST executables.
 -   True Multi-Threading: Employs a concurrent architecture where file reading (in chunks), sequence alignment, Arrow wrapping, and disk writing all occur simultaneously in separate threads.
 -   Memory & I/O Efficiency: Wraps hits natively into Arrow data structures (Arrow::RecordBatches) for large-scale disk writing, or returns an Rcpp::List directly to R for smaller queries.
 -   No Length Limits: Removes legacy limits on sequence and header lengths.

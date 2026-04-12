@@ -31,5 +31,5 @@ QuickBLAST::GetFASTAHeaders(
 }
 }
 \seealso{
-[QuickBLAST::MakeBLASTDB()], [QuickBLAST::isBLASTDB()]
+\code{\link[=MakeBLASTDB]{MakeBLASTDB()}}, \code{\link[=isBLASTDB]{isBLASTDB()}}
 }

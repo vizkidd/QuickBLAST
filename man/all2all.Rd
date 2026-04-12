@@ -64,8 +64,8 @@ Executes All-to-All QuickBLAST between two lists of organisms/genes/clusters. Ou
 \examples{
 \dontrun{
 QuickBLAST::all2all(
-  first_list="ungrouped.cds",
-  second_list="ungrouped.cds", 
+  first_list=fs::path_package("QuickBLAST", "extdata", "protein_query.fasta"),
+  second_list=fs::path_package("QuickBLAST", "extdata", "protein_subject.fasta"), 
   blast_fun=QuickBLAST::BLAST2Files
   seq_type = 0, 
   strand=0,

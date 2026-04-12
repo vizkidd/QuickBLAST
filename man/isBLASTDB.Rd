@@ -7,7 +7,7 @@
 isBLASTDB(ptr, input_db)
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance}
+\item{ptr}{(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) or (unsigned int) Pointer/ID of QuickBLAST instance}
 
 \item{input_db}{character(1) path to db (path + name) or a bare name (current directory assumed)}
 }
@@ -16,10 +16,12 @@ list with keys: is_db (logical), type (string), files (character vector), dir (s
 }
 \description{
 Check whether a path/name corresponds to a BLAST DB (heuristic). Check if all the files of a BLAST DB exist (.psq .pog .pin .phr .pos .pto .pot .pdb .ptf .pjs). This checks the directory for filenames that start with the provided basename and have extensions commonly produced by makeblastdb:
- - protein:  .phr .pin .psq
- - nucleotide: .nhr .nin .nsq
-It returns a list with a boolean `is_db`, a guessed `type` ("Protein"/"Nucleotide"/"Mixed"/"Unknown"),
-a character vector of matching `files`, and the `dir` and `name` used.
+\itemize{
+\item protein:  .phr .pin .psq
+\item nucleotide: .nhr .nin .nsq
+It returns a list with a boolean \code{is_db}, a guessed \code{type} ("Protein"/"Nucleotide"/"Mixed"/"Unknown"),
+a character vector of matching \code{files}, and the \code{dir} and \code{name} used.
+}
 }
 \examples{
 \dontrun{
@@ -46,5 +48,5 @@ QuickBLAST::isBLASTDB(
 }
 }
 \seealso{
-[QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::MakeBLASTDB()], [QuickBLAST::BLAST2DBs()]
+\code{\link[=GetInstanceID]{GetInstanceID()}}, \code{\link[=GetQuickBLASTInstance]{GetQuickBLASTInstance()}}, \code{\link[=MakeBLASTDB]{MakeBLASTDB()}}, \code{\link[=BLAST2DBs]{BLAST2DBs()}}
 }

@@ -16,7 +16,7 @@ BLASTFile2DB(
 )
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance}
+\item{ptr}{(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) or (unsigned int) Pointer/ID of QuickBLAST instance}
 
 \item{query}{(string) Query DB}
 
@@ -88,5 +88,5 @@ QuickBLAST::BLASTFile2DB(
 }
 }
 \seealso{
-[QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::MakeBLASTDB()], [QuickBLAST::isBLASTDB()]
+\code{\link[=GetInstanceID]{GetInstanceID()}}, \code{\link[=GetQuickBLASTInstance]{GetQuickBLASTInstance()}}, \code{\link[=MakeBLASTDB]{MakeBLASTDB()}}, \code{\link[=isBLASTDB]{isBLASTDB()}}
 }

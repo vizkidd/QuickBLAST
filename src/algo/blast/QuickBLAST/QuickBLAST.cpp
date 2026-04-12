@@ -750,8 +750,8 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
     else if(batch_size <= 1)
       batch_size = 2;
     
-    if(q_seq_count + s_seq_count < 3){
-      n_threads = 1; //prevent race-conditions and corruption on small files with less than 2 seqs
+    if(q_seq_count + s_seq_count < n_threads){
+      n_threads = (q_seq_count + s_seq_count) - 1; //prevent race-conditions and corruption on small files with less than 2 seqs
     }
     SetThreadCount(n_threads);
     arrow_wrapper->SetVerbosity(verbose);

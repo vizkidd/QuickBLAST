@@ -7,7 +7,7 @@
 GetQuickBLASTOptions(ptr)
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance}
+\item{ptr}{(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) or (unsigned int) Pointer/ID of QuickBLAST instance}
 }
 \value{
 (string) BLAST options as std::string
@@ -30,5 +30,5 @@ QuickBLAST::GetQuickBLASTOptions(
 }
 }
 \seealso{
-[QuickBLAST::GetAvailableBLASTOptions()], [QuickBLAST::GetQuickBLASTEnums()], [QuickBLAST::SetQuickBLASTOptions()]
+\code{\link[=GetAvailableBLASTOptions]{GetAvailableBLASTOptions()}}, \code{\link[=GetQuickBLASTEnums]{GetQuickBLASTEnums()}}, \code{\link[=SetQuickBLASTOptions]{SetQuickBLASTOptions()}}
 }

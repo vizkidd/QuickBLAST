@@ -1,9 +1,8 @@
 Package: QuickBLAST
 Type: Package
-Title: QuickBLAST for FASTA Files/Sequences/DBs
-Version: 1.6.5
-Date: 2026-04-09
-Author: Vishvesh Karthik
+Title: High-Performance Sequence Alignment using BLAST and Apache Arrow
+Version: 1.7.0
+Date: 2026-04-12
 Authors@R: person(given = "Vishvesh Karthik",
                     family = "",
                     role = c("aut", "cre"),
@@ -36,7 +35,8 @@ Imports:
 LinkingTo:
     Rcpp,
     RcppProgress,
-    RcppThread
+    RcppThread,
+    BH
 Encoding: UTF-8
 StagedInstall: no
 UseLTO: yes

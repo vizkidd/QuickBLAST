@@ -4,14 +4,16 @@
 \alias{SetQuickBLASTOptions}
 \title{Set BLAST options for a QuickBLAST instance.}
 \usage{
-SetQuickBLASTOptions(ptr, program_name, options)
+SetQuickBLASTOptions(ptr, program_name, options, verbose = TRUE)
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance}
+\item{ptr}{(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) or (unsigned int) Pointer/ID of QuickBLAST instance}
 
 \item{program_name}{(string) Name of the BLAST program}
 
 \item{options}{(string (or) Named List) List of BLAST options - check QuickBLAST::GetAvailableBLASTOptions(). String should be of the format "-option1 value1 -option2 value2"}
+
+\item{verbose}{(bool) Verbose?}
 }
 \value{
 (bool) TRUE - if options set for the QuickBLAST instance, FALSE otherwise
@@ -36,5 +38,5 @@ QuickBLAST::SetQuickBLASTOptions(
 }
 }
 \seealso{
-[QuickBLAST::GetAvailableBLASTOptions()], [QuickBLAST::GetQuickBLASTEnums()]
+\code{\link[=GetAvailableBLASTOptions]{GetAvailableBLASTOptions()}}, \code{\link[=GetQuickBLASTEnums]{GetQuickBLASTEnums()}}
 }

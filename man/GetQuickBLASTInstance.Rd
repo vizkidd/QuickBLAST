@@ -10,8 +10,8 @@ GetQuickBLASTInstance(ptr_id)
 \item{ptr_id}{(unsigned int) ID/Index of Pointer to a QuickBLAST instance (in C++ side).}
 }
 \value{
-(Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST instance, FALSE otherwise
+(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) Pointer to a QuickBLAST instance, FALSE otherwise
 }
 \description{
-This function fetches the QuickBLAST instance of a Rcpp::XPtr<QuickBLAST> at ID/Index stored in C++ side.
+This function fetches the QuickBLAST instance of a Rcpp::XPtr\if{html}{\out{<QuickBLAST>}} at ID/Index stored in C++ side.
 }

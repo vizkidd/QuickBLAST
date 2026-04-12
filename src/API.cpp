@@ -1890,7 +1890,7 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
 //'
 //' @description BLAST the input query against remote NCBI DBs (one sequence at a time - to respect rate limits)
 //'
-//' @note Check (BLAST Guide)[https://blast.ncbi.nlm.nih.gov/BLAST_guide.pdf] and (NCBI BLAST)[https://blast.ncbi.nlm.nih.gov/Blast.cgi] (Program -> Choose DB/Search set) for database names.
+//' @note Check BLAST Guide (\url{https://blast.ncbi.nlm.nih.gov/BLAST_guide.pdf}) and NCBI BLAST (\url{https://blast.ncbi.nlm.nih.gov/Blast.cgi}) (Program -> Choose DB/Search set) for database names.
 //'
 //' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]
 //' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
@@ -2571,6 +2571,9 @@ RcppExport SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool 
 //' @param refresh_db (bool) If TRUE, re-creates the DBs
 //' @param return_values (bool) Return BLAST Hits as Rcpp::List (Default: TRUE) (Optional)
 //' @param min_batch_size (unsigned int) Minimum batch size - Size of file write buffer (Optional).
+//' @param enable_chunking (bool) Chunk large sequences? (Default: FALSE)
+//' @param chunk_size (int) Size of chunks (Default: 50000)
+//' @param overlap (int) Overlap between chunks (Default: 1000)
 //' @param verbose (bool) Verbose? (Default: TRUE)
 //' @return (SEXP) Rcpp::List - if return_values == TRUE, out_file - Otherwise.
 //' @examples

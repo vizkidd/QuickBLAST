@@ -18,13 +18,13 @@ RemoteBLAST(
 )
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance}
+\item{ptr}{(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) or (unsigned int) Pointer/ID of QuickBLAST instance}
 
 \item{database}{(string) Name of the remote NCBI DB - Check note for reference and supported values.}
 
 \item{query_input}{(Rcpp::List) (Named) List of input queries (Sequences, Files, Folders - type is determined by input_type parameter)}
 
-\item{input_type}{(QuickBLAST::EInputType) Input type (Check [QuickBLAST::GetQuickBLASTEnums()])}
+\item{input_type}{(QuickBLAST::EInputType) Input type (Check \code{\link[=GetQuickBLASTEnums]{GetQuickBLASTEnums()}})}
 
 \item{outFile}{(string) Output file name (Optional)}
 
@@ -45,7 +45,7 @@ RemoteBLAST(
 BLAST the input query against remote NCBI DBs (one sequence at a time - to respect rate limits)
 }
 \note{
-Check (BLAST Guide)[https://blast.ncbi.nlm.nih.gov/BLAST_guide.pdf] and (NCBI BLAST)[https://blast.ncbi.nlm.nih.gov/Blast.cgi] (Program -> Choose DB/Search set) for database names.
+Check BLAST Guide (\url{https://blast.ncbi.nlm.nih.gov/BLAST_guide.pdf}) and NCBI BLAST (\url{https://blast.ncbi.nlm.nih.gov/Blast.cgi}) (Program -> Choose DB/Search set) for database names.
 }
 \examples{
 \dontrun{
@@ -71,5 +71,5 @@ QuickBLAST::RemoteBLAST(
 }
 }
 \seealso{
-[QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]
+\code{\link[=GetInstanceID]{GetInstanceID()}}, \code{\link[=GetQuickBLASTInstance]{GetQuickBLASTInstance()}}, \code{\link[=BLAST2Files]{BLAST2Files()}}, \code{\link[=BLAST2Seqs]{BLAST2Seqs()}}, \code{\link[=BLAST2Folders]{BLAST2Folders()}}, \code{\link[=BLAST1Folder]{BLAST1Folder()}}, \code{\link[=RemoteBLAST]{RemoteBLAST()}}
 }

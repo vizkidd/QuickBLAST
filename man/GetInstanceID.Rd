@@ -7,13 +7,13 @@
 GetInstanceID(ptr)
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance}
+\item{ptr}{(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) or (unsigned int) Pointer/ID of QuickBLAST instance}
 }
 \value{
 (unsigned int) ID/Index of the QuickBLAST instance pointer, FALSE otherwise
 }
 \description{
-This function fetches the ID/Index of a QuickBLAST instance of a Rcpp::XPtr<QuickBLAST> stored in C++ side.
+This function fetches the ID/Index of a QuickBLAST instance of a Rcpp::XPtr\if{html}{\out{<QuickBLAST>}} stored in C++ side.
 }
 \examples{
 \dontrun{

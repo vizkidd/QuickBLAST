@@ -4,8 +4,14 @@
 \name{QuickBLAST-package}
 \alias{QuickBLAST}
 \alias{QuickBLAST-package}
-\title{QuickBLAST: BLAST Files/Sequences/DBs from R}
+\title{QuickBLAST: Fast Toolkit for BLAST Search with a direct Rcpp interface}
 \description{
-A BLAST Wrapper to call BLAST directly from R (interoperable and without Sys.call()) coupled with Apache Arrow's IPC and columnar format.
+\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
+
+A BLAST Wrapper to call BLAST directly from R (interoperable and without Sys.call()) coupled with Apache Arrow's columnar format with parquet, IPC and csv file support.
+}
+\author{
+\strong{Maintainer}: Vishvesh Karthik \email{vishveshkarthik@gmail.com}
+
 }
 \keyword{internal}

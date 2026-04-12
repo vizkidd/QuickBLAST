@@ -795,8 +795,11 @@ echo "set(NCBI_PTBCFG_FLAGS_DEFINED YES)" >>src/build-system/cmake/toolchains/$t
 echo "include_guard(GLOBAL)" >>src/build-system/cmake/toolchains/$toolchain_file
 #-gdwarf-4
 #-Wall
-echo "set(CMAKE_C_FLAGS_INIT         \"-Wno-format-y2k -Wno-date-time -Wno-attributes -Wno-unused-parameter -Wno-ignored-attributes -Wa,-mbig-obj -std=gnu2x -O3 -pedantic $SHLIB_OPENMP_CXXFLAGS -fPIC -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libgcc -march=native -mtune=generic -maccumulate-outgoing-args -mconsole -mstackrealign \")" >>src/build-system/cmake/toolchains/$toolchain_file
-echo "set(CMAKE_CXX_FLAGS_INIT       \"-Wno-format-y2k -Wno-date-time -Wno-attributes -Wno-unused-parameter -Wno-ignored-attributes -Wa,-mbig-obj -DLIBICONV_STATIC -std=gnu++20 -O3 -pedantic $SHLIB_OPENMP_CXXFLAGS -fPIC -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libstdc++ -march=native -mtune=generic -maccumulate-outgoing-args -mconsole -mstackrealign \")" >>src/build-system/cmake/toolchains/$toolchain_file
+#-std=gnu2x
+#-std=gnu++20
+#-O3 -fPIC
+echo "set(CMAKE_C_FLAGS_INIT         \"-Wno-format-y2k -Wno-date-time -Wno-attributes -Wno-unused-parameter -Wno-ignored-attributes -Wa,-mbig-obj -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libgcc -march=native -mtune=generic -maccumulate-outgoing-args -mconsole -mstackrealign \")" >>src/build-system/cmake/toolchains/$toolchain_file
+echo "set(CMAKE_CXX_FLAGS_INIT       \"-Wno-format-y2k -Wno-date-time -Wno-attributes -Wno-unused-parameter -Wno-ignored-attributes -Wa,-mbig-obj -DLIBICONV_STATIC -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libstdc++ -march=native -mtune=generic -maccumulate-outgoing-args -mconsole -mstackrealign \")" >>src/build-system/cmake/toolchains/$toolchain_file
 # echo "set(NCBI_COMPILER_FLAGS_SSE       \"-msse4.2\")" >>src/build-system/cmake/toolchains/$toolchain_file
 echo "set(NCBI_COMPILER_FLAGS_SSE       \"-march=native\")" >>src/build-system/cmake/toolchains/$toolchain_file
 echo "set(NCBI_COMPILER_FLAGS_COVERAGE  \"--coverage\")" >>src/build-system/cmake/toolchains/$toolchain_file
@@ -851,8 +854,10 @@ echo "set(CMAKE_SYSROOT \"/x86_64-w64-mingw32.static.posix\")" >> src/build-syst
 
 #-U_WIN32
 #-ftrack-macro-expansion=0 -pipe 
+#-std=gnu2x
+#-O3 -fPIC
 #############COMPILER - MSYS2 - GCC#################################
-echo "set(CMAKE_C_FLAGS_RELEASE \" -I'$NCBI_DIR/BUILD/inc/common/config' -std=gnu2x -O3 -Wformat -Werror=format-security -DHAVE_IOSTREAM=1 -DNCBI_OS_OSF1=1 -D_WIN32 -D_WIN64 -DHAVE_INTTYPES_H=1 -DHAVE_NETINET_TCP_H=1 -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -fPIC -static-libgcc -march=native -mtune=generic -maccumulate-outgoing-args -Wno-format-y2k -Wno-date-time -Wno-attributes -mconsole -mstackrealign \")" >>src/build-system/cmake/toolchains/$toolchain_file
+echo "set(CMAKE_C_FLAGS_RELEASE \" -I'$NCBI_DIR/BUILD/inc/common/config' -Wformat -Werror=format-security -DHAVE_IOSTREAM=1 -DNCBI_OS_OSF1=1 -D_WIN32 -D_WIN64 -DHAVE_INTTYPES_H=1 -DHAVE_NETINET_TCP_H=1 -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -static-libgcc -march=native -mtune=generic -maccumulate-outgoing-args -Wno-format-y2k -Wno-date-time -Wno-attributes -mconsole -mstackrealign \")" >>src/build-system/cmake/toolchains/$toolchain_file
 #-Wall
 #-D_DEBUG
 #-UNDEBUG
@@ -861,7 +866,9 @@ echo "set(CMAKE_C_FLAGS_RELEASE \" -I'$NCBI_DIR/BUILD/inc/common/config' -std=gn
 #-U_WIN32
 #-Wall
 #-ftrack-macro-expansion=0 -pipe 
-echo "set(CMAKE_CXX_FLAGS_RELEASE \" -std=gnu++20 -O3 -Wformat -Werror=format-security -Wdate-time -DHAVE_IOSTREAM=1 -DNCBI_OS_OSF1=1 -D_WIN32 -D_WIN64 -DHAVE_INTTYPES_H=1 -DHAVE_NETINET_TCP_H=1 -D_FORTIFY_SOURCE=2 -DLIBICONV_STATIC -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -fPIC -static-libstdc++ -march=native -mtune=generic -maccumulate-outgoing-args -Wno-format-y2k -Wno-date-time -Wno-attributes -Wa,-mbig-obj -mconsole -mstackrealign \")" >>src/build-system/cmake/toolchains/$toolchain_file
+#-std=gnu++20
+#-O3 -fPIC
+echo "set(CMAKE_CXX_FLAGS_RELEASE \" -Wformat -Werror=format-security -Wdate-time -DHAVE_IOSTREAM=1 -DNCBI_OS_OSF1=1 -D_WIN32 -D_WIN64 -DHAVE_INTTYPES_H=1 -DHAVE_NETINET_TCP_H=1 -D_FORTIFY_SOURCE=2 -DLIBICONV_STATIC -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libstdc++ -march=native -mtune=generic -maccumulate-outgoing-args -Wno-format-y2k -Wno-date-time -Wno-attributes -Wa,-mbig-obj -mconsole -mstackrealign \")" >>src/build-system/cmake/toolchains/$toolchain_file
 ###################################################
 
 ##############LINKER - GCC##############
@@ -946,7 +953,9 @@ cd sqlite-amalgamation-*
 
 export PATH="$RTOOLS_BIN:$PATH"
 
-gcc -std=gnu2x -O3 -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -fPIC -static-libgcc -march=native -mtune=generic -maccumulate-outgoing-args -Wno-format-y2k -mconsole -mstackrealign  \
+#-std=gnu2x -O3 -fPIC
+
+gcc $PKG_CFLAGS $SHLIB_OPENMP_CXXFLAGS -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -static-libgcc -march=native -mtune=generic -maccumulate-outgoing-args -Wno-format-y2k -mconsole -mstackrealign  \
   -DSQLITE_ENABLE_UNLOCK_NOTIFY=1 \
   -DSQLITE_ENABLE_MEMSYS5 \
   -DSQLITE_ENABLE_MEMSYS3 \

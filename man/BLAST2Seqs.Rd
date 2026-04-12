@@ -7,7 +7,7 @@
 BLAST2Seqs(ptr, query, subject, verbose = TRUE)
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance}
+\item{ptr}{(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) or (unsigned int) Pointer/ID of QuickBLAST instance}
 
 \item{query}{(string) Query sequence}
 
@@ -16,7 +16,7 @@ BLAST2Seqs(ptr, query, subject, verbose = TRUE)
 \item{verbose}{(bool) Verbosity (Default: TRUE).}
 }
 \value{
-(Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST Instance (Cannot be used in R)
+(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) Pointer to a QuickBLAST Instance (Cannot be used in R)
 }
 \description{
 BLAST 2 nucleotide or protein strings with a QuickBLAST instance.
@@ -52,5 +52,5 @@ QuickBLAST::BLAST2Seqs(
 }
 }
 \seealso{
-[QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]
+\code{\link[=GetInstanceID]{GetInstanceID()}}, \code{\link[=GetQuickBLASTInstance]{GetQuickBLASTInstance()}}, \code{\link[=BLAST2Files]{BLAST2Files()}}, \code{\link[=BLAST2Seqs]{BLAST2Seqs()}}, \code{\link[=BLAST2Folders]{BLAST2Folders()}}, \code{\link[=BLAST1Folder]{BLAST1Folder()}}, \code{\link[=RemoteBLAST]{RemoteBLAST()}}
 }

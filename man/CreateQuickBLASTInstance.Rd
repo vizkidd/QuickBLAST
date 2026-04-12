@@ -27,10 +27,13 @@ CreateQuickBLASTInstance(
 \item{save_hsp_sequences}{(bool) Save HSP Sequences to output?. (Default: FALSE)}
 }
 \value{
-(Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST Instance (Cannot be used in R)
+(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) Pointer to a QuickBLAST Instance (Cannot be used in R)
 }
 \description{
 Create a new QuickBLAST C++ object with seq_type, strand, program and BLAST options, which can be used in QuickBLAST::BLAST2Files() and QuickBLAST::BLAST2Seqs()
+}
+\note{
+Set save_sequences AND/OR save_hsp_sequences when using Genomes
 }
 \examples{
 \dontrun{
@@ -44,5 +47,5 @@ blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
 }
 }
 \seealso{
-[QuickBLAST::GetAvailableBLASTOptions()], [QuickBLAST::GetQuickBLASTEnums()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]
+\code{\link[=GetAvailableBLASTOptions]{GetAvailableBLASTOptions()}}, \code{\link[=GetQuickBLASTEnums]{GetQuickBLASTEnums()}}, \code{\link[=BLAST2Files]{BLAST2Files()}}, \code{\link[=BLAST2Seqs]{BLAST2Seqs()}}, \code{\link[=BLAST2Folders]{BLAST2Folders()}}, \code{\link[=BLAST1Folder]{BLAST1Folder()}}, \code{\link[=RemoteBLAST]{RemoteBLAST()}}
 }

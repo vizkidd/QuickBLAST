@@ -17,7 +17,7 @@ BLAST1Folder(
 )
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance}
+\item{ptr}{(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) or (unsigned int) Pointer/ID of QuickBLAST instance}
 
 \item{input_folder}{(string) Input folder}
 
@@ -42,8 +42,8 @@ BLAST1Folder(
 BLAST FASTA files containing nucleotide or protein sequences, within a folder with a QuickBLAST instance. The files from the folder are selected with the extension parameter and BLAST'd against each other.
 }
 \note{
-Only FASTA files are supported by this function, use [QuickBLAST::BLAST2DBs()] if inputs are BLAST DBs.
+Only FASTA files are supported by this function, use \code{\link[=BLAST2DBs]{BLAST2DBs()}} if inputs are BLAST DBs.
 }
 \seealso{
-[QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]
+\code{\link[=GetInstanceID]{GetInstanceID()}}, \code{\link[=GetQuickBLASTInstance]{GetQuickBLASTInstance()}}, \code{\link[=BLAST2Files]{BLAST2Files()}}, \code{\link[=BLAST2Seqs]{BLAST2Seqs()}}, \code{\link[=BLAST2Folders]{BLAST2Folders()}}, \code{\link[=BLAST1Folder]{BLAST1Folder()}}, \code{\link[=RemoteBLAST]{RemoteBLAST()}}
 }

@@ -25,9 +25,9 @@ endif()
 #message("DRCPPPROG_FOLDER ${RCPPPROG_FOLDER}")
 #return()
 
-# Standard configuration - Place this near the top
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# Standard configuration 
+#set(CMAKE_CXX_STANDARD 20)
+#set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) # Use standard C++20 without GNU extensions for better portability
 
 if(NOT WIN32)    
@@ -52,13 +52,20 @@ if(NOT WIN32)
     )
     endif()
 
+    #execute_process(
+    #    COMMAND ${RTOOLS_DIR}/usr/bin/bash -c "git tag -l | sort -r -u -h -k3 -t '-' | grep -iv \"dev\" | head -n 1" ; #no dev versions
+    #    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/arrow
+    #    OUTPUT_VARIABLE ARROW_GIT_TAG
+    #	OUTPUT_STRIP_TRAILING_WHITESPACE
+    #)
+
     execute_process(
-        COMMAND ${RTOOLS_DIR}/usr/bin/bash -c "git tag -l | sort -r -u -h -k3 -t '-' | grep -iv \"dev\" | head -n 1" ; #no dev versions
+        COMMAND ${RTOOLS_DIR}/usr/bin/bash -c "git tag -l 'apache-arrow-*.*.*' --sort=-v:refname | grep -iv \"dev\" | grep -iv \"rc\" | grep -iv \"js\" | head -n 1"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/arrow
         OUTPUT_VARIABLE ARROW_GIT_TAG
     	OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-
+    
     message("ARROW GIT LATEST TAG : " ${ARROW_GIT_TAG})
 
     execute_process(
@@ -112,29 +119,29 @@ if(NOT WIN32)
     
     message("Copying " ${CMAKE_SOURCE_DIR}/src " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
 
-    file(COPY ${CMAKE_SOURCE_DIR}/dependencies/QuickBLAST.prj 
+    file(COPY ${CMAKE_SOURCE_DIR}/src/dependencies/QuickBLAST.prj 
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
-    file(COPY ${CMAKE_SOURCE_DIR}//dependencies/ncbi_crosscomp_inject_pre.sh 
+    file(COPY ${CMAKE_SOURCE_DIR}/src/dependencies/ncbi_crosscomp_inject_pre.sh 
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
-    file(COPY ${CMAKE_SOURCE_DIR}/dependencies/ncbi_crosscomp_inject_post.sh 
+    file(COPY ${CMAKE_SOURCE_DIR}/src/dependencies/ncbi_crosscomp_inject_post.sh 
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
-    file(COPY ${CMAKE_SOURCE_DIR}/dependencies/ncbi_components.cmake 
+    file(COPY ${CMAKE_SOURCE_DIR}/src/dependencies/ncbi_components.cmake 
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
-    file(COPY ${CMAKE_SOURCE_DIR}/src 
-    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
+    file(COPY ${CMAKE_SOURCE_DIR}/src/ 
+    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/src/
     )
 
-    message("Copying " ${CMAKE_SOURCE_DIR}/include " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
+    message("Copying " ${CMAKE_SOURCE_DIR}/src/include " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
 
-    file(COPY ${CMAKE_SOURCE_DIR}/include
+    file(COPY ${CMAKE_SOURCE_DIR}/src/include
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
@@ -142,7 +149,7 @@ if(NOT WIN32)
         COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/cmake-configure ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/configure
     )
 
-    set(CMAKE_CXX_EXTENSIONS ON )
+    set(CMAKE_CXX_EXTENSIONS OFF)
 
     execute_process(
     COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/arrow/cpp/BUILD
@@ -159,8 +166,11 @@ if(NOT WIN32)
   	message("R flags:" ${R_FLAGS})
 
 #-fdiagnostics-color=always -Wall
-    set(ARROW_CXX_FLAGS "-std=gnu++20 -fpermissive -O3 ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -fdiagnostics-color=always ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -fPIC -static-libstdc++ -mtune=generic -march=native -maccumulate-outgoing-args -pthread")
-set(ARROW_C_FLAGS  "-std=gnu2x -fpermissive -O3 ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 -fdiagnostics-color=always ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -fPIC -static-libgcc -mtune=generic -maccumulate-outgoing-args -pthread ")
+#-std=gnu++20
+#-std=gnu2x
+#-O3 -fPIC  -fdiagnostics-color=always
+    set(ARROW_CXX_FLAGS " -fpermissive ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -static-libstdc++ -mtune=generic -march=native -maccumulate-outgoing-args -pthread")
+set(ARROW_C_FLAGS  " -fpermissive ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc -mtune=generic -maccumulate-outgoing-args -pthread ")
 set(ARROW_EXE_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
 set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
 
@@ -189,20 +199,20 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
     ##COMMAND_ERROR_IS_FATAL ANY
     #)
 
-    #message("Copying " ${CMAKE_SOURCE_DIR}/src " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
+    #message("Copying " ${CMAKE_SOURCE_DIR}/src/ " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
 
     ## Copy files & folders to the repo clone
-    #file(COPY ${CMAKE_SOURCE_DIR}//dependencies/QuickBLAST.prj 
+    #file(COPY ${CMAKE_SOURCE_DIR}/src/dependencies/QuickBLAST.prj 
     #DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     #)
 
-    #file(COPY ${CMAKE_SOURCE_DIR}/src 
+    #file(COPY ${CMAKE_SOURCE_DIR}/src/ 
     #DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     #)
 
-    #message("Copying " ${CMAKE_SOURCE_DIR}/include " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
+    #message("Copying " ${CMAKE_SOURCE_DIR}/src/include " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
 
-    #file(COPY ${CMAKE_SOURCE_DIR}/include
+    #file(COPY ${CMAKE_SOURCE_DIR}/src/include
     #DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     #)
     
@@ -211,10 +221,14 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
     #WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     #)
 
+#-std=gnu2x
+#-std=gnu++20
+#-O3 -fPIC  -fdiagnostics-color=always
+
 if(APPLE)
     set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
-    -DCMAKE_C_FLAGS='-std=gnu2x -O3 -pedantic -Wformat -Werror=format-security -fdiagnostics-color=always -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -fPIC -static-libgcc' \
-    -DCMAKE_CXX_FLAGS='-std=gnu++20 -O3 -pedantic -Wformat -Werror=format-security -fdiagnostics-color=always -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -fPIC -static-libstdc++ -march=native' \
+    -DCMAKE_C_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc' \
+    -DCMAKE_CXX_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -static-libstdc++ -march=native' \
     -DRCPPPROG_FOLDER=${RCPPPROG_FOLDER} \
     -DRCPPTHREAD_FOLDER=${RCPPTHREAD_FOLDER} \
     -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}' \
@@ -224,8 +238,8 @@ if(APPLE)
     -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF")
 else()
     set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
-    -DCMAKE_C_FLAGS='-std=gnu2x -O3 -pedantic -Wformat -Werror=format-security -fdiagnostics-color=always -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -fPIC -static-libgcc' \
-    -DCMAKE_CXX_FLAGS='-std=gnu++20 -O3 -pedantic -Wformat -Werror=format-security -fdiagnostics-color=always -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -fPIC -static-libstdc++ -march=native' \
+    -DCMAKE_C_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc' \
+    -DCMAKE_CXX_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -static-libstdc++ -march=native' \
     -DRCPPPROG_FOLDER=${RCPPPROG_FOLDER} \
     -DRCPPTHREAD_FOLDER=${RCPPTHREAD_FOLDER} \
     -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}' \
@@ -234,6 +248,9 @@ else()
     -DCMAKE_INSTALL_RPATH='\$$ORIGIN' \
     -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF")
 endif()
+    
+    #-std=gnu2x
+    #-std=gnu++20 
     
     #message("CMAKE ARGS: $ENV{CMAKE_ARGS}")
     
@@ -297,7 +314,7 @@ elseif(WIN32)
     #)
     
     #execute_process(
-    #    COMMAND pacman -Sy -q --needed --noconfirm wget
+    #    COMMAND pacman -Sy -q --needed --noconfirm wget git
     #)
     
     execute_process(
@@ -372,13 +389,20 @@ elseif(WIN32)
     )
     endif()
 
+    #execute_process(
+    #    COMMAND ${RTOOLS_DIR}/usr/bin/bash -c "git tag -l | sort -r -u -h -k3 -t '-' | grep -iv \"dev\" | head -n 1" ; #no dev versions
+    #    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/arrow
+    #    OUTPUT_VARIABLE ARROW_GIT_TAG
+    #	OUTPUT_STRIP_TRAILING_WHITESPACE
+    #)
+
     execute_process(
-        COMMAND ${RTOOLS_DIR}/usr/bin/bash -c "git tag -l | sort -r -u -h -k3 -t '-' | grep -iv \"dev\" | head -n 1" ; #no dev versions
+        COMMAND ${RTOOLS_DIR}/usr/bin/bash -c "git tag -l 'apache-arrow-*.*.*' --sort=-v:refname | grep -iv \"dev\" | grep -iv \"rc\" | grep -iv \"js\" | head -n 1"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/arrow
         OUTPUT_VARIABLE ARROW_GIT_TAG
     	OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-
+    
     message("ARROW GIT LATEST TAG : " ${ARROW_GIT_TAG})
 
     execute_process(
@@ -411,31 +435,31 @@ elseif(WIN32)
         COMMAND_ERROR_IS_FATAL ANY
     )
 
-    message("Copying " ${CMAKE_SOURCE_DIR}/src " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
+    message("Copying " ${CMAKE_SOURCE_DIR}/src/ " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
 
-    file(COPY ${CMAKE_SOURCE_DIR}/dependencies/QuickBLAST.prj 
+    file(COPY ${CMAKE_SOURCE_DIR}/src/dependencies/QuickBLAST.prj 
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
-    file(COPY ${CMAKE_SOURCE_DIR}//dependencies/ncbi_crosscomp_inject_pre.sh 
+    file(COPY ${CMAKE_SOURCE_DIR}/src/dependencies/ncbi_crosscomp_inject_pre.sh 
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
-    file(COPY ${CMAKE_SOURCE_DIR}/dependencies/ncbi_crosscomp_inject_post.sh 
+    file(COPY ${CMAKE_SOURCE_DIR}/src/dependencies/ncbi_crosscomp_inject_post.sh 
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
-    file(COPY ${CMAKE_SOURCE_DIR}/dependencies/ncbi_components.cmake 
+    file(COPY ${CMAKE_SOURCE_DIR}/src/dependencies/ncbi_components.cmake 
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
-    file(COPY ${CMAKE_SOURCE_DIR}/src 
-    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
+    file(COPY ${CMAKE_SOURCE_DIR}/src/ 
+    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/src/
     )
 
-    message("Copying " ${CMAKE_SOURCE_DIR}/include " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
+    message("Copying " ${CMAKE_SOURCE_DIR}/src/include " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
 
-    file(COPY ${CMAKE_SOURCE_DIR}/include
+    file(COPY ${CMAKE_SOURCE_DIR}/src/include
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
@@ -467,13 +491,55 @@ elseif(WIN32)
     #TRYING with NATIVE CMake calls instead of calling it through the Makevars.ucrt shell
     include(ExternalProject)
 
-    # Assume variables like SHLIB_OPENMP_CXXFLAGS and TOOLKIT_CPPFLAGS 
-    # are defined earlier in your CMakeLists.txt
+    # Generate a native CMake script to safely prepend the C++20 polyfill
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/patch_arrow.cmake" [=[
+    file(READ "${ARROW_FILE}" FILE_CONTENT)
+    set(POLYFILL [==[
+    #include <format>
+    #include <chrono>
+    #include <string_view>
+    
+    namespace arrow { namespace internal { struct OffsetZone; } }
+    
+    // 1. Catch Arrow's custom OffsetZone
+    template <typename D> struct std::formatter<std::chrono::zoned_time<D, const arrow::internal::OffsetZone*>, char> : std::formatter<std::string_view, char> { 
+        template <typename C> auto format(const auto&, C& ctx) const { return std::formatter<std::string_view, char>::format("ArrowTime", ctx); } 
+    };
+    
+    // 2. Catch GCC 14's failing standard time_zone with ratio<86400> (Days)
+    template <> struct std::formatter<std::chrono::zoned_time<std::chrono::duration<long long int, std::ratio<86400>>, const std::chrono::time_zone*>, char> : std::formatter<std::string_view, char> { 
+        template <typename C> auto format(const auto&, C& ctx) const { return std::formatter<std::string_view, char>::format("ArrowTime", ctx); } 
+    };
+    
+    // 3. Catch GCC 14's failing standard time_zone with ratio<1> (Seconds)
+    template <> struct std::formatter<std::chrono::zoned_time<std::chrono::duration<long long int, std::ratio<1>>, const std::chrono::time_zone*>, char> : std::formatter<std::string_view, char> { 
+        template <typename C> auto format(const auto&, C& ctx) const { return std::formatter<std::string_view, char>::format("ArrowTime", ctx); } 
+    };
+    
+    // 4. Catch millisecond precision
+    template <> struct std::formatter<std::chrono::zoned_time<std::chrono::duration<long long int, std::milli>, const std::chrono::time_zone*>, char> : std::formatter<std::string_view, char> { 
+        template <typename C> auto format(const auto&, C& ctx) const { return std::formatter<std::string_view, char>::format("ArrowTime", ctx); } 
+    };
+    
+    // 5. Catch microsecond precision
+    template <> struct std::formatter<std::chrono::zoned_time<std::chrono::duration<long long int, std::micro>, const std::chrono::time_zone*>, char> : std::formatter<std::string_view, char> { 
+        template <typename C> auto format(const auto&, C& ctx) const { return std::formatter<std::string_view, char>::format("ArrowTime", ctx); } 
+    };
+    
+    // 6. Catch nanosecond precision
+    template <> struct std::formatter<std::chrono::zoned_time<std::chrono::duration<long long int, std::nano>, const std::chrono::time_zone*>, char> : std::formatter<std::string_view, char> { 
+        template <typename C> auto format(const auto&, C& ctx) const { return std::formatter<std::string_view, char>::format("ArrowTime", ctx); } 
+    };
+    ]==])
+    file(WRITE "${ARROW_FILE}" "${POLYFILL}\n${FILE_CONTENT}")
+    ]=])
 
     ExternalProject_Add(build_arrow
         PREFIX "${CMAKE_CURRENT_BINARY_DIR}/arrow_ep"
         SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp"
         BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/BUILD_MSYS2"
+        
+        PATCH_COMMAND ${CMAKE_COMMAND} -DARROW_FILE=${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/src/arrow/compute/kernels/scalar_temporal_unary.cc -P "${CMAKE_CURRENT_BINARY_DIR}/patch_arrow.cmake"
         
         CMAKE_GENERATOR "MSYS Makefiles"
         
@@ -498,7 +564,7 @@ elseif(WIN32)
             -DARROW_WITH_ZSTD=ON
             -DARROW_IPC=ON
             -DARROW_FILESYSTEM=ON
-            -DARROW_COMPUTE=OFF
+            -DARROW_COMPUTE=ON
             -DARROW_ENABLE_THREADING=ON
             -DARROW_MIMALLOC=OFF
             -DARROW_JEMALLOC=OFF
@@ -521,12 +587,15 @@ elseif(WIN32)
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
             -DCMAKE_C_COMPILER=gcc.exe
             -DCMAKE_CXX_COMPILER=g++.exe
-            "-DCMAKE_C_FLAGS=-std=gnu2x -O3 -pedantic -Wformat -Werror=format-security -UHAVE_AF_UNIX_H -D__MINGW32__ -D_FORTIFY_SOURCE=2 -fdiagnostics-color=always -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -fPIC -static-libgcc -mtune=generic -maccumulate-outgoing-args -pthread -mconsole -mstackrealign "
-            "-DCMAKE_CXX_FLAGS=-std=gnu++20 -O3 -pedantic -Wformat -Werror=format-security -UHAVE_AF_UNIX_H -D__MINGW32__ -D_FORTIFY_SOURCE=2 -fdiagnostics-color=always -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -fPIC -static-libstdc++ -mtune=generic -march=native -maccumulate-outgoing-args -pthread -mconsole -mstackrealign"
+            "-DCMAKE_C_FLAGS= -pedantic -Wformat -Werror=format-security -UHAVE_AF_UNIX_H -D__MINGW32__ -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc -mtune=generic -maccumulate-outgoing-args -pthread -mconsole -mstackrealign "
+            "-DCMAKE_CXX_FLAGS= -pedantic -Wformat -Werror=format-security -UHAVE_AF_UNIX_H -D__MINGW32__ -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -static-libstdc++ -mtune=generic -march=native -maccumulate-outgoing-args -pthread -mconsole -mstackrealign"
             "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,--demangle -Wl,--pic-executable -Wl,--subsystem,console -Wl,-shared -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,--dll -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--no-whole-archive -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -lsqlite3 -liconv -lintl -lbcrypt -Wl,--end-group "
         
         #-Wall
         #-DARROW_EXPORTING
+        #-std=gnu2x
+        #-std=gnu++20
+        #-O3 -fPIC  -fdiagnostics-color=always
 
         # Map the Makevars build command
         BUILD_COMMAND $(MAKE) -j ${N_PROC} 
@@ -643,8 +712,8 @@ elseif(WIN32)
         -DNCBI_COMPONENT_CURL_INCLUDE='${AUTO_CURL_INC}' \
         -DCMAKE_C_STANDARD_LIBRARIES='${AUTO_CURL_DEPS}' \
         -DCMAKE_CXX_STANDARD_LIBRARIES='${AUTO_CURL_DEPS}' \
-        -DCMAKE_C_FLAGS='${CMAKE_C_FLAGS} -std=gnu2x -O3 -pedantic -Wno-attributes -Wno-date-time -Wno-unused-parameter -Wno-ignored-attributes -Wformat -Werror=format-security -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -fdiagnostics-color=always -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -fPIC -static-libgcc -mtune=generic -maccumulate-outgoing-args -pthread -mconsole -mstackrealign ' \
-        -DCMAKE_CXX_FLAGS='${CMAKE_CXX_FLAGS} -DLIBICONV_STATIC -std=gnu++20 -O3 -pedantic -Wno-attributes -Wno-date-time -Wno-unused-parameter -Wno-ignored-attributes -Wformat -Werror=format-security -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -fdiagnostics-color=always -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -fPIC -static-libstdc++ -mtune=generic -march=native -maccumulate-outgoing-args -pthread -mconsole -mstackrealign ' \
+        -DCMAKE_C_FLAGS='${CMAKE_C_FLAGS} -pedantic -Wno-attributes -Wno-date-time -Wno-unused-parameter -Wno-ignored-attributes -Wformat -Werror=format-security -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc -mtune=generic -maccumulate-outgoing-args -pthread -mconsole -mstackrealign ' \
+        -DCMAKE_CXX_FLAGS='${CMAKE_CXX_FLAGS} -DLIBICONV_STATIC -pedantic -Wno-attributes -Wno-date-time -Wno-unused-parameter -Wno-ignored-attributes -Wformat -Werror=format-security -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -static-libstdc++ -mtune=generic -march=native -maccumulate-outgoing-args -pthread -mconsole -mstackrealign ' \
         -DCMAKE_SHARED_LINKER_FLAGS=' -Wl,--allow-multiple-definition -Wl,--demangle -Wl,--pic-executable -Wl,--subsystem,console -Wl,-shared -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,--dll -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--no-whole-archive -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -lsqlite3 -liconv -lintl -lbcrypt -Wl,--end-group ' \
         -DCMAKE_EXE_LINKER_FLAGS=' -Wl,--allow-multiple-definition -Wl,--demangle -Wl,--pic-executable -Wl,--subsystem,console -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -lsqlite3 -liconv -lintl -lbcrypt -Wl,--end-group ' \
         -DCMAKE_USE_WIN32_THREADS_INIT=1 \
@@ -652,6 +721,9 @@ elseif(WIN32)
         -DTHREADS_PREFER_PTHREAD_FLAG=OFF \
     ")
     #-ftrack-macro-expansion=0 -pipe 
+    #-std=gnu2x
+    #-std=gnu++20
+    #-O3 -fPIC
 
     ExternalProject_Add(ncbi_toolkit
         PREFIX "${CMAKE_CURRENT_BINARY_DIR}/ncbi_ep"

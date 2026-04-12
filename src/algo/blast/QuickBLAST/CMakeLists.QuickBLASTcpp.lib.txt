@@ -122,10 +122,12 @@ find_library(PARQUET_LIB
 		*.hpp
 	)
 	#-fdiagnostics-color=always
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TOOLKIT_CPPFLAGS} -std=gnu++20 -march=native ${SHLIB_OPENMP_CXXFLAGS} -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS} -Wno-format-y2k -Wno-date-time -Wno-attributes -pedantic -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libstdc++ -mtune=generic -maccumulate-outgoing-args ")
+	#-std=gnu++20
+	#-std=gnu2x -fPIC -O3
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TOOLKIT_CPPFLAGS} -march=native ${SHLIB_OPENMP_CXXFLAGS} -fpermissive ${R_FLAGS} ${ARROW_FLAGS} -Wno-format-y2k -Wno-date-time -Wno-attributes -pedantic -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libstdc++ -mtune=generic -maccumulate-outgoing-args ")
   set(CMAKE_EXE_LINKER_FLAGS " ${CMAKE_EXE_LINKER_FLAGS} -Wl,--allow-multiple-definition -Wl,--demangle -rpath \$ORIGIN -Wl,--pic-executable -Wl,--subsystem,console -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed ")
   set(CMAKE_SHARED_LINKER_FLAGS " ${CMAKE_SHARED_LINKER_FLAGS} -Wl,--demangle -rpath \$ORIGIN -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,-fstack-protector-strong -Wl,-shared -Wl,--allow-multiple-definition ")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLKIT_CPPFLAGS} -std=gnu2x -march=native ${SHLIB_OPENMP_CXXFLAGS} -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS} -Wno-format-y2k -Wno-date-time -Wno-attributes -pedantic -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libgcc -mtune=generic -maccumulate-outgoing-args")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLKIT_CPPFLAGS} -march=native ${SHLIB_OPENMP_CXXFLAGS} -fpermissive ${R_FLAGS} ${ARROW_FLAGS} -Wno-format-y2k -Wno-date-time -Wno-attributes -pedantic -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libgcc -mtune=generic -maccumulate-outgoing-args")
 	NCBI_add_include_directories(
 		"${RCPP_FOLDER}/include"
 		"${RCPPPROG_FOLDER}/include"
@@ -430,8 +432,11 @@ elseif(MINGW32)
 		*.h
 		*.hpp
 	)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TOOLKIT_CPPFLAGS} -std=gnu++20 ${SHLIB_OPENMP_CXXFLAGS} -DLIBICONV_STATIC -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS} -march=native ${SHLIB_OPENMP_CXXFLAGS} -Wno-format-y2k -Wno-date-time -Wno-attributes -Wno-unused-parameter -Wno-ignored-attributes -Wa,-mbig-obj -pedantic -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libstdc++ -mtune=generic -maccumulate-outgoing-args -mconsole -mstackrealign ")
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLKIT_CPPFLAGS} -std=gnu2x ${SHLIB_OPENMP_CXXFLAGS} -fpermissive -fPIC -O3 -Wall ${R_FLAGS} ${ARROW_FLAGS} -march=native -Wno-format-y2k -Wno-date-time -Wno-attributes -Wno-unused-parameter -Wno-ignored-attributes -Wa,-mbig-obj -pedantic -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libgcc -mtune=generic -maccumulate-outgoing-args -mconsole -mstackrealign ")
+	#-std=gnu++20
+	#-std=gnu2x 
+	#-fPIC -O3 -Wall
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TOOLKIT_CPPFLAGS} ${SHLIB_OPENMP_CXXFLAGS} -DLIBICONV_STATIC -fpermissive ${R_FLAGS} ${ARROW_FLAGS} -march=native ${SHLIB_OPENMP_CXXFLAGS} -Wno-format-y2k -Wno-date-time -Wno-attributes -Wno-unused-parameter -Wno-ignored-attributes -Wa,-mbig-obj -pedantic -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libstdc++ -mtune=generic -maccumulate-outgoing-args -mconsole -mstackrealign ")
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLKIT_CPPFLAGS} ${SHLIB_OPENMP_CXXFLAGS} -fpermissive ${R_FLAGS} ${ARROW_FLAGS} -march=native -Wno-format-y2k -Wno-date-time -Wno-attributes -Wno-unused-parameter -Wno-ignored-attributes -Wa,-mbig-obj -pedantic -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libgcc -mtune=generic -maccumulate-outgoing-args -mconsole -mstackrealign ")
    set(CMAKE_EXE_LINKER_FLAGS " ${CMAKE_EXE_LINKER_FLAGS} -Wl,--allow-multiple-definition  -Wl,--demangle -rpath \$ORIGIN -Wl,--pic-executable -Wl,--subsystem,console -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -Wl,--end-group ")
    set(CMAKE_SHARED_LINKER_FLAGS " ${CMAKE_SHARED_LINKER_FLAGS} -Wl,--allow-multiple-definition -Wl,--demangle -rpath \$ORIGIN  -Wl,--subsystem,console -Wl,--pic-executable -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--dll -Wl,-shared -Wl,--no-whole-archive -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -liconv -lintl -Wl,--end-group ")
 	NCBI_add_include_directories(

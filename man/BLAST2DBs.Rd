@@ -11,13 +11,17 @@ BLAST2DBs(
   out_file = NULL,
   out_format = NULL,
   num_threads = 0L,
+  refresh_db = FALSE,
   return_values = TRUE,
   min_batch_size = 0L,
+  enable_chunking = FALSE,
+  chunk_size = 50000L,
+  overlap = 1000L,
   verbose = TRUE
 )
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance}
+\item{ptr}{(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) or (unsigned int) Pointer/ID of QuickBLAST instance}
 
 \item{query}{(string) Query DB}
 
@@ -29,9 +33,17 @@ BLAST2DBs(
 
 \item{num_threads}{(unsigned int) Number of threads. (Optional)}
 
+\item{refresh_db}{(bool) If TRUE, re-creates the DBs}
+
 \item{return_values}{(bool) Return BLAST Hits as Rcpp::List (Default: TRUE) (Optional)}
 
 \item{min_batch_size}{(unsigned int) Minimum batch size - Size of file write buffer (Optional).}
+
+\item{enable_chunking}{(bool) Chunk large sequences? (Default: FALSE)}
+
+\item{chunk_size}{(int) Size of chunks (Default: 50000)}
+
+\item{overlap}{(int) Overlap between chunks (Default: 1000)}
 
 \item{verbose}{(bool) Verbose? (Default: TRUE)}
 }
@@ -99,5 +111,5 @@ QuickBLAST::BLAST2DBs(
 }
 }
 \seealso{
-[QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::MakeBLASTDB()], [QuickBLAST::isBLASTDB()]
+\code{\link[=GetInstanceID]{GetInstanceID()}}, \code{\link[=GetQuickBLASTInstance]{GetQuickBLASTInstance()}}, \code{\link[=MakeBLASTDB]{MakeBLASTDB()}}, \code{\link[=isBLASTDB]{isBLASTDB()}}
 }

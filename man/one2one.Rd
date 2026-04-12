@@ -64,8 +64,8 @@ Executes One-to-One QuickBLAST between two lists of organisms/genes/clusters. Th
 \examples{
 \dontrun{
 QuickBLAST::one2one(
- first_list="ungrouped.cds",
- second_list="ungrouped.cds", 
+ first_list=fs::path_package("QuickBLAST", "extdata", "protein_query.fasta")
+ second_list=fs::path_package("QuickBLAST", "extdata", "protein_subject.fasta"), 
  blast_fun=QuickBLAST::BLAST2Files
  seq_type = 0, 
  strand=0,
