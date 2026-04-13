@@ -5,6 +5,7 @@
 *.hits
 *.json
 *.so
+.git/
 ..Rcheck/
 .vscode/
 .Rproj.user
@@ -24,3 +25,10 @@ inst/doc
 .gitignore
 tmp/*
 *.arrow
+/doc/
+/Meta/
+pkgdown/
+
+docker_windows_setup.sh
+docs
+.token

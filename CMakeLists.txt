@@ -169,8 +169,20 @@ if(NOT WIN32)
 #-std=gnu++20
 #-std=gnu2x
 #-O3 -fPIC  -fdiagnostics-color=always
+
+if(APPLE)
+    # Apple Clang (macOS) compatible flags
+    set(ARROW_CXX_FLAGS " -fpermissive ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -pthread")
+    set(ARROW_C_FLAGS  " -fpermissive ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -pthread")
+else()
+    # GCC compatible flags
     set(ARROW_CXX_FLAGS " -fpermissive ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -static-libstdc++ -mtune=generic -march=native -maccumulate-outgoing-args -pthread")
-set(ARROW_C_FLAGS  " -fpermissive ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc -mtune=generic -maccumulate-outgoing-args -pthread ")
+    set(ARROW_C_FLAGS  " -fpermissive ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc -mtune=generic -maccumulate-outgoing-args -pthread ")
+endif()
+
+#set(ARROW_CXX_FLAGS " -fpermissive ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -static-libstdc++ -mtune=generic -march=native -maccumulate-outgoing-args -pthread")
+#set(ARROW_C_FLAGS  " -fpermissive ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc -mtune=generic -maccumulate-outgoing-args -pthread ")
+
 set(ARROW_EXE_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
 set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
 
@@ -226,9 +238,9 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
 #-O3 -fPIC  -fdiagnostics-color=always
 
 if(APPLE)
-    set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
-    -DCMAKE_C_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc' \
-    -DCMAKE_CXX_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -static-libstdc++ -march=native' \
+set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
+    -DCMAKE_C_FLAGS=' -pedantic -Wformat -Werror=format-security -flto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native' \
+    -DCMAKE_CXX_FLAGS=' -pedantic -Wformat -Werror=format-security -flto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native' \
     -DRCPPPROG_FOLDER=${RCPPPROG_FOLDER} \
     -DRCPPTHREAD_FOLDER=${RCPPTHREAD_FOLDER} \
     -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}' \
@@ -236,6 +248,16 @@ if(APPLE)
     -DCMAKE_INSTALL_RPATH='-Wl,-rpath,@loader_path' \
     -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
     -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF")
+#    set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
+#    -DCMAKE_C_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc' \
+#    -DCMAKE_CXX_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -static-libstdc++ -march=native' \
+#    -DRCPPPROG_FOLDER=${RCPPPROG_FOLDER} \
+#    -DRCPPTHREAD_FOLDER=${RCPPTHREAD_FOLDER} \
+#    -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}' \
+#    -DCMAKE_BUILD_RPATH='-Wl,-rpath,@loader_path' \
+#    -DCMAKE_INSTALL_RPATH='-Wl,-rpath,@loader_path' \
+#    -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
+#    -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF")
 else()
     set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
     -DCMAKE_C_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc' \
