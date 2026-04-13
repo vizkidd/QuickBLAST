@@ -170,7 +170,7 @@ if(NOT WIN32)
 #-std=gnu2x
 #-O3 -fPIC  -fdiagnostics-color=always
 
-if(APPLE)
+if(APPLE OR CMAKE_SYSTEM_NAME MATCHES "Darwin" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     # Apple Clang (macOS) compatible flags
     set(ARROW_CXX_FLAGS " -fpermissive ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -pthread")
     set(ARROW_C_FLAGS  " -fpermissive ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -pthread")
@@ -237,7 +237,7 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
 #-std=gnu++20
 #-O3 -fPIC  -fdiagnostics-color=always
 
-if(APPLE)
+if(APPLE OR CMAKE_SYSTEM_NAME MATCHES "Darwin" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
 set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
     -DCMAKE_C_FLAGS=' -pedantic -Wformat -Werror=format-security -flto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native' \
     -DCMAKE_CXX_FLAGS=' -pedantic -Wformat -Werror=format-security -flto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native' \
