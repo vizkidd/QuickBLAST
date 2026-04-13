@@ -289,9 +289,10 @@ endif()
         COMMAND_ERROR_IS_FATAL ANY
         )
     else()
-      COMMAND ./cmake-configure GCC ${GCC_VERSION} --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD --without-dll
-      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
-      COMMAND_ERROR_IS_FATAL ANY
+      execute_process(
+        COMMAND ./cmake-configure GCC ${GCC_VERSION} --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD --without-dll
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
+        COMMAND_ERROR_IS_FATAL ANY
       )
     endif()
 

@@ -975,7 +975,7 @@ std::string ConvertBLASTOptions2String(SEXP options)
 //' @param options (string (or) Named List) List of BLAST options - check QuickBLAST::GetAvailableBLASTOptions(). String should be of the format "-option1 value1 -option2 value2". If empty, default values (per program) are used.
 //' @param save_sequences (bool) Save Full Sequences to output?. (Default: FALSE)
 //' @param save_hsp_sequences (bool) Save HSP Sequences to output?. (Default: FALSE)
-//' @return (Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST Instance (Cannot be used in R)
+//' @return (Rcpp::XPtr\<QuickBLAST\>) Pointer to a QuickBLAST Instance (Cannot be used in R)
 //' 
 //' @note Set save_sequences AND/OR save_hsp_sequences when using Genomes
 //' 
@@ -1109,9 +1109,9 @@ Rcpp::XPtr<QuickBLAST> ResolveQuickBLASTInstance(SEXP inst)
 //' @name GetInstanceID
 //' @title Get ID/Index of a QuickBLAST instance stored in C++ side
 //'
-//' @description This function fetches the ID/Index of a QuickBLAST instance of a Rcpp::XPtr<QuickBLAST> stored in C++ side.
+//' @description This function fetches the ID/Index of a QuickBLAST instance of a Rcpp::XPtr\<QuickBLAST\> stored in C++ side.
 //'
-//' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+//' @param ptr (Rcpp::XPtr\<QuickBLAST\>) or (unsigned int) Pointer/ID of QuickBLAST instance
 //'
 //' @return (unsigned int) ID/Index of the QuickBLAST instance pointer, FALSE otherwise
 //' @examples
@@ -1160,11 +1160,11 @@ RcppExport SEXP GetInstanceID(SEXP ptr)
 //' @name GetQuickBLASTInstance
 //' @title Get QuickBLAST instance stored in C++ side at ID/Index
 //'
-//' @description This function fetches the QuickBLAST instance of a Rcpp::XPtr<QuickBLAST> at ID/Index stored in C++ side.
+//' @description This function fetches the QuickBLAST instance of a Rcpp::XPtr\<QuickBLAST\> at ID/Index stored in C++ side.
 //'
 //' @param ptr_id (unsigned int) ID/Index of Pointer to a QuickBLAST instance (in C++ side).
 //'
-//' @return (Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST instance, FALSE otherwise
+//' @return (Rcpp::XPtr\<QuickBLAST\>) Pointer to a QuickBLAST instance, FALSE otherwise
 //' @export
 // [[Rcpp::export]]
 RcppExport SEXP GetQuickBLASTInstance(unsigned int ptr_id)
@@ -1199,7 +1199,7 @@ unsigned int DetectThreadLimit(unsigned int num_threads){
 //'
 //' @description This function deletes a QuickBLAST instance based on the instance ID
 //'
-//' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+//' @param ptr (Rcpp::XPtr\<QuickBLAST\>) or (unsigned int) Pointer/ID of QuickBLAST instance
 //'
 //' @return TRUE - if the instance is deleted successfully, throws error otherwise
 //' @examples
@@ -1253,7 +1253,7 @@ RcppExport SEXP DeleteQuickBLASTInstance(SEXP ptr)
 //' @description Get the BLAST options for a QuickBLAST instance.
 //'
 //' @seealso [QuickBLAST::GetAvailableBLASTOptions()], [QuickBLAST::GetQuickBLASTEnums()], [QuickBLAST::SetQuickBLASTOptions()]
-//' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+//' @param ptr (Rcpp::XPtr\<QuickBLAST\>) or (unsigned int) Pointer/ID of QuickBLAST instance
 //' @return (string) BLAST options as std::string
 //' @examples
 //' \dontrun{
@@ -1295,7 +1295,7 @@ RcppExport SEXP GetQuickBLASTOptions(SEXP ptr)
 //' @description Set/Modify the BLAST options for a QuickBLAST instance.
 //'
 //' @seealso [QuickBLAST::GetAvailableBLASTOptions()], [QuickBLAST::GetQuickBLASTEnums()]
-//' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+//' @param ptr (Rcpp::XPtr\<QuickBLAST\>) or (unsigned int) Pointer/ID of QuickBLAST instance
 //' @param program_name (string) Name of the BLAST program
 //' @param options (string (or) Named List) List of BLAST options - check QuickBLAST::GetAvailableBLASTOptions(). String should be of the format "-option1 value1 -option2 value2"
 //' @param verbose (bool) Verbose?
@@ -1349,11 +1349,11 @@ RcppExport bool SetQuickBLASTOptions(SEXP ptr, SEXP program_name, SEXP options, 
 //' @description BLAST 2 nucleotide or protein strings with a QuickBLAST instance.
 //'
 //' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]
-//' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+//' @param ptr (Rcpp::XPtr\<QuickBLAST\>) or (unsigned int) Pointer/ID of QuickBLAST instance
 //' @param query (string) Query sequence
 //' @param subject (string) Subject sequence.
 //' @param verbose (bool) Verbosity (Default: TRUE).
-//' @return (Rcpp::XPtr<QuickBLAST>) Pointer to a QuickBLAST Instance (Cannot be used in R)
+//' @return (Rcpp::XPtr\<QuickBLAST\>) Pointer to a QuickBLAST Instance (Cannot be used in R)
 //' @examples
 //' \dontrun{
 //' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
@@ -1470,7 +1470,7 @@ RcppExport SEXP BLAST2Seqs(SEXP ptr, SEXP query, SEXP subject, bool verbose = tr
 //' @note Only FASTA files are supported by this function, use [QuickBLAST::BLAST2DBs()] if inputs are BLAST DBs.
 //'
 //' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]
-//' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+//' @param ptr (Rcpp::XPtr\<QuickBLAST\>) or (unsigned int) Pointer/ID of QuickBLAST instance
 //' @param query (string) Query folder
 //' @param subject (string) Subject folder.
 //' @param extension (string) Extension of files in folder.
@@ -1605,7 +1605,7 @@ RcppExport bool BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension
 //' @note Only FASTA files are supported by this function, use [QuickBLAST::BLAST2DBs()] if inputs are BLAST DBs.
 //'
 //' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]
-//' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+//' @param ptr (Rcpp::XPtr\<QuickBLAST\>) or (unsigned int) Pointer/ID of QuickBLAST instance
 //' @param input_folder (string) Input folder
 //' @param extension (string) Extension of files in folder.
 //' @param out_folder (string) Ouput Folder (Required).
@@ -1736,7 +1736,7 @@ RcppExport bool BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP o
 //' @note Only FASTA files are supported by this function, use [QuickBLAST::BLAST2DBs()] if inputs are BLAST DBs.
 //'
 //' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2DBs()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]
-//' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+//' @param ptr (Rcpp::XPtr\<QuickBLAST\>) or (unsigned int) Pointer/ID of QuickBLAST instance
 //' @param query (string) Query file
 //' @param subject (string) Subject file
 //' @param out_file (string) Ouput file (Optional)
@@ -1893,7 +1893,7 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
 //' @note Check BLAST Guide (\url{https://blast.ncbi.nlm.nih.gov/BLAST_guide.pdf}) and NCBI BLAST (\url{https://blast.ncbi.nlm.nih.gov/Blast.cgi}) (Program -> Choose DB/Search set) for database names.
 //'
 //' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2Files()], [QuickBLAST::BLAST2Seqs()], [QuickBLAST::BLAST2Folders()], [QuickBLAST::BLAST1Folder()], [QuickBLAST::RemoteBLAST()]
-//' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+//' @param ptr (Rcpp::XPtr\<QuickBLAST\>) or (unsigned int) Pointer/ID of QuickBLAST instance
 //' @param database (string) Name of the remote NCBI DB - Check note for reference and supported values.
 //' @param query_input (Rcpp::List) (Named) List of input queries (Sequences, Files, Folders - type is determined by input_type parameter)
 //' @param input_type (QuickBLAST::EInputType) Input type (Check [QuickBLAST::GetQuickBLASTEnums()])
@@ -2012,7 +2012,7 @@ RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input
 //' a character vector of matching `files`, and the `dir` and `name` used.
 //'
 //' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::MakeBLASTDB()], [QuickBLAST::BLAST2DBs()]
-//' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+//' @param ptr (Rcpp::XPtr\<QuickBLAST\>) or (unsigned int) Pointer/ID of QuickBLAST instance
 //' @param input_db character(1) path to db (path + name) or a bare name (current directory assumed)
 //' @return list with keys: is_db (logical), type (string), files (character vector), dir (string), name (string), message (string)
 //' @examples
@@ -2361,7 +2361,7 @@ RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input
 //' @note Faitful re-implementation of makeblastdb seemed pointless, hence the system.call() to a the program.
 //'
 //' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::BLAST2DBs()], [QuickBLAST::isBLASTDB()]
-//' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+//' @param ptr (Rcpp::XPtr\<QuickBLAST\>) or (unsigned int) Pointer/ID of QuickBLAST instance
 //' @param input_file (string) Path to FASTA file.
 //' @param database_name (string) Name of the output DB.
 //' @param parse_seqids (bool) TRUE - Checks FASTA headers for malformations (Default: FALSE)
@@ -2562,7 +2562,7 @@ RcppExport SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool 
 //' @description Calls makeblastdb to create a BLAST DB of a FASTA file
 //'
 //' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::MakeBLASTDB()], [QuickBLAST::isBLASTDB()]
-//' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+//' @param ptr (Rcpp::XPtr\<QuickBLAST\>) or (unsigned int) Pointer/ID of QuickBLAST instance
 //' @param query (string) Query DB
 //' @param subject (string) Subject DB
 //' @param out_file (string) Ouput file (Optional)
@@ -2833,7 +2833,7 @@ RcppExport SEXP GetFASTAHeaders(const std::string &path, bool keep_gt = false) {
 //' @note Calls makeblastdb to create a BLAST DB of subject if it is not a DB
 //'
 //' @seealso  [QuickBLAST::GetInstanceID()], [QuickBLAST::GetQuickBLASTInstance()], [QuickBLAST::MakeBLASTDB()], [QuickBLAST::isBLASTDB()]
-//' @param ptr (Rcpp::XPtr<QuickBLAST>) or (unsigned int) Pointer/ID of QuickBLAST instance
+//' @param ptr (Rcpp::XPtr\<QuickBLAST\>) or (unsigned int) Pointer/ID of QuickBLAST instance
 //' @param query (string) Query DB
 //' @param subject (string) Subject DB
 //' @param out_file (string) Ouput file (Optional)
