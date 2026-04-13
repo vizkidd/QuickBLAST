@@ -248,16 +248,6 @@ set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
     -DCMAKE_INSTALL_RPATH='-Wl,-rpath,@loader_path' \
     -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
     -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF")
-#    set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
-#    -DCMAKE_C_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc' \
-#    -DCMAKE_CXX_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -static-libstdc++ -march=native' \
-#    -DRCPPPROG_FOLDER=${RCPPPROG_FOLDER} \
-#    -DRCPPTHREAD_FOLDER=${RCPPTHREAD_FOLDER} \
-#    -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}' \
-#    -DCMAKE_BUILD_RPATH='-Wl,-rpath,@loader_path' \
-#    -DCMAKE_INSTALL_RPATH='-Wl,-rpath,@loader_path' \
-#    -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
-#    -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF")
 else()
     set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
     -DCMAKE_C_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc' \
@@ -285,12 +275,25 @@ endif()
     #)
 
     #message(STATUS "Discovered Toolchain File: ${TOOLCHAIN_FILE}")
-  
-    execute_process(
-    COMMAND ./cmake-configure GCC ${GCC_VERSION} --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD --without-dll
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
-    COMMAND_ERROR_IS_FATAL ANY
-    )
+    
+    if(APPLE OR CMAKE_SYSTEM_NAME MATCHES "Darwin" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+      execute_process(
+          COMMAND clang -dumpversion;
+          OUTPUT_VARIABLE CLANG_VERSION
+          OUTPUT_STRIP_TRAILING_WHITESPACE
+          COMMAND_ERROR_IS_FATAL ANY
+      )
+      execute_process(
+        COMMAND ./cmake-configure Clang ${CLANG_VERSION} --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD --without-dll
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
+        COMMAND_ERROR_IS_FATAL ANY
+        )
+    else()
+      COMMAND ./cmake-configure GCC ${GCC_VERSION} --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD --without-dll
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
+      COMMAND_ERROR_IS_FATAL ANY
+      )
+    endif()
 
 #    set(TOOLCHAIN_FILE "${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/build/ncbi_toolchain.cmake")
 #    # Append the raw text to the toolchain file
