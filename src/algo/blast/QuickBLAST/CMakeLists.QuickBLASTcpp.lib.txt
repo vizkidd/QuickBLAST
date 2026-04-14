@@ -135,6 +135,7 @@ find_library(PARQUET_LIB
 		"${ARROW_DIR}/BUILD/src"
 		"${ARROW_DIR}/src"
 		"${R_INC}"
+		"${CMAKE_SOURCE_DIR}/src/include"
 	)
 	NCBI_uses_toolkit_libraries(
 		#corelib
@@ -446,6 +447,7 @@ elseif(MINGW32)
 		"${RCPPPROG_FOLDER}/include"
 		"${RCPPTHREAD_FOLDER}/include"
 		"${ARROW_DIR}/BUILD_MSYS2/src"
+		"${CMAKE_SOURCE_DIR}/src/include"
 		# "${ARROW_DIR}/BUILD_CLANG/src"
 		"${ARROW_DIR}/src"
 		#"/usr/include"
