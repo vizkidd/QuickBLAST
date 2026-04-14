@@ -32,3 +32,4 @@ pkgdown/
 docker_windows_setup.sh
 docs
 .token
+..Rcheck
