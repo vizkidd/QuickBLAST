@@ -277,17 +277,22 @@ endif()
     #message(STATUS "Discovered Toolchain File: ${TOOLCHAIN_FILE}")
     
     if(APPLE OR CMAKE_SYSTEM_NAME MATCHES "Darwin" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+      ##execute_process(
+      ##    COMMAND clang -dumpversion;
+      ##    OUTPUT_VARIABLE CLANG_VERSION
+      ##    OUTPUT_STRIP_TRAILING_WHITESPACE
+      ##    COMMAND_ERROR_IS_FATAL ANY
+      ##)
       #execute_process(
-      #    COMMAND clang -dumpversion;
-      #    OUTPUT_VARIABLE CLANG_VERSION
-      #    OUTPUT_STRIP_TRAILING_WHITESPACE
-      #    COMMAND_ERROR_IS_FATAL ANY
-      #)
+      #  COMMAND ./configure --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD --without-dll
+      #  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
+      #  COMMAND_ERROR_IS_FATAL ANY
+      #  )
       execute_process(
-        COMMAND ./configure --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD --without-dll
+        COMMAND ./cmake-configure --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD --without-dll
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
         COMMAND_ERROR_IS_FATAL ANY
-        )
+      )
     else()
       execute_process(
         COMMAND ./cmake-configure GCC ${GCC_VERSION} --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD --without-dll

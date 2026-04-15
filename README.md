@@ -8,7 +8,7 @@ QuickBLAST solves this by building a direct bridge between R and the NCBI C++ to
 
 ## Key Features
 
--   Zero Subprocesses: Runs entirely natively within your R session. QuickBLAST completely avoids \code{Sys.Call()} and does not require pre-installed BLAST executables.
+-   Zero Subprocesses: Runs entirely natively within your R session. QuickBLAST completely avoids Sys.Call\(\) and does not require pre-installed BLAST executables.
 -   True Multi-Threading: Employs a concurrent architecture where file reading (in chunks), sequence alignment, Arrow wrapping, and disk writing all occur simultaneously in separate threads.
 -   Memory & I/O Efficiency: Wraps hits natively into Arrow data structures (Arrow::RecordBatches) for large-scale disk writing, or returns an Rcpp::List directly to R for smaller queries.
 -   No Length Limits: Removes legacy limits on sequence and header lengths.
@@ -81,7 +81,7 @@ blastn_inst <- QuickBLAST::CreateQuickBLASTInstance(
 
 # Create a Protein (blastp) instance
 blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
-  seq_type = 1, strand = 0, program = "blastp", save_sequences = TRUE
+  seq_type = 1, strand = 0, program = "blastp", save_sequences = FALSE, save_hsp_sequences = TRUE
 )
 ```
 
