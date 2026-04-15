@@ -88,10 +88,10 @@ install_libs:
 	cd ../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ ; \
 	cd ../bin ; \
 	cp -uf makeblastdb ../../../../inst/libs/$(R_ARCH)/ ; \
-	cd ../../../../../src; \
 	echo $(R_ARCH) ; \
 	)
 
+#	cd ../../../../../src; \
 #	cd ../../../arrow/cpp/BUILD/release/ ; \
 #	cp -uf *.so* ../../../../../inst/libs/$(R_ARCH)/ ; \
 #	cp -uf *.so ../../../../inst/libs/$(R_ARCH)/ ; 
