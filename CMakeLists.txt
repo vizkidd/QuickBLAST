@@ -277,20 +277,14 @@ endif()
     #message(STATUS "Discovered Toolchain File: ${TOOLCHAIN_FILE}")
     
     if(APPLE OR CMAKE_SYSTEM_NAME MATCHES "Darwin" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-      ##execute_process(
-      ##    COMMAND clang -dumpversion;
-      ##    OUTPUT_VARIABLE CLANG_VERSION
-      ##    OUTPUT_STRIP_TRAILING_WHITESPACE
-      ##    COMMAND_ERROR_IS_FATAL ANY
-      ##)
-      #execute_process(
-      #  COMMAND ./configure --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD --without-dll
-      #  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
-      #  COMMAND_ERROR_IS_FATAL ANY
-      #  )
       execute_process(
-        COMMAND ./cmake-configure --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD --without-dll
+        COMMAND ./configure --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD --without-dll
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
+        COMMAND_ERROR_IS_FATAL ANY
+      )
+      execute_process(
+        COMMAND make -j ${N_PROC} all_p
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/build
         COMMAND_ERROR_IS_FATAL ANY
       )
     else()
@@ -299,25 +293,15 @@ endif()
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
         COMMAND_ERROR_IS_FATAL ANY
       )
+      execute_process(
+        COMMAND make -j ${N_PROC} datatool QuickBLASTcpp makeblastdb
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/build
+        COMMAND_ERROR_IS_FATAL ANY
+      )
     endif()
 
 #    set(TOOLCHAIN_FILE "${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/build/ncbi_toolchain.cmake")
-#    # Append the raw text to the toolchain file
-#    file(APPEND "${TOOLCHAIN_FILE}" [=[
-# --- Injected RPATH settings for QuickBLAST ---
-# Use CACHE ... FORCE to ensure these settings override the NCBI internal defaults
-#set(CMAKE_BUILD_WITH_INSTALL_RPATH ON CACHE BOOL "" FORCE)
-#set(CMAKE_INSTALL_RPATH "$ORIGIN" CACHE STRING "" FORCE)
-#set(CMAKE_INSTALL_RPATH_USE_LINK_PATH OFF CACHE BOOL "" FORCE)
-#set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -Wl,-rpath,\$$ORIGIN -Wl,-rpath,@loader_path/")
-#set(CMAKE_SHARED_LINKER_FLAGS_INIT "${CMAKE_SHARED_LINKER_FLAGS_INIT} -Wl,-rpath,\$$ORIGIN -Wl,-rpath,@loader_path/")
-#    ]=])
 
-    execute_process(
-    COMMAND make -j ${N_PROC} datatool QuickBLASTcpp makeblastdb
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/build
-    COMMAND_ERROR_IS_FATAL ANY
-    )
     
 elseif(WIN32)
     message(STATUS "Rtools Install Path:" ${RTOOLS_DIR})
