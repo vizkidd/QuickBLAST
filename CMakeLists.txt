@@ -249,6 +249,7 @@ set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
     -DRCPPPROG_FOLDER=${RCPPPROG_FOLDER} \
     -DRCPPTHREAD_FOLDER=${RCPPTHREAD_FOLDER} \
     -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}' \
+    -DR_INCLUDE_DIR='${R_INCLUDE_DIR}' \
     -DCMAKE_BUILD_RPATH='-Wl,-rpath,@loader_path' \
     -DCMAKE_INSTALL_RPATH='-Wl,-rpath,@loader_path' \
     -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
@@ -260,6 +261,7 @@ else()
     -DRCPPPROG_FOLDER=${RCPPPROG_FOLDER} \
     -DRCPPTHREAD_FOLDER=${RCPPTHREAD_FOLDER} \
     -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}' \
+    -DR_INCLUDE_DIR='${R_INCLUDE_DIR}' \
     -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
     -DCMAKE_BUILD_RPATH='\$$ORIGIN' \
     -DCMAKE_INSTALL_RPATH='\$$ORIGIN' \
@@ -716,6 +718,7 @@ elseif(WIN32)
         -DSHLIB_OPENMP_CXXFLAGS='${SHLIB_OPENMP_CXXFLAGS}' \
         -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}' \
         -DROOT_SRC_DIR=${CMAKE_CURRENT_SOURCE_DIR} \
+        -DR_INCLUDE_DIR='${R_INCLUDE_DIR}' \
         -DNCBITK_ROOT_DIR=${CMAKE_CURRENT_SOURCE_DIR}/BUILD/ncbi-cxx-toolkit-public \
         -DR_HOME='$ENV{R_HOME}' \
         -DR_ARCH='$ENV{R_ARCH}' \
@@ -751,7 +754,7 @@ elseif(WIN32)
         BUILD_IN_SOURCE TRUE
         
         # STEP 1: Run pre-inject and cmake-configure
-        CONFIGURE_COMMAND bash -c "SHLIB_OPENMP_CXXFLAGS='${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}' RTOOLS_DIR='${RTOOLS_DIR}' ./ncbi_crosscomp_inject_pre.sh && export CMAKE_ARGS=\"${NCBI_CMAKE_ARGS}\" && export CMAKE='${RTOOLS_DIR}/ucrt64/bin/cmake.exe' && ./cmake-configure GCC ${GCC_VER} --with-projects=QuickBLAST.prj --without-dll --with-composite --without-debug --with-build-root=BUILD"
+        CONFIGURE_COMMAND bash -c "SHLIB_OPENMP_CXXFLAGS='${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}' RTOOLS_DIR='${RTOOLS_DIR}' R_INCLUDE_DIR='${R_INCLUDE_DIR}' ./ncbi_crosscomp_inject_pre.sh && export CMAKE_ARGS=\"${NCBI_CMAKE_ARGS}\" && export CMAKE='${RTOOLS_DIR}/ucrt64/bin/cmake.exe' && ./cmake-configure GCC ${GCC_VER} --with-projects=QuickBLAST.prj --without-dll --with-composite --without-debug --with-build-root=BUILD"
         #--with-dll
         # STEP 2: Use double quotes, escape inner quotes, and use $$ to pass command substitution safely to Bash
         BUILD_COMMAND $(MAKE) -C BUILD/build -j ${N_PROC} datatool all makeblastdb QuickBLASTcpp
@@ -869,6 +872,7 @@ elseif(WIN32)
         #"${R_INC_UNIX}"
         "${R_INC}"
         "${R_INC}/R_ext/"
+        "${R_INCLUDE_DIR}"
         #"${R_ROOT_SRC_DIR}/src/gnuwin32/fixed/h/"
         "${RCPP_FOLDER}/include"
         "${RCPPPROG_FOLDER}/include"
@@ -936,7 +940,7 @@ elseif(WIN32)
         xflatfile
         zcf
         zstd
-        R
+        #R
         #Required Native Windows System Libraries
         dbghelp
         advapi32

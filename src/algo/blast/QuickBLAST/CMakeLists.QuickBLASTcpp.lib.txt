@@ -139,6 +139,7 @@ find_library(PARQUET_LIB
 		"${ARROW_DIR}/BUILD/src"
 		"${ARROW_DIR}/src"
 		"${R_INC}"
+		"${R_INCLUDE_DIR}"
 		"${CMAKE_SOURCE_DIR}/src/include"
 	)
 	NCBI_uses_toolkit_libraries(
@@ -172,7 +173,7 @@ find_library(PARQUET_LIB
 	NCBI_uses_external_libraries(
 		${ARROW_LIB}
 		${PARQUET_LIB}
-		R
+		#R
 		sqlite3
 		) 
 	NCBI_end_lib()
@@ -447,6 +448,7 @@ elseif(MINGW32)
 	NCBI_add_include_directories(
 		#"${R_INC_UNIX}"
 		"${R_INC}"
+		"${R_INCLUDE_DIR}"
 		"${RCPP_FOLDER}/include"
 		"${RCPPPROG_FOLDER}/include"
 		"${RCPPTHREAD_FOLDER}/include"
@@ -527,20 +529,9 @@ elseif(MINGW32)
 		${ARROW_DIR}/BUILD_MSYS2/release/libarrow_acero.a
 		${ARROW_DIR}/BUILD_MSYS2/release/libarrow_dataset.a
 		${ARROW_DIR}/BUILD_MSYS2/release/libsubstrait.a
-		#${R_HOME}/bin/${R_ARCH}/R.dll
-		${SAFE_R_DLL}
-		#${RCPP_FOLDER}/libs/${R_ARCH}/Rcpp.dll
-		# ${MINGW_LIB}/libmingw32.a
-		#${MINGW_LIB}/libws2_32.a
-		#${MINGW_LIB}/libgdi32.a
-		#${MINGW_LIB}/libkernel32.a
-		#${MINGW_LIB}/libuser32.a
-		#${MINGW_LIB}/libadvapi32.a
-		#${MINGW_LIB}/libshell32.a
-		#${MINGW_LIB}/libole32.a
-		#${MINGW_LIB}/liboleaut32.a
-		#${MINGW_LIB}/libmsvcrt.a
-		#${MINGW_LIB}/libwsock32.a
+		##${R_HOME}/bin/${R_ARCH}/R.dll
+		#${SAFE_R_DLL}
+		##${RCPP_FOLDER}/libs/${R_ARCH}/Rcpp.dll
 		#sqlite3
 		${SQLITE3_LIBRARY}
 		${ICONV_STATIC_LIB}
