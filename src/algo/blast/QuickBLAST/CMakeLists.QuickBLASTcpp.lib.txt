@@ -77,7 +77,7 @@ find_library(PARQUET_LIB
     endif()
 
 	find_library(SQLITE3_LIBRARY
-    NAMES libsqlite3.a
+    NAMES libsqlite3.a sqlite3
     PATHS /ucrt64/lib /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu/
     REQUIRED
     )
@@ -302,7 +302,7 @@ elseif(MINGW32)
 	message("SQLite DIR:" ${SQLITE_DIR})
 
 	find_library(SQLITE3_LIBRARY
-    	NAMES libsqlite3.a
+    	NAMES libsqlite3.a sqlite3
     	PATHS ${SQLITE_DIR} #/x86_64-w64-mingw32.static.posix/lib /ucrt64/lib /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu/
     	REQUIRED
     )
