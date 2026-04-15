@@ -5,6 +5,7 @@
 ^\.RData$
 ^\.git$
 ^\.github$
+^\.github
 ^\.gitignore$
 ^\.Rinstignore$
 ^\.token$
