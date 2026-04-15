@@ -163,12 +163,12 @@ if(NOT WIN32)
 
     message("If build fails, change -DARROW_DEPENDENCY_SOURCE=AUTO TO -DARROW_DEPENDENCY_SOURCE=BUNDLED or install arrow with package manager (Default paths are seached for lib)")
   
-  	execute_process(
-      COMMAND pkg-config --cflags libR;
-      OUTPUT_VARIABLE R_FLAGS
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-  	)
-  	message("R flags:" ${R_FLAGS})
+  	#execute_process(
+    #  COMMAND pkg-config --cflags libR;
+    #  OUTPUT_VARIABLE R_FLAGS
+    #  OUTPUT_STRIP_TRAILING_WHITESPACE
+  	#)
+  	#message("R flags:" ${R_FLAGS})
 
 #-fdiagnostics-color=always -Wall
 #-std=gnu++20
@@ -177,16 +177,15 @@ if(NOT WIN32)
 
 if(APPLE OR CMAKE_SYSTEM_NAME MATCHES "Darwin" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     # Apple Clang (macOS) compatible flags
-    set(ARROW_CXX_FLAGS " -fpermissive ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -pthread")
-    set(ARROW_C_FLAGS  " -fpermissive ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -pthread")
+    #${R_FLAGS}
+    set(ARROW_CXX_FLAGS " -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -pthread")
+    set(ARROW_C_FLAGS  " -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -pthread")
 else()
     # GCC compatible flags
-    set(ARROW_CXX_FLAGS " -fpermissive ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -static-libstdc++ -mtune=generic -march=native -maccumulate-outgoing-args -pthread")
-    set(ARROW_C_FLAGS  " -fpermissive ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc -mtune=generic -maccumulate-outgoing-args -pthread ")
+    #${R_FLAGS}
+    set(ARROW_CXX_FLAGS " -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -static-libstdc++ -mtune=generic -march=native -maccumulate-outgoing-args -pthread")
+    set(ARROW_C_FLAGS  " -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc -mtune=generic -maccumulate-outgoing-args -pthread ")
 endif()
-
-#set(ARROW_CXX_FLAGS " -fpermissive ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -static-libstdc++ -mtune=generic -march=native -maccumulate-outgoing-args -pthread")
-#set(ARROW_C_FLAGS  " -fpermissive ${R_FLAGS} -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc -mtune=generic -maccumulate-outgoing-args -pthread ")
 
 set(ARROW_EXE_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
 set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")

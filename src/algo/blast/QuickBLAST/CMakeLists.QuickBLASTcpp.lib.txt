@@ -31,12 +31,13 @@ if(NOT WIN32 AND NOT MINGW32)
     # OUTPUT_STRIP_TRAILING_WHITESPACE
 	# )
 	# message("Arrow flags:"${ARROW_FLAGS})
-	execute_process(
-    COMMAND pkg-config --cflags libR;
-    OUTPUT_VARIABLE R_FLAGS
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
-	message("R flags:" ${R_FLAGS})
+	
+	#execute_process(
+  #  COMMAND pkg-config --cflags libR;
+  #  OUTPUT_VARIABLE R_FLAGS
+  #  OUTPUT_STRIP_TRAILING_WHITESPACE
+	#)
+	#message("R flags:" ${R_FLAGS})
 	execute_process(
     #COMMAND bash -c "pkg-config --cflags-only-I arrow | sed s/-I//g -";
 	  #COMMAND bash -c "realpath ../../../arrow/cpp/BUILD/release" ;
@@ -88,13 +89,13 @@ find_library(PARQUET_LIB
         message(FATAL_ERROR "SQLite3 library not found")
     endif()
 
-	execute_process(
-    COMMAND bash -c "pkg-config --cflags-only-I libR | sed s/-I//g -" ;
-    OUTPUT_VARIABLE R_INC
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
-
-	message("R INC:" ${R_INC})
+	#execute_process(
+  #  COMMAND bash -c "pkg-config --cflags-only-I libR | sed s/-I//g -" ;
+  #  OUTPUT_VARIABLE R_INC
+  #  OUTPUT_STRIP_TRAILING_WHITESPACE
+	#)
+	#message("R INC:" ${R_INC})
+	
 	#execute_process(
   #  COMMAND Rscript -e "cat(system.file(package = 'Rcpp'))" ;
   #  OUTPUT_VARIABLE RCPP_FOLDER
@@ -128,17 +129,18 @@ find_library(PARQUET_LIB
 	#-fdiagnostics-color=always
 	#-std=gnu++20
 	#-std=gnu2x -fPIC -O3
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TOOLKIT_CPPFLAGS} -march=native ${SHLIB_OPENMP_CXXFLAGS} -fpermissive ${R_FLAGS} ${ARROW_FLAGS} -Wno-format-y2k -Wno-date-time -Wno-attributes -pedantic -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libstdc++ -mtune=generic -maccumulate-outgoing-args ")
+	#${R_FLAGS}
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TOOLKIT_CPPFLAGS} -march=native ${SHLIB_OPENMP_CXXFLAGS} -fpermissive ${ARROW_FLAGS} -Wno-format-y2k -Wno-date-time -Wno-attributes -pedantic -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libstdc++ -mtune=generic -maccumulate-outgoing-args ")
   set(CMAKE_EXE_LINKER_FLAGS " ${CMAKE_EXE_LINKER_FLAGS} -Wl,--allow-multiple-definition -Wl,--demangle -rpath \$ORIGIN -Wl,--pic-executable -Wl,--subsystem,console -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed ")
   set(CMAKE_SHARED_LINKER_FLAGS " ${CMAKE_SHARED_LINKER_FLAGS} -Wl,--demangle -rpath \$ORIGIN -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,-fstack-protector-strong -Wl,-shared -Wl,--allow-multiple-definition ")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLKIT_CPPFLAGS} -march=native ${SHLIB_OPENMP_CXXFLAGS} -fpermissive ${R_FLAGS} ${ARROW_FLAGS} -Wno-format-y2k -Wno-date-time -Wno-attributes -pedantic -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libgcc -mtune=generic -maccumulate-outgoing-args")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLKIT_CPPFLAGS} -march=native ${SHLIB_OPENMP_CXXFLAGS} -fpermissive ${ARROW_FLAGS} -Wno-format-y2k -Wno-date-time -Wno-attributes -pedantic -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libgcc -mtune=generic -maccumulate-outgoing-args")
 	NCBI_add_include_directories(
 		"${RCPP_FOLDER}/include"
 		"${RCPPPROG_FOLDER}/include"
 		"${RCPPTHREAD_FOLDER}/include"
 		"${ARROW_DIR}/BUILD/src"
 		"${ARROW_DIR}/src"
-		"${R_INC}"
+		#"${R_INC}"
 		"${R_INCLUDE_DIR}"
 		"${CMAKE_SOURCE_DIR}/src/include"
 	)
@@ -440,9 +442,9 @@ elseif(MINGW32)
 	)
 	#-std=gnu++20
 	#-std=gnu2x 
-	#-fPIC -O3 -Wall
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TOOLKIT_CPPFLAGS} ${SHLIB_OPENMP_CXXFLAGS} -DLIBICONV_STATIC -fpermissive ${R_FLAGS} ${ARROW_FLAGS} -march=native ${SHLIB_OPENMP_CXXFLAGS} -Wno-format-y2k -Wno-date-time -Wno-attributes -Wno-unused-parameter -Wno-ignored-attributes -Wa,-mbig-obj -pedantic -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libstdc++ -mtune=generic -maccumulate-outgoing-args -mconsole -mstackrealign ")
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLKIT_CPPFLAGS} ${SHLIB_OPENMP_CXXFLAGS} -fpermissive ${R_FLAGS} ${ARROW_FLAGS} -march=native -Wno-format-y2k -Wno-date-time -Wno-attributes -Wno-unused-parameter -Wno-ignored-attributes -Wa,-mbig-obj -pedantic -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libgcc -mtune=generic -maccumulate-outgoing-args -mconsole -mstackrealign ")
+	#-fPIC -O3 -Wall ${R_FLAGS}
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TOOLKIT_CPPFLAGS} ${SHLIB_OPENMP_CXXFLAGS} -DLIBICONV_STATIC -fpermissive ${ARROW_FLAGS} -march=native ${SHLIB_OPENMP_CXXFLAGS} -Wno-format-y2k -Wno-date-time -Wno-attributes -Wno-unused-parameter -Wno-ignored-attributes -Wa,-mbig-obj -pedantic -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libstdc++ -mtune=generic -maccumulate-outgoing-args -mconsole -mstackrealign ")
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLKIT_CPPFLAGS} ${SHLIB_OPENMP_CXXFLAGS} -fpermissive ${ARROW_FLAGS} -march=native -Wno-format-y2k -Wno-date-time -Wno-attributes -Wno-unused-parameter -Wno-ignored-attributes -Wa,-mbig-obj -pedantic -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libgcc -mtune=generic -maccumulate-outgoing-args -mconsole -mstackrealign ")
    set(CMAKE_EXE_LINKER_FLAGS " ${CMAKE_EXE_LINKER_FLAGS} -Wl,--allow-multiple-definition  -Wl,--demangle -rpath \$ORIGIN -Wl,--pic-executable -Wl,--subsystem,console -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -Wl,--end-group ")
    set(CMAKE_SHARED_LINKER_FLAGS " ${CMAKE_SHARED_LINKER_FLAGS} -Wl,--allow-multiple-definition -Wl,--demangle -rpath \$ORIGIN  -Wl,--subsystem,console -Wl,--pic-executable -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--dll -Wl,-shared -Wl,--no-whole-archive -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -liconv -lintl -Wl,--end-group ")
 	NCBI_add_include_directories(
