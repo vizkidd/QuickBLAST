@@ -76,17 +76,95 @@ find_library(PARQUET_LIB
         message(FATAL_ERROR "Parquet library not found")
     endif()
 
-	find_library(SQLITE3_LIBRARY
-    NAMES libsqlite3.a sqlite3
-    PATHS /ucrt64/lib /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu/
-    REQUIRED
+    # 1. Search for SQLite on the host system FIRST
+    find_library(SQLITE3_LIBRARY
+        NAMES sqlite3 libsqlite3.so
+        PATHS /ucrt64/lib /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu/
     )
-
-    # If found, SQLite3_LIBRARY will contain the full path to the library
-    if (SQLITE3_LIBRARY)
-        message(STATUS "SQLite3 library found: ${SQLITE3_LIBRARY}")
+    
+    if(SQLITE3_LIBRARY)
+        message(STATUS "System SQLite3 found: ${SQLITE3_LIBRARY}")
+        
+        # Create an imported target that points to the system library
+        add_library(sqlite3_static UNKNOWN IMPORTED)
+        set_target_properties(sqlite3_static PROPERTIES IMPORTED_LOCATION "${SQLITE3_LIBRARY}")
+    
     else()
-        message(FATAL_ERROR "SQLite3 library not found")
+        message(STATUS "System SQLite3 not found. Downloading and building locally...")
+    
+        # Create directory and download (Your existing logic)
+        execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/sqlite/")
+        
+        file(DOWNLOAD "https://sqlite.org/download.html" "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/download.html" STATUS download_status TIMEOUT 10)
+        list(GET download_status 0 download_code)
+        if(NOT "${download_code}" STREQUAL "0")
+            message(FATAL_ERROR "SQLite version check failed: ${download_status}")
+        endif()
+        
+        execute_process(
+            COMMAND bash -c "grep -Eo '[0-9]{4}/sqlite-amalgamation-[0-9]+\\.zip' ${CMAKE_CURRENT_SOURCE_DIR}/BUILD/download.html | head -n 1"
+            OUTPUT_VARIABLE SQLITE_LINK
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        
+        file(DOWNLOAD "https://sqlite.org/${SQLITE_LINK}" "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/sqlite/sqlite.zip" STATUS download_status TIMEOUT 10)
+        list(GET download_status 0 download_code)
+        if(NOT "${download_code}" STREQUAL "0")
+            message(FATAL_ERROR "SQLite download failed: ${download_status}")
+        endif()
+    
+        # --- THE FIXES START HERE ---
+        
+        # 2. Extract the ZIP file using native CMake commands (no bash unzip needed)
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E tar xzf "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/sqlite/sqlite.zip"
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/sqlite"
+        )
+    
+        # 3. Dynamically find the extracted folder name (since the version number changes)
+        file(GLOB SQLITE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/sqlite/sqlite-amalgamation-*")
+    
+        # 4. Build the library from the extracted source
+        add_library(sqlite3_static STATIC "${SQLITE_DIR}/sqlite3.c")
+    
+        target_compile_definitions(sqlite3_static PRIVATE
+            _FORTIFY_SOURCE=2
+            SQLITE_ENABLE_UNLOCK_NOTIFY=1
+            SQLITE_ENABLE_MEMSYS5
+            SQLITE_ENABLE_MEMSYS3
+            SQLITE_ENABLE_FTS3
+            SQLITE_ENABLE_FTS4
+            SQLITE_ENABLE_FTS5
+            SQLITE_ENABLE_UPDATE_DELETE_LIMIT
+            SQLITE_ENABLE_COLUMN_METADATA
+            SQLITE_ENABLE_RTREE
+            SQLITE_ENABLE_GEOPOLY
+            SQLITE_ENABLE_SESSION
+            SQLITE_ENABLE_PREUPDATE_HOOK
+            SQLITE_ENABLE_DBPAGE_VTAB
+            SQLITE_ENABLE_DBSTAT_VTAB
+        )
+    
+        # 5. Safe, cross-platform compiler flags (No -maccumulate-outgoing-args here!)
+        target_compile_options(sqlite3_static PRIVATE
+            -Wformat 
+            -Werror=format-security 
+            -pedantic 
+            -pthread 
+            -march=native 
+            -mtune=generic
+        )
+    
+        # 6. Windows/MinGW specific flags shielded safely
+        if(WIN32)
+            target_compile_options(sqlite3_static PRIVATE
+                -Wno-format-y2k
+                -maccumulate-outgoing-args
+                -static-libgcc
+                -mconsole
+                -mstackrealign
+            )
+        endif()
     endif()
 
 	#execute_process(
