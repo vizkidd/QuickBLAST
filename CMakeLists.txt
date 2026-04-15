@@ -182,9 +182,9 @@ if(APPLE OR CMAKE_SYSTEM_NAME MATCHES "Darwin" OR CMAKE_C_COMPILER_ID MATCHES "A
     set(ARROW_C_FLAGS  " -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -pthread")
 else()
     # GCC compatible flags
-    #${R_FLAGS}
-    set(ARROW_CXX_FLAGS " -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -static-libstdc++ -mtune=generic -march=native -maccumulate-outgoing-args -pthread")
-    set(ARROW_C_FLAGS  " -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc -mtune=generic -maccumulate-outgoing-args -pthread ")
+    #${R_FLAGS} -static-libgcc  -static-libstdc++ 
+    set(ARROW_CXX_FLAGS " -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -mtune=generic -march=native -maccumulate-outgoing-args -pthread")
+    set(ARROW_C_FLAGS  " -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -mtune=generic -maccumulate-outgoing-args -pthread ")
 endif()
 
 set(ARROW_EXE_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
@@ -255,8 +255,8 @@ set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
     -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF")
 else()
     set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
-    -DCMAKE_C_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc' \
-    -DCMAKE_CXX_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -static-libstdc++ -march=native' \
+    -DCMAKE_C_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native ' \
+    -DCMAKE_CXX_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}-march=native' \
     -DRCPPPROG_FOLDER=${RCPPPROG_FOLDER} \
     -DRCPPTHREAD_FOLDER=${RCPPTHREAD_FOLDER} \
     -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}' \
@@ -266,7 +266,7 @@ else()
     -DCMAKE_INSTALL_RPATH='\$$ORIGIN' \
     -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF")
 endif()
-    
+    #-static-libstdc++   -static-libgcc
     #-std=gnu2x
     #-std=gnu++20 
     
@@ -608,11 +608,11 @@ elseif(WIN32)
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
             -DCMAKE_C_COMPILER=gcc.exe
             -DCMAKE_CXX_COMPILER=g++.exe
-            "-DCMAKE_C_FLAGS= -pedantic -Wformat -Werror=format-security -UHAVE_AF_UNIX_H -D__MINGW32__ -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc -mtune=generic -maccumulate-outgoing-args -pthread -mconsole -mstackrealign "
-            "-DCMAKE_CXX_FLAGS= -pedantic -Wformat -Werror=format-security -UHAVE_AF_UNIX_H -D__MINGW32__ -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -static-libstdc++ -mtune=generic -march=native -maccumulate-outgoing-args -pthread -mconsole -mstackrealign"
+            "-DCMAKE_C_FLAGS= -pedantic -Wformat -Werror=format-security -UHAVE_AF_UNIX_H -D__MINGW32__ -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -mtune=generic -maccumulate-outgoing-args -pthread -mconsole -mstackrealign "
+            "-DCMAKE_CXX_FLAGS= -pedantic -Wformat -Werror=format-security -UHAVE_AF_UNIX_H -D__MINGW32__ -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -mtune=generic -march=native -maccumulate-outgoing-args -pthread -mconsole -mstackrealign"
             "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,--demangle -Wl,--pic-executable -Wl,--subsystem,console -Wl,-shared -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,--dll -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--no-whole-archive -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -lsqlite3 -liconv -lintl -lbcrypt -Wl,--end-group "
         
-        #-Wall
+        #-Wall -static-libstdc++ -static-libgcc
         #-DARROW_EXPORTING
         #-std=gnu2x
         #-std=gnu++20
@@ -734,14 +734,15 @@ elseif(WIN32)
         -DNCBI_COMPONENT_CURL_INCLUDE='${AUTO_CURL_INC}' \
         -DCMAKE_C_STANDARD_LIBRARIES='${AUTO_CURL_DEPS}' \
         -DCMAKE_CXX_STANDARD_LIBRARIES='${AUTO_CURL_DEPS}' \
-        -DCMAKE_C_FLAGS='${CMAKE_C_FLAGS} -pedantic -Wno-attributes -Wno-date-time -Wno-unused-parameter -Wno-ignored-attributes -Wformat -Werror=format-security -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -static-libgcc -mtune=generic -maccumulate-outgoing-args -pthread -mconsole -mstackrealign ' \
-        -DCMAKE_CXX_FLAGS='${CMAKE_CXX_FLAGS} -DLIBICONV_STATIC -pedantic -Wno-attributes -Wno-date-time -Wno-unused-parameter -Wno-ignored-attributes -Wformat -Werror=format-security -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -static-libstdc++ -mtune=generic -march=native -maccumulate-outgoing-args -pthread -mconsole -mstackrealign ' \
+        -DCMAKE_C_FLAGS='${CMAKE_C_FLAGS} -pedantic -Wno-attributes -Wno-date-time -Wno-unused-parameter -Wno-ignored-attributes -Wformat -Werror=format-security -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -mtune=generic -maccumulate-outgoing-args -pthread -mconsole -mstackrealign ' \
+        -DCMAKE_CXX_FLAGS='${CMAKE_CXX_FLAGS} -DLIBICONV_STATIC -pedantic -Wno-attributes -Wno-date-time -Wno-unused-parameter -Wno-ignored-attributes -Wformat -Werror=format-security -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  -mtune=generic -march=native -maccumulate-outgoing-args -pthread -mconsole -mstackrealign ' \
         -DCMAKE_SHARED_LINKER_FLAGS=' -Wl,--allow-multiple-definition -Wl,--demangle -Wl,--pic-executable -Wl,--subsystem,console -Wl,-shared -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,--dll -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--no-whole-archive -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -lsqlite3 -liconv -lintl -lbcrypt -Wl,--end-group ' \
         -DCMAKE_EXE_LINKER_FLAGS=' -Wl,--allow-multiple-definition -Wl,--demangle -Wl,--pic-executable -Wl,--subsystem,console -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -lsqlite3 -liconv -lintl -lbcrypt -Wl,--end-group ' \
         -DCMAKE_USE_WIN32_THREADS_INIT=1 \
         -DCMAKE_USE_PTHREADS_INIT=0 \
         -DTHREADS_PREFER_PTHREAD_FLAG=OFF \
     ")
+    #-static-libstdc++ -static-libgcc
     #-ftrack-macro-expansion=0 -pipe 
     #-std=gnu2x
     #-std=gnu++20
