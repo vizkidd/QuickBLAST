@@ -7,7 +7,7 @@
 BLAST2Seqs(ptr, query, subject, verbose = TRUE)
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) or (unsigned int) Pointer/ID of QuickBLAST instance}
+\item{ptr}{(\code{Rcpp::XPtr<QuickBLAST>}) or (unsigned int) Pointer/ID of QuickBLAST instance}
 
 \item{query}{(string) Query sequence}
 
@@ -16,7 +16,7 @@ BLAST2Seqs(ptr, query, subject, verbose = TRUE)
 \item{verbose}{(bool) Verbosity (Default: TRUE).}
 }
 \value{
-(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) Pointer to a QuickBLAST Instance (Cannot be used in R)
+(\code{Rcpp::XPtr<QuickBLAST>}) Pointer to a QuickBLAST Instance (Cannot be used in R)
 }
 \description{
 BLAST 2 nucleotide or protein strings with a QuickBLAST instance.

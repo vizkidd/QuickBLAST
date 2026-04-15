@@ -27,7 +27,7 @@ CreateQuickBLASTInstance(
 \item{save_hsp_sequences}{(bool) Save HSP Sequences to output?. (Default: FALSE)}
 }
 \value{
-(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) Pointer to a QuickBLAST Instance (Cannot be used in R)
+(\code{Rcpp::XPtr<QuickBLAST>}) Pointer to a QuickBLAST Instance (Cannot be used in R)
 }
 \description{
 Create a new QuickBLAST C++ object with seq_type, strand, program and BLAST options, which can be used in QuickBLAST::BLAST2Files() and QuickBLAST::BLAST2Seqs()

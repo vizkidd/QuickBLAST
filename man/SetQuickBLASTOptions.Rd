@@ -7,7 +7,7 @@
 SetQuickBLASTOptions(ptr, program_name, options, verbose = TRUE)
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) or (unsigned int) Pointer/ID of QuickBLAST instance}
+\item{ptr}{(\code{Rcpp::XPtr<QuickBLAST>}) or (unsigned int) Pointer/ID of QuickBLAST instance}
 
 \item{program_name}{(string) Name of the BLAST program}
 

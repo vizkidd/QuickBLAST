@@ -17,7 +17,7 @@ BLAST1Folder(
 )
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) or (unsigned int) Pointer/ID of QuickBLAST instance}
+\item{ptr}{(\code{Rcpp::XPtr<QuickBLAST>}) or (unsigned int) Pointer/ID of QuickBLAST instance}
 
 \item{input_folder}{(string) Input folder}
 

@@ -18,7 +18,7 @@ RemoteBLAST(
 )
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) or (unsigned int) Pointer/ID of QuickBLAST instance}
+\item{ptr}{(\code{Rcpp::XPtr<QuickBLAST>}) or (unsigned int) Pointer/ID of QuickBLAST instance}
 
 \item{database}{(string) Name of the remote NCBI DB - Check note for reference and supported values.}
 

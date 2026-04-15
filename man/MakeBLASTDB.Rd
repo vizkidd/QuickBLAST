@@ -7,7 +7,7 @@
 MakeBLASTDB(ptr, input_file, database_name, parse_seqids = FALSE)
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) or (unsigned int) Pointer/ID of QuickBLAST instance}
+\item{ptr}{(\code{Rcpp::XPtr<QuickBLAST>}) or (unsigned int) Pointer/ID of QuickBLAST instance}
 
 \item{input_file}{(string) Path to FASTA file.}
 

@@ -791,6 +791,9 @@ rm -f src/build-system/cmake/toolchains/$toolchain_file
 touch src/build-system/cmake/toolchains/$toolchain_file
 
 #############GCC
+echo "set(CMAKE_EXPORT_NO_PACKAGE_REGISTRY ON)" >>src/build-system/cmake/toolchains/$toolchain_file
+echo "set(CMAKE_FIND_USE_PACKAGE_REGISTRY OFF)" >>src/build-system/cmake/toolchains/$toolchain_file
+echo "set(CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY OFF)" >>src/build-system/cmake/toolchains/$toolchain_file
 echo "set(NCBI_PTBCFG_FLAGS_DEFINED YES)" >>src/build-system/cmake/toolchains/$toolchain_file
 echo "include_guard(GLOBAL)" >>src/build-system/cmake/toolchains/$toolchain_file
 #-gdwarf-4

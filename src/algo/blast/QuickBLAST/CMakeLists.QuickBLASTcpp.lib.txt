@@ -7,6 +7,10 @@
 SET(CMAKE_SKIP_BUILD_RPATH FALSE)
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 
+set(CMAKE_EXPORT_NO_PACKAGE_REGISTRY ON)
+set(CMAKE_FIND_USE_PACKAGE_REGISTRY OFF)
+set(CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY OFF)
+
 if(APPLE)
     set(CMAKE_INSTALL_RPATH "@loader_path")
     # Note: Sometimes @executable_path is used depending on if it's an app or library, 

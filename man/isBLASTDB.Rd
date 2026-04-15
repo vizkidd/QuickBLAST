@@ -7,7 +7,7 @@
 isBLASTDB(ptr, input_db)
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) or (unsigned int) Pointer/ID of QuickBLAST instance}
+\item{ptr}{(\code{Rcpp::XPtr<QuickBLAST>}) or (unsigned int) Pointer/ID of QuickBLAST instance}
 
 \item{input_db}{character(1) path to db (path + name) or a bare name (current directory assumed)}
 }

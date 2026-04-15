@@ -6,6 +6,7 @@
 ^\.git$
 ^\.github$
 ^\.github
+^\.git
 ^\.gitignore$
 ^\.Rinstignore$
 ^\.token$

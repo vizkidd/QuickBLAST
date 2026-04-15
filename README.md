@@ -148,5 +148,5 @@ QuickBLAST::DeleteQuickBLASTInstance(1)
 ```
 
 Inherits and follows the licenses of Apache Arrow and NCBI-C++-Toolkit.
-
+Parts of the code, optimizations and documentation in the recent versions of QuickBLAST were written with the help of Google Gemini AI.
 Developed and maintained by [vizkidd](https://github.com/vizkidd/QuickBLAST).

@@ -7,7 +7,7 @@
 DeleteQuickBLASTInstance(ptr)
 }
 \arguments{
-\item{ptr}{(Rcpp::XPtr\if{html}{\out{<QuickBLAST>}}) or (unsigned int) Pointer/ID of QuickBLAST instance}
+\item{ptr}{(\code{Rcpp::XPtr<QuickBLAST>}) or (unsigned int) Pointer/ID of QuickBLAST instance}
 }
 \value{
 TRUE - if the instance is deleted successfully, throws error otherwise
