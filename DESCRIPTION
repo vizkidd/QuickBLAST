@@ -32,7 +32,8 @@ Imports:
   future (>= 1.69.0),
   future.apply (>= 1.20.2),
   future.callr (>= 0.10.2),
-  xfun (>= 0.56)
+  xfun (>= 0.56),
+  vctrs (>= 0.7.2)
 LinkingTo:
     Rcpp,
     RcppProgress,
