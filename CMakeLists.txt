@@ -290,7 +290,8 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
         message(STATUS "SQLite3 pre-build complete! Library secured at: ${SQLITE_TARGET_LIB}")
     endif()
     # ==============================================================================
-
+    file(GLOB SQLITE_INC_DIR "${SQLITE_ROOT_DIR}/sqlite-amalgamation-*")
+    
 #-std=gnu2x
 #-std=gnu++20
 #-O3 -fPIC  -fdiagnostics-color=always
