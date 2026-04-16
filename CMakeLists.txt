@@ -237,6 +237,60 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
     #WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     #)
 
+    # ==============================================================================
+    # SYNCHRONOUS SQLITE PRE-BUILD (Forces SQLite to exist before NCBI configures)
+    # ==============================================================================
+    set(SQLITE_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/sqlite")
+    set(SQLITE_TARGET_LIB "${SQLITE_ROOT_DIR}/libsqlite3.a")
+    
+    if(NOT EXISTS "${SQLITE_TARGET_LIB}")
+        message(STATUS "Pre-building SQLite3 statically during CMake configuration...")
+        
+        file(MAKE_DIRECTORY "${SQLITE_ROOT_DIR}")
+        
+        # 1. Download and Extract
+        file(DOWNLOAD "https://sqlite.org/download.html" "${SQLITE_ROOT_DIR}/download.html" STATUS dl_status TIMEOUT 10)
+        execute_process(COMMAND bash -c "grep -Eo '[0-9]{4}/sqlite-amalgamation-[0-9]+\\.zip' ${SQLITE_ROOT_DIR}/download.html | head -n 1" OUTPUT_VARIABLE SQLITE_LINK OUTPUT_STRIP_TRAILING_WHITESPACE)
+        file(DOWNLOAD "https://sqlite.org/${SQLITE_LINK}" "${SQLITE_ROOT_DIR}/sqlite.zip" STATUS dl_status TIMEOUT 10)
+        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf "sqlite.zip" WORKING_DIRECTORY "${SQLITE_ROOT_DIR}")
+        file(GLOB SQLITE_SRC_DIR "${SQLITE_ROOT_DIR}/sqlite-amalgamation-*")
+        
+        # 2. Write a minimal, dedicated CMakeLists.txt just for SQLite
+        file(WRITE "${SQLITE_SRC_DIR}/CMakeLists.txt"
+    "cmake_minimum_required(VERSION 3.10)
+    project(sqlite3_prebuild C)
+    add_library(sqlite3 STATIC sqlite3.c)
+    # Ensure the output is strictly named libsqlite3.a even on Windows/MinGW
+    set_target_properties(sqlite3 PROPERTIES OUTPUT_NAME \"sqlite3\" PREFIX \"lib\")
+    target_compile_definitions(sqlite3 PRIVATE _FORTIFY_SOURCE=2 SQLITE_ENABLE_UNLOCK_NOTIFY=1 SQLITE_ENABLE_MEMSYS5 SQLITE_ENABLE_MEMSYS3 SQLITE_ENABLE_FTS3 SQLITE_ENABLE_FTS4 SQLITE_ENABLE_FTS5 SQLITE_ENABLE_UPDATE_DELETE_LIMIT SQLITE_ENABLE_COLUMN_METADATA SQLITE_ENABLE_RTREE SQLITE_ENABLE_GEOPOLY SQLITE_ENABLE_SESSION SQLITE_ENABLE_PREUPDATE_HOOK SQLITE_ENABLE_DBPAGE_VTAB SQLITE_ENABLE_DBSTAT_VTAB)
+    # Safe, cross-platform flags
+    target_compile_options(sqlite3 PRIVATE -Wformat -Werror=format-security -pedantic -pthread)
+    if(WIN32)
+        target_compile_options(sqlite3 PRIVATE -Wno-format-y2k -static-libgcc -mconsole -mstackrealign)
+    endif()
+    ")
+    
+        # 3. SYNCHRONOUSLY configure and build SQLite using CMake
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -S . -B build_dir 
+            WORKING_DIRECTORY "${SQLITE_SRC_DIR}"
+            COMMAND_ERROR_IS_FATAL ANY
+        )
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} --build build_dir
+            WORKING_DIRECTORY "${SQLITE_SRC_DIR}"
+            COMMAND_ERROR_IS_FATAL ANY
+        )
+    
+        # 4. Copy the freshly compiled static library to the exact location ncbi_components.cmake expects!
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E copy "${SQLITE_SRC_DIR}/build_dir/libsqlite3.a" "${SQLITE_TARGET_LIB}"
+        )
+        
+        message(STATUS "SQLite3 pre-build complete! Library secured at: ${SQLITE_TARGET_LIB}")
+    endif()
+    # ==============================================================================
+
 #-std=gnu2x
 #-std=gnu++20
 #-O3 -fPIC  -fdiagnostics-color=always
