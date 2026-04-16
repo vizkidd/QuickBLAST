@@ -17,25 +17,31 @@ if(NOT NCBI_COMPONENT_LMDB_FOUND AND NOT HAVE_LIBLMDB)
 endif()
 
 #sqlite
-# Use CMAKE_CURRENT_LIST_DIR to reliably get the toolkit root directory
+# 1. Step up one directory from ncbi-cxx-toolkit-public to the BUILD directory
 get_filename_component(QUICKBLAST_BUILD_DIR "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
+
+# 2. Define the paths to your pre-built SQLite library
 set(CUSTOM_SQLITE_DIR "${QUICKBLAST_BUILD_DIR}/sqlite")
 set(CUSTOM_SQLITE_LIB "${CUSTOM_SQLITE_DIR}/libsqlite3.a")
 
+# Find the amalgamation folder where sqlite3.h lives
+file(GLOB CUSTOM_SQLITE_INC "${CUSTOM_SQLITE_DIR}/sqlite-amalgamation-*")
+
+message(STATUS "CUSTOM_SQLITE_LIB: ${CUSTOM_SQLITE_LIB}")
+
 if(EXISTS "${CUSTOM_SQLITE_LIB}")
-    # Override NCBI Component Variables
-    set(NCBI_COMPONENT_SQLITE3_FOUND YES CACHE INTERNAL "Forced SQLite3" FORCE)
-    set(NCBI_COMPONENT_SQLITE3_INCLUDE "${CUSTOM_SQLITE_DIR}" CACHE INTERNAL "Forced SQLite Include" FORCE)
-    set(NCBI_COMPONENT_SQLITE3_LIBS "${CUSTOM_SQLITE_LIB}" CACHE INTERNAL "Forced SQLite Lib" FORCE)
-    set(NCBI_COMPONENT_SQLITE3_DEFINES "" CACHE INTERNAL "Forced SQLite Defines" FORCE)
+    message(STATUS "Injecting pre-built SQLite paths into NCBI scanner...")
     
-    # Override Standard CMake Find variables just in case
-    set(SQLITE3_FOUND YES CACHE INTERNAL "Forced SQLite3" FORCE)
-    set(SQLITE3_INCLUDE_DIR "${CUSTOM_SQLITE_DIR}" CACHE INTERNAL "Forced SQLite Include" FORCE)
-    set(SQLITE3_LIBRARY "${CUSTOM_SQLITE_LIB}" CACHE INTERNAL "Forced SQLite Lib" FORCE)
-    set(SQLite3_LIBRARY "${CUSTOM_SQLITE_LIB}" CACHE INTERNAL "Forced SQLite Lib" FORCE)
+    # INSTEAD of forcing NCBI's cache variables, append your paths to CMake's native search lists.
+    # When NCBI runs its normal system scan, it will look here first and organically find it!
+    list(APPEND CMAKE_PREFIX_PATH "${CUSTOM_SQLITE_DIR}")
+    list(APPEND CMAKE_INCLUDE_PATH "${CUSTOM_SQLITE_INC}")
+    list(APPEND CMAKE_LIBRARY_PATH "${CUSTOM_SQLITE_DIR}")
     
-    set(HAVE_LIBSQLITE3 YES CACHE INTERNAL "Forced SQLite3" FORCE)
+    # Also set the Environment variables as a bulletproof backup
+    set(ENV{CMAKE_INCLUDE_PATH} "${CUSTOM_SQLITE_INC}:$ENV{CMAKE_INCLUDE_PATH}")
+    set(ENV{CMAKE_LIBRARY_PATH} "${CUSTOM_SQLITE_DIR}:$ENV{CMAKE_LIBRARY_PATH}")
+    
 else()
     message(FATAL_ERROR "Custom SQLite lib NOT FOUND at: ${CUSTOM_SQLITE_LIB}")
 endif()

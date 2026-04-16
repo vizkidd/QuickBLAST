@@ -79,9 +79,11 @@ find_library(PARQUET_LIB
     set(CUSTOM_SQLITE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../sqlite")
 
     find_library(SQLITE3_LIBRARY
-        NAMES libsqlite3.a sqlite3 libsqlite3.so
-        PATHS "${CUSTOM_SQLITE_DIR}" /ucrt64/lib /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu/
+        NAMES libsqlite3.a 
+        PATHS "${CUSTOM_SQLITE_DIR}" 
     )
+    #sqlite3 libsqlite3.so
+    ##/ucrt64/lib /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu/
     
     if(SQLITE3_LIBRARY)
         message(STATUS "SQLite3 found: ${SQLITE3_LIBRARY}")
