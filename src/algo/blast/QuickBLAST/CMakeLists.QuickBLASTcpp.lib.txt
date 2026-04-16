@@ -76,7 +76,7 @@ find_library(PARQUET_LIB
         message(FATAL_ERROR "Parquet library not found")
     endif()
 
-    set(CUSTOM_SQLITE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../sqlite")
+    set(CUSTOM_SQLITE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../sqlite")
 
     find_library(SQLITE3_LIBRARY
         NAMES libsqlite3.a sqlite3 libsqlite3.so
@@ -84,7 +84,7 @@ find_library(PARQUET_LIB
     )
     
     if(SQLITE3_LIBRARY)
-        message(STATUS "-- SQLite3 found: ${SQLITE3_LIBRARY}")
+        message(STATUS "SQLite3 found: ${SQLITE3_LIBRARY}")
         # Create an imported target that points to the system library
         if(NOT TARGET sqlite3_static)
             add_library(sqlite3_static UNKNOWN IMPORTED)
