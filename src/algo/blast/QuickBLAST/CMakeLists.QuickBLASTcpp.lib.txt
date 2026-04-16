@@ -124,47 +124,49 @@ find_library(PARQUET_LIB
         # 3. Dynamically find the extracted folder name (since the version number changes)
         file(GLOB SQLITE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/sqlite/sqlite-amalgamation-*")
     
-        # 4. Build the library from the extracted source
-        add_library(sqlite3_static STATIC "${SQLITE_DIR}/sqlite3.c")
-    
-        target_compile_definitions(sqlite3_static PRIVATE
-            _FORTIFY_SOURCE=2
-            SQLITE_ENABLE_UNLOCK_NOTIFY=1
-            SQLITE_ENABLE_MEMSYS5
-            SQLITE_ENABLE_MEMSYS3
-            SQLITE_ENABLE_FTS3
-            SQLITE_ENABLE_FTS4
-            SQLITE_ENABLE_FTS5
-            SQLITE_ENABLE_UPDATE_DELETE_LIMIT
-            SQLITE_ENABLE_COLUMN_METADATA
-            SQLITE_ENABLE_RTREE
-            SQLITE_ENABLE_GEOPOLY
-            SQLITE_ENABLE_SESSION
-            SQLITE_ENABLE_PREUPDATE_HOOK
-            SQLITE_ENABLE_DBPAGE_VTAB
-            SQLITE_ENABLE_DBSTAT_VTAB
-        )
-    
-        # 5. Safe, cross-platform compiler flags (No -maccumulate-outgoing-args here!)
-        target_compile_options(sqlite3_static PRIVATE
-            -Wformat 
-            -Werror=format-security 
-            -pedantic 
-            -pthread 
-            -march=native 
-            -mtune=generic
-        )
-    
-        # 6. Windows/MinGW specific flags shielded safely
-        if(WIN32)
-            target_compile_options(sqlite3_static PRIVATE
-                -Wno-format-y2k
-                -maccumulate-outgoing-args
-                -static-libgcc
-                -mconsole
-                -mstackrealign
+        # 4. Shield against NCBI's double-parsing and rename target to prevent collisions
+        if(NOT TARGET qb_sqlite3_static)
+            
+            add_library(qb_sqlite3_static STATIC "${SQLITE_DIR}/sqlite3.c")
+            
+            # Force the output file to strictly be "libsqlite3.a" despite the target name
+            set_target_properties(qb_sqlite3_static PROPERTIES OUTPUT_NAME "sqlite3")
+
+            target_compile_definitions(qb_sqlite3_static PRIVATE
+                _FORTIFY_SOURCE=2
+                SQLITE_ENABLE_UNLOCK_NOTIFY=1
+                SQLITE_ENABLE_MEMSYS5
+                SQLITE_ENABLE_MEMSYS3
+                SQLITE_ENABLE_FTS3
+                SQLITE_ENABLE_FTS4
+                SQLITE_ENABLE_FTS5
+                SQLITE_ENABLE_UPDATE_DELETE_LIMIT
+                SQLITE_ENABLE_COLUMN_METADATA
+                SQLITE_ENABLE_RTREE
+                SQLITE_ENABLE_GEOPOLY
+                SQLITE_ENABLE_SESSION
+                SQLITE_ENABLE_PREUPDATE_HOOK
+                SQLITE_ENABLE_DBPAGE_VTAB
+                SQLITE_ENABLE_DBSTAT_VTAB
             )
-        endif()
+
+            target_compile_options(qb_sqlite3_static PRIVATE
+                -Wformat -Werror=format-security -pedantic -pthread -march=native -mtune=generic
+            )
+
+            if(WIN32)
+                target_compile_options(qb_sqlite3_static PRIVATE
+                    -Wno-format-y2k -maccumulate-outgoing-args -static-libgcc -mconsole -mstackrealign
+                )
+            endif()
+            
+            # 5. Tell NCBI's global environment that SQLite3 is resolved!
+            # This forces makeblastdb to stop skipping its build step.
+            set(SQLITE3_FOUND TRUE CACHE BOOL "Force NCBI to recognize SQLite3" FORCE)
+            set(SQLITE3_INCLUDE_DIR "${SQLITE_DIR}" CACHE PATH "SQLite3 headers" FORCE)
+            include_directories(${SQLITE_DIR})
+
+        endif() # End of double-parse shield
     endif()
 
 	#execute_process(
@@ -253,11 +255,14 @@ find_library(PARQUET_LIB
 	NCBI_uses_external_libraries(
 		${ARROW_LIB}
 		${PARQUET_LIB}
-		#R
-		sqlite3
+		##R
+		#qb_sqlite3_static
+		#sqlite3
 		) 
 	NCBI_end_lib()
-
+  
+  target_link_libraries(QuickBLASTcpp PRIVATE qb_sqlite3_static)
+  
 elseif(MINGW32)
 	cmake_minimum_required(VERSION 3.28)
 	cmake_policy(VERSION 3.28)
