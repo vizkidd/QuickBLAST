@@ -18,6 +18,16 @@
 
 // #include <R_ext/Print.h>
 // #include <R.h>
+
+#include <Rinternals.h>
+// --- R 4.7 / R-devel Workaround ---
+// R Core hid this symbol, but older Rcpp headers still expect it.
+// We manually declare it here to satisfy GCC 15's strict template checks.
+extern "C" {
+  extern SEXP R_NamespaceRegistry;
+}
+// ----------------------------------
+
 #include <RcppCommon.h>
 #include <Rcpp.h>
 #include <progress.hpp> //RcppProgress
