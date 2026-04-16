@@ -76,19 +76,22 @@ find_library(PARQUET_LIB
         message(FATAL_ERROR "Parquet library not found")
     endif()
 
-    # 1. Search for SQLite on the host system FIRST
+    set(CUSTOM_SQLITE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../sqlite")
+
     find_library(SQLITE3_LIBRARY
         NAMES libsqlite3.a sqlite3 libsqlite3.so
-        PATHS "${CMAKE_SOURCE_DIR}/BUILD/sqlite" /ucrt64/lib /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu/
+        PATHS "${CUSTOM_SQLITE_DIR}" /ucrt64/lib /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu/
     )
     
     if(SQLITE3_LIBRARY)
         message(STATUS "-- SQLite3 found: ${SQLITE3_LIBRARY}")
         # Create an imported target that points to the system library
-        add_library(sqlite3_static UNKNOWN IMPORTED)
-        set_target_properties(sqlite3_static PROPERTIES IMPORTED_LOCATION "${SQLITE3_LIBRARY}")
+        if(NOT TARGET sqlite3_static)
+            add_library(sqlite3_static UNKNOWN IMPORTED)
+            set_target_properties(sqlite3_static PROPERTIES IMPORTED_LOCATION "${SQLITE3_LIBRARY}")
+        endif()
     else()
-        message(FATAL_ERROR " SQLite3 not found! ")
+        message(FATAL_ERROR " SQLite3 not found at ${CUSTOM_SQLITE_DIR}! ")
     endif()
 
 	#execute_process(
