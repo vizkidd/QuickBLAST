@@ -23,8 +23,12 @@
 // --- R 4.7 / R-devel Workaround ---
 // R Core hid this symbol, but older Rcpp headers still expect it.
 // We manually declare it here to satisfy GCC 15's strict template checks.
+// Forward-declare the underlying struct. 
+struct SEXPREC;
+
 extern "C" {
-  extern SEXP R_NamespaceRegistry;
+  // MUST use SEXPREC* here, because SEXP doesn't exist yet!
+  extern SEXPREC* R_NamespaceRegistry;
 }
 // ----------------------------------
 
