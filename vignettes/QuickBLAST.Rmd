@@ -21,7 +21,8 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#> "
+  comment = "#> ",
+  eval = arrow::arrow_with_parquet()
 )
 ```
 
@@ -103,12 +104,16 @@ try(QuickBLAST::BLAST2Seqs(blastn_inst, "ATGGAGGAGCCGCAGTCAGATCCTAGCGTCGAGCCCCCT
 If you do not want to compile databases locally, QuickBLAST can interface directly with NCBI's remote servers.
 
 ```{r}
+# Safely check if the machine has internet access before running
+if (requireNamespace("curl", quietly = TRUE) && curl::has_internet()) {
 # Example of a remote timeout handling
 try(QuickBLAST::RemoteBLAST(blastn_inst, query_input="AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", database= "nr", input_type=1, return_values=TRUE))
 
 # Successful Remote Protein Query against the PDB database
 try(QuickBLAST::RemoteBLAST(blastp_inst, query_input="MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", database= "pdb", input_type=1, return_values=TRUE))
-
+}else {
+  message("No internet connection available. Skipping remote BLAST examples.")
+}
 ```
 
 ## File-to-File Comparisons
