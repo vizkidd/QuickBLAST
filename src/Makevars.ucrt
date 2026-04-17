@@ -12,6 +12,7 @@ OBJECTS = run_cmake_superbuild.o
 export PATH := $(CURDIR)/../BUILD/ncbi-cxx-toolkit-public/BUILD/bin:$(PATH)
 
 PKG_CPPFLAGS = -DARROW_STATIC -DPARQUET_STATIC -DLIBICONV_STATIC 
+PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -include rcpp_workaround.hpp
 
 CXX_STD = CXX20
 

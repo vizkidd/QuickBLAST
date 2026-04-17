@@ -830,7 +830,8 @@ elseif(WIN32)
         BUILD_COMMAND $(MAKE) -C BUILD/build -j ${N_PROC} datatool all makeblastdb QuickBLASTcpp
         
         # STEP 3: Run the post-injection script
-        INSTALL_COMMAND bash -c "RTOOLS_DIR='${RTOOLS_DIR}' ./ncbi_crosscomp_inject_post.sh"
+        INSTALL_COMMAND bash -c "echo ncbi-cxx-toolkit build complete!"
+        #INSTALL_COMMAND bash -c "RTOOLS_DIR='${RTOOLS_DIR}' ./ncbi_crosscomp_inject_post.sh"
     )
 
     execute_process(COMMAND Rscript -e "cat(Sys.getenv('R_HOME'))" OUTPUT_VARIABLE R_USR_HOME OUTPUT_STRIP_TRAILING_WHITESPACE)
