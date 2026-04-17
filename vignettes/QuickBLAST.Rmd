@@ -122,8 +122,8 @@ For large-scale genomics, sequences are often stored in FASTA files. QuickBLAST 
 
 ```{r}
 # Create temporary FASTA files
-query_fasta <- tempfile(fileext = ".fasta")
-subject_fasta <- tempfile(fileext = ".fasta")
+query_fasta <- normalizePath(tempfile(fileext = ".fasta"))
+subject_fasta <- normalizePath(tempfile(fileext = ".fasta"))
 
 # Human TP53 gene fragment (Query)
 writeLines(c(
@@ -154,14 +154,14 @@ For high-throughput homology searches against a fixed reference, compiling the s
 
 
 ```{r}
-db_path <- tempfile()
+db_path <- normalizePath(tempfile())
 
 # 1. Compile the local BLAST database
 # db_type can be "nucl" or "prot"
 QuickBLAST::MakeBLASTDB(
   ptr = blastn_inst,
   input_file = subject_fasta,
-  database_name = file.path(tempdir(),"My_Test_DB"),
+  database_name = normalizePath(file.path(tempdir(),"My_Test_DB")),
 )
 
 
@@ -169,7 +169,7 @@ QuickBLAST::MakeBLASTDB(
 db_results <- QuickBLAST::BLAST2DBs(
  blastn_inst, 
  query = query_fasta, 
- subject = file.path(tempdir(),"My_Test_DB"),
+ subject = normalizePath(file.path(tempdir(),"My_Test_DB")),
  return_values = TRUE,
  num_threads = 2
 )
@@ -188,7 +188,7 @@ To solve this, QuickBLAST writes results asynchronously using Apache Arrow forma
 
 ```{r}
 # Specify an output path
-out_parquet <- tempfile(fileext = ".parquet")
+out_parquet <- normalizePath(tempfile(fileext = ".parquet"))
 
 # Perform the search and write straight to an Arrow IPC file
 QuickBLAST::BLAST2Files(
