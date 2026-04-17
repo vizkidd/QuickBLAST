@@ -13,7 +13,6 @@
 \BUILD$
 ^BUILD$
 \.vscode$
-inst$
 ^\.gitignore$
 ^\.Rinstignore$
 ^\.token$

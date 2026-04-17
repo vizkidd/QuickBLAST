@@ -56,7 +56,7 @@ extern char **environ; // posix_spawnp
 #include <algorithm>
 #include <cctype>
 
-#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
+#if defined(_OPENMP)
 #include "omp.h"
 #endif
 

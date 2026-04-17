@@ -224,7 +224,7 @@ struct QuickBLAST::Impl
     std::shared_ptr<ArrowWrapper> arrow_wrapper;
     std::shared_ptr<arrow::RecordBatch> empty_rb;
     int hit_count = 0;
-#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
+#if defined(_OPENMP)
     omp_lock_t hit_countLock;
     // omp_lock_t cleaner_threadsLock;
 #endif

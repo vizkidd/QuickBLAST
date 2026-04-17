@@ -39,7 +39,7 @@ extern "C" {
 #include <RcppThread.h> //RcppThread
 // #include <R_ext/Rdynload.h>
 
-#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
+#if defined(_OPENMP)
 #include "omp.h"
 #endif
 

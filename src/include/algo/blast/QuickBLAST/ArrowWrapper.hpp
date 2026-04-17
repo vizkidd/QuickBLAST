@@ -122,7 +122,7 @@ struct ArrowWrapper::Impl
   std::atomic<unsigned int> itr_mul{1};
   std::atomic<unsigned int> rb_batch_size{1024};
   
-#if defined(_OPENMP) && !defined(WIN32) && !defined(MINGW32)
+#if defined(_OPENMP)
   omp_lock_t rec_countLock;
   omp_lock_t proc_rec_countLock;
   omp_lock_t writer_threadsLock;

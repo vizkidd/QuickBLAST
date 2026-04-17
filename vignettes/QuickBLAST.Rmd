@@ -21,7 +21,7 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#> "
 )
 ```
 
@@ -29,9 +29,7 @@ knitr::opts_chunk$set(
 knitr::include_graphics("figures/logo.png")
 ```
 
----
-title: "Introduction to QuickBLAST"
----
+# Introduction to QuickBLAST
 
 R is widely used for data analysis, but running NCBI's standard BLAST tools within R has traditionally been slow. Because the NCBI C++ toolkit is massive and difficult to compile for R, existing packages are forced to run BLAST as an external subprocess, creating major read/write bottlenecks.
 
