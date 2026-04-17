@@ -311,7 +311,7 @@ set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
 else()
     set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
     -DCMAKE_C_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native ' \
-    -DCMAKE_CXX_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}-march=native' \
+    -DCMAKE_CXX_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native' \
     -DRCPPPROG_FOLDER=${RCPPPROG_FOLDER} \
     -DRCPPTHREAD_FOLDER=${RCPPTHREAD_FOLDER} \
     -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}' \
@@ -944,7 +944,7 @@ elseif(WIN32)
         "${R_INC}"
         "${R_INC}/R_ext/"
         "${R_INCLUDE_DIR}"
-        #"${R_ROOT_SRC_DIR}/src/gnuwin32/fixed/h/"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/include/"
         "${RCPP_FOLDER}/include"
         "${RCPPPROG_FOLDER}/include"
         "${RCPPTHREAD_FOLDER}/include"
@@ -952,7 +952,12 @@ elseif(WIN32)
         "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/src"
         "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/ncbi-cxx-toolkit-public/include" # To find QuickBLAST/commons.hpp
     )
-
+    
+    target_compile_options(QuickBLAST PRIVATE
+        "-include" "rcpp_workaround.hpp"
+        ${SHLIB_OPENMP_CXXFLAGS}
+    )
+    
     # 1. Tell CMake where the directory of the built libraries is
     target_link_directories(QuickBLAST PRIVATE
         "${CMAKE_CURRENT_BINARY_DIR}/sqlite"
@@ -969,6 +974,7 @@ elseif(WIN32)
 
     # 2. Link the libraries by name (do not include "lib" or ".a")
     target_link_libraries(QuickBLAST PUBLIC
+        ${PKG_LIBS}
         -Wl,--enable-auto-import
         -Wl,--start-group
         bz2
