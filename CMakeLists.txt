@@ -1017,7 +1017,7 @@ elseif(WIN32)
         xflatfile
         zcf
         zstd
-        #R
+        R
         #Required Native Windows System Libraries
         dbghelp
         advapi32
