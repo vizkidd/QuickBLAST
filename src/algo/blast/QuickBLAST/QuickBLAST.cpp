@@ -1,3 +1,5 @@
+#include <algo/blast/QuickBLAST/commons.hpp>
+
 #include <chrono>
 #include <iostream>
 #include <string_view>
@@ -13,7 +15,6 @@
 #include <thread>
 #include <filesystem>
 
-#include <algo/blast/QuickBLAST/commons.hpp>
 #include <algo/blast/QuickBLAST/QuickBLAST.hpp>
 #include <algo/blast/QuickBLAST/ArrowWrapper.hpp>
 

@@ -1,3 +1,5 @@
+#include <algo/blast/QuickBLAST/commons.hpp>
+
 #if defined(_OPENMP)
 #include "omp.h"
 #endif
@@ -34,7 +36,6 @@
 #include <cstdlib>    // getenv
 #include <limits.h> 
 
-#include <algo/blast/QuickBLAST/commons.hpp>
 #include <algo/blast/QuickBLAST/ArrowWrapper.hpp>
 
 #if defined(_WIN32) || defined(__MINGW32__)

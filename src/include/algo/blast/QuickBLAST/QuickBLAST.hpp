@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algo/blast/QuickBLAST/commons.hpp>
 
 #include <objmgr/bioseq_ci.hpp>
 
@@ -45,7 +46,6 @@
 #include <objmgr/seq_vector.hpp>
 #include <objmgr/util/sequence.hpp>
 
-#include <algo/blast/QuickBLAST/commons.hpp>
 #include <algo/blast/QuickBLAST/ArrowWrapper.hpp>
 #include <algo/blast/QuickBLAST/DebugHelper.hpp>
 

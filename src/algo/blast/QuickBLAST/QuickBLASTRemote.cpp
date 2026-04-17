@@ -1,3 +1,5 @@
+#include <algo/blast/QuickBLAST/commons.hpp>
+
 // remote_blast_integration.cpp
 #include <memory>
 #include <string>
@@ -20,7 +22,6 @@ using namespace blast;
 using namespace std::chrono_literals;
 using namespace ncbi::objects;
 
-#include <algo/blast/QuickBLAST/commons.hpp>
 #include <algo/blast/QuickBLAST/QuickBLAST.hpp>
 #include <algo/blast/QuickBLAST/ArrowWrapper.hpp>
 

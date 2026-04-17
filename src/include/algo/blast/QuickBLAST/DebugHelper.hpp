@@ -1,11 +1,12 @@
 #pragma once
 
+#include <algo/blast/QuickBLAST/commons.hpp>
+
 #include <string>
 #include <vector>
 #include <thread>
 #include <algorithm>   // std::max
 
-#include <algo/blast/QuickBLAST/commons.hpp>
 #include <algo/blast/QuickBLAST/QuickBLAST.hpp>
 #include <algo/blast/QuickBLAST/ArrowWrapper.hpp>
 
