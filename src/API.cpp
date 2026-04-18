@@ -2420,6 +2420,11 @@ RcppExport SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool 
      
      Rcpp::XPtr<QuickBLAST> ptr_ = ResolveQuickBLASTInstance(ptr);
      std::string input_file_ = Rcpp::as<std::string>(input_file);
+     std::ifstream infile(input_file_);
+     if (!infile.good()) {
+       Rcpp::Rcerr << "MakeBLASTDB Error: " << input_file_ << " does not exist or cannot be read."  << std::endl <<std::flush;
+       return Rcpp::wrap(false); 
+     }
      std::string database_name_ = Rcpp::as<std::string>(database_name);
      std::string parse_seqids_opt;
      if(parse_seqids){
@@ -2472,13 +2477,18 @@ RcppExport SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool 
      int status = posix_spawnp(&pid, cargv[0], nullptr, nullptr, cargv.data(), environ);
      if (status == 0) {
        if (waitpid(pid, &status, 0) == -1) {
-         Rcpp::stop("waitpid failed");
+         // Rcpp::stop("waitpid failed");
+         Rcpp::Rcerr << "makeblastdb process: waitpid failed" << std::endl << std::flush;
+         return Rcpp::wrap(false); 
        }
        if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-         Rcpp::stop("makeblastdb process failed with non-zero exit status");
+         Rcpp::Rcerr << "makeblastdb process failed with non-zero exit status" << std::endl << std::flush;
+         return Rcpp::wrap(false); 
        }
      } else {
-       Rcpp::stop("posix_spawnp failed to start makeblastdb");
+       // Rcpp::stop("posix_spawnp failed to start makeblastdb");
+       Rcpp::Rcerr << "posix_spawnp failed to start makeblastdb" << std::endl << std::flush;
+       return Rcpp::wrap(false); 
      }
 #else
      // --- WINDOWS WAY (MinGW / Rtools) ---

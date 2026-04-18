@@ -103,7 +103,7 @@ try(QuickBLAST::BLAST2Seqs(blastn_inst, "ATGGAGGAGCCGCAGTCAGATCCTAGCGTCGAGCCCCCT
 
 If you do not want to compile databases locally, QuickBLAST can interface directly with NCBI's remote servers.
 
-```{r}
+```{r, eval = FALSE}
 # Safely check if the machine has internet access before running
 if (requireNamespace("curl", quietly = TRUE) && curl::has_internet()) {
 # Example of a remote timeout handling
@@ -156,8 +156,18 @@ For high-throughput homology searches against a fixed reference, compiling the s
 ```{r}
 
 safe_temp_dir <- normalizePath(tempdir(), winslash = "/", mustWork = FALSE)
+query_fasta <- normalizePath(tempfile(fileext = ".fasta"), winslash = "/", mustWork = FALSE)
+subject_fasta <- normalizePath(tempfile(fileext = ".fasta"), winslash = "/", mustWork = FALSE)
 
-subject_fasta <- file.path(safe_temp_dir, "subject.fasta")
+# Human TP53 gene fragment (Query)
+writeLines(c(
+  ">Human_p53_fragment\nATGGAGGAGCCGCAGTCAGATCCTAGCGTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA"
+), query_fasta)
+# Mutant TP53 gene fragment (Subject)
+writeLines(c(
+  ">Variant_p53_fragment\nATGGAGGAGCCGCAGTCAGATCCTAGCCTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA"
+), subject_fasta)
+
 db_path <- file.path(safe_temp_dir, "My_Test_DB")
 
 # 1. Compile the local BLAST database
@@ -191,6 +201,19 @@ To solve this, QuickBLAST writes results asynchronously using Apache Arrow forma
 
 
 ```{r}
+
+query_fasta <- normalizePath(tempfile(fileext = ".fasta"), winslash = "/", mustWork = FALSE)
+subject_fasta <- normalizePath(tempfile(fileext = ".fasta"), winslash = "/", mustWork = FALSE)
+
+# Human TP53 gene fragment (Query)
+writeLines(c(
+  ">Human_p53_fragment\nATGGAGGAGCCGCAGTCAGATCCTAGCGTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA"
+), query_fasta)
+# Mutant TP53 gene fragment (Subject)
+writeLines(c(
+  ">Variant_p53_fragment\nATGGAGGAGCCGCAGTCAGATCCTAGCCTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA"
+), subject_fasta)
+
 # Specify an output path
 out_parquet <- normalizePath(tempfile(fileext = ".parquet"), winslash = "/", mustWork = FALSE)
 
