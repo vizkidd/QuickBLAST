@@ -154,14 +154,18 @@ For high-throughput homology searches against a fixed reference, compiling the s
 
 
 ```{r}
-db_path <- normalizePath(tempfile())
+
+safe_temp_dir <- normalizePath(tempdir(), winslash = "/", mustWork = FALSE)
+
+subject_fasta <- file.path(safe_temp_dir, "subject.fasta")
+db_path <- file.path(safe_temp_dir, "My_Test_DB")
 
 # 1. Compile the local BLAST database
 # db_type can be "nucl" or "prot"
 QuickBLAST::MakeBLASTDB(
   ptr = blastn_inst,
   input_file = subject_fasta,
-  database_name = normalizePath(file.path(tempdir(),"My_Test_DB")),
+  database_name = db_path,
 )
 
 
@@ -169,7 +173,7 @@ QuickBLAST::MakeBLASTDB(
 db_results <- QuickBLAST::BLAST2DBs(
  blastn_inst, 
  query = query_fasta, 
- subject = normalizePath(file.path(tempdir(),"My_Test_DB")),
+ subject = db_path,
  return_values = TRUE,
  num_threads = 2
 )
@@ -188,7 +192,7 @@ To solve this, QuickBLAST writes results asynchronously using Apache Arrow forma
 
 ```{r}
 # Specify an output path
-out_parquet <- normalizePath(tempfile(fileext = ".parquet"))
+out_parquet <- normalizePath(tempfile(fileext = ".parquet"), winslash = "/", mustWork = FALSE)
 
 # Perform the search and write straight to an Arrow IPC file
 QuickBLAST::BLAST2Files(

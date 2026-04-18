@@ -45,6 +45,7 @@ RoxygenNote: 7.3.3
 Language: en-US
 Suggests: 
     curl (>= 7.0.0),
+    formatR (>= 1.14),
     knitr,
     rmarkdown,
     remotes

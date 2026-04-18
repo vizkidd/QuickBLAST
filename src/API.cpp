@@ -2487,13 +2487,16 @@ RcppExport SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool 
      intptr_t pid = _spawnvp(_P_NOWAIT, cargv[0], (char *const *)cargv.data());
      
      if (pid == -1) {
-       Rcpp::stop("_spawnvp failed to start makeblastdb");
+       Rcpp::Rcerr << "MakeBLASTDB(): _spawnvp failed to start makeblastdb. Path: " << program_path << std::endl << std::flush;
+       return Rcpp::wrap(false);
      } else {
        if (_cwait(&status, pid, WAIT_CHILD) == -1) {
-         Rcpp::stop("_cwait failed to track makeblastdb process");
+         Rcpp::Rcerr << "MakeBLASTDB(): _cwait failed to track makeblastdb process." << std::endl << std::flush;
+         return Rcpp::wrap(false);
        }
        if (status != 0) {
-         Rcpp::stop("makeblastdb process returned non-zero status: " + std::to_string(status));
+         Rcpp::Rcerr << "MakeBLASTDB(): makeblastdb process returned non-zero status: " << status << std::endl << std::flush;
+         return Rcpp::wrap(false);
        }
      }
 #endif
