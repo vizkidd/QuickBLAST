@@ -78,7 +78,15 @@ if(NOT WIN32)
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/arrow    
         COMMAND_ERROR_IS_FATAL ANY
     )
-
+    
+    if (NOT EXISTS "${ROOT_SRC_DIR}/libuv/")
+    execute_process(
+    COMMAND git clone https://github.com/libuv/libuv libuv
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    #COMMAND_ERROR_IS_FATAL ANY
+    )
+    endif()
+    
     if (NOT EXISTS "${ROOT_SRC_DIR}/ncbi-cxx-toolkit-public/")
     execute_process(
     COMMAND git clone https://github.com/ncbi/ncbi-cxx-toolkit-public ncbi-cxx-toolkit-public
@@ -205,37 +213,8 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
     execute_process(
     COMMAND make -j ${N_PROC} 
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/arrow/cpp/BUILD
-    #COMMAND_ERROR_IS_FATAL ANY
+    COMMAND_ERROR_IS_FATAL ANY
     )
-
-    ## Clone the repository using Git
-    #execute_process(
-    #COMMAND git clone https://github.com/ncbi/ncbi-cxx-toolkit-public ncbi-cxx-toolkit-public
-    #WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    ##COMMAND_ERROR_IS_FATAL ANY
-    #)
-
-    #message("Copying " ${CMAKE_SOURCE_DIR}/src/ " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
-
-    ## Copy files & folders to the repo clone
-    #file(COPY ${CMAKE_SOURCE_DIR}/src/dependencies/QuickBLAST.prj 
-    #DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
-    #)
-
-    #file(COPY ${CMAKE_SOURCE_DIR}/src/ 
-    #DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
-    #)
-
-    #message("Copying " ${CMAKE_SOURCE_DIR}/src/include " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
-
-    #file(COPY ${CMAKE_SOURCE_DIR}/src/include
-    #DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
-    #)
-    
-    #execute_process(
-    #COMMAND chmod +x ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/cmake-configure
-    #WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    #)
 
     # ==============================================================================
     # SYNCHRONOUS SQLITE PRE-BUILD (Forces SQLite to exist before NCBI configures)
@@ -337,7 +316,7 @@ endif()
 
     #message(STATUS "Discovered Toolchain File: ${TOOLCHAIN_FILE}")
     
-    if(APPLE OR CMAKE_SYSTEM_NAME MATCHES "Darwin" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+    #if(APPLE OR CMAKE_SYSTEM_NAME MATCHES "Darwin" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     #  execute_process(
     #    COMMAND ./configure --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD --without-dll --with-sqlite3="${SQLITE_ROOT_DIR}"
     #    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
@@ -348,29 +327,7 @@ endif()
     #    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/build
     #    COMMAND_ERROR_IS_FATAL ANY
     #  )
-      execute_process(
-        COMMAND ${CMAKE_COMMAND} -E env 
-          "CC=${CMAKE_C_COMPILER}" 
-          "CXX=${CMAKE_CXX_COMPILER}" 
-          "CMAKE_PREFIX_PATH=${SQLITE_ROOT_DIR}"
-          "CMAKE_INCLUDE_PATH=${SQLITE_INC_DIR}"
-          "CMAKE_LIBRARY_PATH=${SQLITE_ROOT_DIR}"
-      ./cmake-configure 
-          --with-projects=QuickBLAST.prj 
-          --without-debug 
-          --with-build-root=BUILD 
-          --without-dll
-          "-DSQLITE3_LIBRARY=${SQLITE_TARGET_LIB}"
-          "-DSQLITE3_INCLUDE_DIR=${SQLITE_INC_DIR}"
-          "-DNCBI_COMPONENT_SQLITE3_FOUND=YES"
-          "-DNCBI_COMPONENT_SQLITE3_INCLUDE=${SQLITE_INC_DIR}"
-          "-DNCBI_COMPONENT_SQLITE3_LIBS=${SQLITE_TARGET_LIB}"
-          "-DNCBI_COMPONENT_uv_DISABLED=TRUE"       
-          "-DNCBI_COMPONENT_nghttp2_DISABLED=TRUE"  
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
-            COMMAND_ERROR_IS_FATAL ANY
-        )
-    else()
+    #else()
       execute_process(
         COMMAND ${CMAKE_COMMAND} -E env 
           "CC=${CMAKE_C_COMPILER}" 
@@ -391,7 +348,7 @@ endif()
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
             COMMAND_ERROR_IS_FATAL ANY
         )
-    endif()
+    #endif()
     execute_process(
           COMMAND make -j ${N_PROC} datatool QuickBLASTcpp makeblastdb
           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/build

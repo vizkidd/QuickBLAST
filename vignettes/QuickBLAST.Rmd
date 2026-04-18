@@ -84,7 +84,7 @@ blastn_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 0, strand = 0, pr
 
 You can pass raw character strings directly to QuickBLAST. The engine evaluates the sequences in memory instantly. Notice that QuickBLAST includes automatic recovery: if a pointer is dead, it will attempt to reload it.
 
-```{r}
+```{r blast2seqs}
 # (~)Successful TBLASTX execution : Garbage low information nucleotide sequences
 QuickBLAST::BLAST2Seqs(tblastx_inst, "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG")
 
@@ -103,7 +103,7 @@ try(QuickBLAST::BLAST2Seqs(blastn_inst, "ATGGAGGAGCCGCAGTCAGATCCTAGCGTCGAGCCCCCT
 
 If you do not want to compile databases locally, QuickBLAST can interface directly with NCBI's remote servers.
 
-```{r, eval = FALSE}
+```{r remoteblast, eval = FALSE}
 # Safely check if the machine has internet access before running
 if (requireNamespace("curl", quietly = TRUE) && curl::has_internet()) {
 # Example of a remote timeout handling
@@ -120,10 +120,13 @@ try(QuickBLAST::RemoteBLAST(blastp_inst, query_input="MQILLVEDDNTLFQELKKELEQWDFN
 
 For large-scale genomics, sequences are often stored in FASTA files. QuickBLAST can compare two files directly via multi-threaded reading, without loading everything into the R global environment first.
 
-```{r}
+```{r blast2files}
+
+safe_temp_dir <- normalizePath(tempdir(check = T), winslash = "/", mustWork = FALSE)
+
 # Create temporary FASTA files
-query_fasta <- normalizePath(tempfile(fileext = ".fasta"))
-subject_fasta <- normalizePath(tempfile(fileext = ".fasta"))
+query_fasta <- normalizePath(tempfile(fileext = ".fasta", tmpdir = safe_temp_dir), winslash = "/", mustWork = F)
+subject_fasta <- normalizePath(tempfile(fileext = ".fasta", tmpdir = safe_temp_dir), winslash = "/", mustWork = F)
 
 # Human TP53 gene fragment (Query)
 writeLines(c(
@@ -153,11 +156,11 @@ print(file_results)
 For high-throughput homology searches against a fixed reference, compiling the sequences into an indexed BLAST database is much faster than raw file-to-file comparisons. QuickBLAST wraps the NCBI makeblastdb functionality directly into R.
 
 
-```{r}
+```{r blastfile2db}
 
-safe_temp_dir <- normalizePath(tempdir(), winslash = "/", mustWork = FALSE)
-query_fasta <- normalizePath(tempfile(fileext = ".fasta"), winslash = "/", mustWork = FALSE)
-subject_fasta <- normalizePath(tempfile(fileext = ".fasta"), winslash = "/", mustWork = FALSE)
+safe_temp_dir <- normalizePath(tempdir(check = T), winslash = "/", mustWork = FALSE)
+query_fasta <- normalizePath(tempfile(fileext = ".fasta", tmpdir = safe_temp_dir), winslash = "/", mustWork = FALSE)
+subject_fasta <- normalizePath(tempfile(fileext = ".fasta", tmpdir = safe_temp_dir), winslash = "/", mustWork = FALSE)
 
 # Human TP53 gene fragment (Query)
 writeLines(c(
@@ -200,10 +203,11 @@ By default, the return_values = TRUE flag seen above brings data directly into R
 To solve this, QuickBLAST writes results asynchronously using Apache Arrow formats (arrow::ipc or arrow::parquet). This creates a highly compressed, blazingly fast columnar storage file instead of a clunky TSV or CSV.
 
 
-```{r}
+```{r parquetoutput}
 
-query_fasta <- normalizePath(tempfile(fileext = ".fasta"), winslash = "/", mustWork = FALSE)
-subject_fasta <- normalizePath(tempfile(fileext = ".fasta"), winslash = "/", mustWork = FALSE)
+safe_temp_dir <- normalizePath(tempdir(check = T), winslash = "/", mustWork = FALSE)
+query_fasta <- normalizePath(tempfile(fileext = ".fasta", tmpdir = safe_temp_dir), winslash = "/", mustWork = FALSE)
+subject_fasta <- normalizePath(tempfile(fileext = ".fasta", tmpdir = safe_temp_dir), winslash = "/", mustWork = FALSE)
 
 # Human TP53 gene fragment (Query)
 writeLines(c(
