@@ -337,7 +337,7 @@ endif()
 
     #message(STATUS "Discovered Toolchain File: ${TOOLCHAIN_FILE}")
     
-    #if(APPLE OR CMAKE_SYSTEM_NAME MATCHES "Darwin" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+    if(APPLE OR CMAKE_SYSTEM_NAME MATCHES "Darwin" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     #  execute_process(
     #    COMMAND ./configure --with-projects=QuickBLAST.prj --without-debug --with-build-root=BUILD --without-dll --with-sqlite3="${SQLITE_ROOT_DIR}"
     #    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
@@ -348,7 +348,6 @@ endif()
     #    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/build
     #    COMMAND_ERROR_IS_FATAL ANY
     #  )
-    #else()
       execute_process(
         COMMAND ${CMAKE_COMMAND} -E env 
           "CC=${CMAKE_C_COMPILER}" 
@@ -371,12 +370,33 @@ endif()
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
             COMMAND_ERROR_IS_FATAL ANY
         )
-        execute_process(
+    else()
+      execute_process(
+        COMMAND ${CMAKE_COMMAND} -E env 
+          "CC=${CMAKE_C_COMPILER}" 
+          "CXX=${CMAKE_CXX_COMPILER}" 
+          "CMAKE_PREFIX_PATH=${SQLITE_ROOT_DIR}"
+          "CMAKE_INCLUDE_PATH=${SQLITE_INC_DIR}"
+          "CMAKE_LIBRARY_PATH=${SQLITE_ROOT_DIR}"
+      ./cmake-configure 
+          --with-projects=QuickBLAST.prj 
+          --without-debug 
+          --with-build-root=BUILD 
+          --without-dll
+          "-DSQLITE3_LIBRARY=${SQLITE_TARGET_LIB}"
+          "-DSQLITE3_INCLUDE_DIR=${SQLITE_INC_DIR}"
+          "-DNCBI_COMPONENT_SQLITE3_FOUND=YES"
+          "-DNCBI_COMPONENT_SQLITE3_INCLUDE=${SQLITE_INC_DIR}"
+          "-DNCBI_COMPONENT_SQLITE3_LIBS=${SQLITE_TARGET_LIB}"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
+            COMMAND_ERROR_IS_FATAL ANY
+        )
+    endif()
+    execute_process(
           COMMAND make -j ${N_PROC} datatool QuickBLASTcpp makeblastdb
           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/build
           COMMAND_ERROR_IS_FATAL ANY
         )
-    #endif()
 
 #    set(TOOLCHAIN_FILE "${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/build/ncbi_toolchain.cmake")
 
