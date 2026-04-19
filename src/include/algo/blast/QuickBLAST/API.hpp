@@ -60,6 +60,10 @@ extern char **environ; // posix_spawnp
 #include "omp.h"
 #endif
 
+#include <sys/stat.h> // For stat() file check
+#include <cerrno>     // For errno
+#include <cstring>    // For std::strerror
+
 std::map<unsigned int, Rcpp::XPtr<QuickBLAST>> cppObj_list = {};
 
 template <typename T>

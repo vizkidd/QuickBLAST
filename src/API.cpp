@@ -8,6 +8,12 @@
 #include <algo/blast/QuickBLAST/API.hpp>
 
 
+// Helper function to check if a file exists
+inline bool FileExists(const std::string& name) {
+  struct stat buffer;   
+  return (stat(name.c_str(), &buffer) == 0); 
+}
+
 using namespace Rcpp;
 
 //' @name isQuickBLASTLoaded
@@ -2437,6 +2443,20 @@ RcppExport SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool 
      Function f = pkg[".GetLibsPath"];
      std::string program_path = Rcpp::as<std::string>( f(Named("file_name")="makeblastdb") );
      
+     // --- 1. Handle Windows .exe Extension ---
+#if defined(_WIN32) || defined(__MINGW32__)
+     if (program_path.length() < 4 || program_path.substr(program_path.length() - 4) != ".exe") {
+       program_path += ".exe";
+     }
+#endif
+     
+     // --- 2. Check if the program actually exists ---
+     if (!FileExists(program_path)) {
+       Rcpp::Rcerr << "[MakeBLASTDB] Error: Executable not found at path: " 
+                   << program_path << std::endl << std::flush;
+       return Rcpp::wrap(false);
+     }
+     
      std::string dbtype;
      switch(ptr_->GetSeqType()){
      case QuickBLAST::ESeqType::eNucleotide: {
@@ -2449,7 +2469,7 @@ RcppExport SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool 
      }
      }
      
-     // 1. Build the base arguments (NO empty strings allowed!)
+     // 3. Build the base arguments
      std::vector<std::string> argv = {
        program_path, 
        "-in", input_file_, 
@@ -2457,55 +2477,72 @@ RcppExport SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool 
        "-out", database_name_
      };
      
-     // 2. Only add the flag if it is explicitly requested
      if (parse_seqids) {
        argv.push_back("-parse_seqids");
      }
      
-     // 3. Build the C-style argv array
+     // 4. Print the exact command being run for Debugging Context
+     Rcpp::Rcout << "[MakeBLASTDB] Executing command: ";
+     for (const auto &s : argv) {
+       Rcpp::Rcout << s << " ";
+     }
+     Rcpp::Rcout << std::endl << std::flush;
+     
+     // Build the C-style argv array
      std::vector<char*> cargv;
      for (const auto &s : argv) {
        cargv.push_back(const_cast<char*>(s.c_str()));
      }
      cargv.push_back(nullptr);
      
-     //  pid_t pid;
-     //  int status = posix_spawnp(&pid, cargv[0], nullptr, nullptr, cargv.data(), environ);
+     
 #if !defined(_WIN32) && !defined(__MINGW32__)
      // --- POSIX WAY (Linux / macOS) ---
      int pid;
-     int status = posix_spawnp(&pid, cargv[0], nullptr, nullptr, cargv.data(), environ);
-     if (status == 0) {
-       if (waitpid(pid, &status, 0) == -1) {
-         // Rcpp::stop("waitpid failed");
-         Rcpp::Rcerr << "makeblastdb process: waitpid failed" << std::endl << std::flush;
+     // posix_spawnp returns 0 on success, or an error code directly on failure
+     int spawn_status = posix_spawnp(&pid, cargv[0], nullptr, nullptr, cargv.data(), environ);
+     
+     if (spawn_status == 0) {
+       int wait_status;
+       if (waitpid(pid, &wait_status, 0) == -1) {
+         Rcpp::Rcerr << "[MakeBLASTDB] waitpid failed. errno: " << errno 
+                     << " (" << std::strerror(errno) << ")" << std::endl << std::flush;
          return Rcpp::wrap(false); 
        }
-       if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-         Rcpp::Rcerr << "makeblastdb process failed with non-zero exit status" << std::endl << std::flush;
+       if (!WIFEXITED(wait_status) || WEXITSTATUS(wait_status) != 0) {
+         Rcpp::Rcerr << "[MakeBLASTDB] process failed with non-zero exit status: " 
+                     << WEXITSTATUS(wait_status) << std::endl << std::flush;
          return Rcpp::wrap(false); 
        }
      } else {
-       // Rcpp::stop("posix_spawnp failed to start makeblastdb");
-       Rcpp::Rcerr << "posix_spawnp failed to start makeblastdb" << std::endl << std::flush;
+       // Use spawn_status for strerror on POSIX
+       Rcpp::Rcerr << "[MakeBLASTDB] posix_spawnp failed to start makeblastdb. Error code: " 
+                   << spawn_status << " (" << std::strerror(spawn_status) << ")" 
+                   << std::endl << std::flush;
        return Rcpp::wrap(false); 
      }
+     
 #else
      // --- WINDOWS WAY (MinGW / Rtools) ---
      int status = -1;
-     // _P_NOWAIT runs the process asynchronously so we can wait on it and catch the status
      intptr_t pid = _spawnvp(_P_NOWAIT, cargv[0], (char *const *)cargv.data());
      
      if (pid == -1) {
-       Rcpp::Rcerr << "MakeBLASTDB(): _spawnvp failed to start makeblastdb. Path: " << program_path << std::endl << std::flush;
+       // Use errno for strerror on Windows
+       Rcpp::Rcerr << "[MakeBLASTDB] _spawnvp failed. Path: " << program_path 
+                   << " | errno: " << errno << " (" << std::strerror(errno) << ")" 
+                   << std::endl << std::flush;
        return Rcpp::wrap(false);
      } else {
        if (_cwait(&status, pid, WAIT_CHILD) == -1) {
-         Rcpp::Rcerr << "MakeBLASTDB(): _cwait failed to track makeblastdb process." << std::endl << std::flush;
+         Rcpp::Rcerr << "[MakeBLASTDB] _cwait failed to track process. errno: " 
+                     << errno << " (" << std::strerror(errno) << ")" 
+                     << std::endl << std::flush;
          return Rcpp::wrap(false);
        }
        if (status != 0) {
-         Rcpp::Rcerr << "MakeBLASTDB(): makeblastdb process returned non-zero status: " << status << std::endl << std::flush;
+         Rcpp::Rcerr << "[MakeBLASTDB] makeblastdb process returned non-zero status: " 
+                     << status << std::endl << std::flush;
          return Rcpp::wrap(false);
        }
      }
