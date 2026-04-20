@@ -86,7 +86,11 @@ if(NOT WIN32)
     #COMMAND_ERROR_IS_FATAL ANY
     )
     endif()
-    
+    execute_process(
+  	  COMMAND bash -c "realpath ../../../libuv/include/" ;
+      OUTPUT_VARIABLE UV_INC
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+  	)
     if (NOT EXISTS "${ROOT_SRC_DIR}/ncbi-cxx-toolkit-public/")
     execute_process(
     COMMAND git clone https://github.com/ncbi/ncbi-cxx-toolkit-public ncbi-cxx-toolkit-public
@@ -333,7 +337,7 @@ endif()
           "CC=${CMAKE_C_COMPILER}" 
           "CXX=${CMAKE_CXX_COMPILER}" 
           "CMAKE_PREFIX_PATH=${SQLITE_ROOT_DIR}"
-          "CMAKE_INCLUDE_PATH=${SQLITE_INC_DIR}"
+          "CMAKE_INCLUDE_PATH=${SQLITE_INC_DIR};${UV_INC}"
           "CMAKE_LIBRARY_PATH=${SQLITE_ROOT_DIR}"
       ./cmake-configure 
           --with-projects=QuickBLAST.prj 
@@ -856,7 +860,7 @@ elseif(WIN32)
     # Create the shared library target for R
     #add_library(QuickBLAST STATIC ${QUICKBLAST_SOURCES})
     add_library(QuickBLAST SHARED ${QUICKBLAST_SOURCES})
-
+    
     add_dependencies(QuickBLAST ncbi_toolkit)
     #add_dependencies(QuickBLAST ncbi_toolkit_static)
     #add_dependencies(QuickBLAST configure_R)
@@ -908,6 +912,12 @@ elseif(WIN32)
         list(REMOVE_ITEM QB_DEFS "NCBI_POSIX_THREADS" "NCBI_USE_MUTEX_PTHREADS")
         set_target_properties(QuickBLAST PROPERTIES COMPILE_DEFINITIONS "${QB_DEFS}")
     endif()
+
+    # Prevent MinGW from exceeding the 64k DLL export limit by hiding static lib symbols
+    # Tell CMake explicitly NOT to auto-export everything
+    set_target_properties(QuickBLAST PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS OFF)
+    # Tell the MinGW linker not to re-export symbols from all the NCBI static archives
+    target_link_options(QuickBLAST PRIVATE "-Wl,--exclude-libs=ALL")
 
     set_target_properties(QuickBLAST PROPERTIES 
         PREFIX "" 

@@ -48,12 +48,6 @@ if(NOT WIN32 AND NOT MINGW32)
 	#set(ARROW_DIR "../../../arrow/cpp/")
 	message("Arrow DIR:" ${ARROW_DIR})
   
-  execute_process(
-	  COMMAND bash -c "realpath ../../../libuv/include/" ;
-    OUTPUT_VARIABLE UV_INC
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
-  
   #set(CMAKE_FIND_DEBUG_MODE TRUE)
 	find_library(ARROW_LIB
     NAMES libarrow arrow libarrow.a
