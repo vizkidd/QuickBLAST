@@ -12,7 +12,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // isQuickBLASTLoaded
-RcppExport bool isQuickBLASTLoaded();
+bool isQuickBLASTLoaded();
 RcppExport SEXP _QuickBLAST_isQuickBLASTLoaded() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -33,7 +33,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // CreateQuickBLASTInstance
-RcppExport SEXP CreateQuickBLASTInstance(const int seq_type, const int strand, SEXP program, SEXP options, const bool save_sequences, const bool save_hsp_sequences);
+SEXP CreateQuickBLASTInstance(const int seq_type, const int strand, SEXP program, SEXP options, const bool save_sequences, const bool save_hsp_sequences);
 RcppExport SEXP _QuickBLAST_CreateQuickBLASTInstance(SEXP seq_typeSEXP, SEXP strandSEXP, SEXP programSEXP, SEXP optionsSEXP, SEXP save_sequencesSEXP, SEXP save_hsp_sequencesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -49,7 +49,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // GetInstanceCount
-RcppExport unsigned int GetInstanceCount();
+unsigned int GetInstanceCount();
 RcppExport SEXP _QuickBLAST_GetInstanceCount() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -59,7 +59,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // GetInstanceID
-RcppExport SEXP GetInstanceID(SEXP ptr);
+SEXP GetInstanceID(SEXP ptr);
 RcppExport SEXP _QuickBLAST_GetInstanceID(SEXP ptrSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -70,7 +70,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // GetQuickBLASTInstance
-RcppExport SEXP GetQuickBLASTInstance(unsigned int ptr_id);
+SEXP GetQuickBLASTInstance(unsigned int ptr_id);
 RcppExport SEXP _QuickBLAST_GetQuickBLASTInstance(SEXP ptr_idSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -81,7 +81,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // DeleteQuickBLASTInstance
-RcppExport SEXP DeleteQuickBLASTInstance(SEXP ptr);
+SEXP DeleteQuickBLASTInstance(SEXP ptr);
 RcppExport SEXP _QuickBLAST_DeleteQuickBLASTInstance(SEXP ptrSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -92,7 +92,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // GetQuickBLASTOptions
-RcppExport SEXP GetQuickBLASTOptions(SEXP ptr);
+SEXP GetQuickBLASTOptions(SEXP ptr);
 RcppExport SEXP _QuickBLAST_GetQuickBLASTOptions(SEXP ptrSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -103,7 +103,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // SetQuickBLASTOptions
-RcppExport bool SetQuickBLASTOptions(SEXP ptr, SEXP program_name, SEXP options, bool verbose);
+bool SetQuickBLASTOptions(SEXP ptr, SEXP program_name, SEXP options, bool verbose);
 RcppExport SEXP _QuickBLAST_SetQuickBLASTOptions(SEXP ptrSEXP, SEXP program_nameSEXP, SEXP optionsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -117,7 +117,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // BLAST2Seqs
-RcppExport SEXP BLAST2Seqs(SEXP ptr, SEXP query, SEXP subject, bool verbose);
+SEXP BLAST2Seqs(SEXP ptr, SEXP query, SEXP subject, bool verbose);
 RcppExport SEXP _QuickBLAST_BLAST2Seqs(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -131,7 +131,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // BLAST2Folders
-RcppExport bool BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension, SEXP out_folder, SEXP out_format, unsigned int num_threads, bool reciprocal_hits, unsigned int min_batch_size, bool verbose);
+bool BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension, SEXP out_folder, SEXP out_format, unsigned int num_threads, bool reciprocal_hits, unsigned int min_batch_size, bool verbose);
 RcppExport SEXP _QuickBLAST_BLAST2Folders(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP, SEXP extensionSEXP, SEXP out_folderSEXP, SEXP out_formatSEXP, SEXP num_threadsSEXP, SEXP reciprocal_hitsSEXP, SEXP min_batch_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -151,7 +151,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // BLAST1Folder
-RcppExport bool BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP out_folder, SEXP out_format, unsigned int num_threads, bool reciprocal_hits, unsigned int min_batch_size, bool verbose);
+bool BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP out_folder, SEXP out_format, unsigned int num_threads, bool reciprocal_hits, unsigned int min_batch_size, bool verbose);
 RcppExport SEXP _QuickBLAST_BLAST1Folder(SEXP ptrSEXP, SEXP input_folderSEXP, SEXP extensionSEXP, SEXP out_folderSEXP, SEXP out_formatSEXP, SEXP num_threadsSEXP, SEXP reciprocal_hitsSEXP, SEXP min_batch_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -170,7 +170,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // BLAST2Files
-RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, SEXP out_format, unsigned int num_threads, bool return_values, unsigned int min_batch_size, bool verbose);
+SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, SEXP out_format, unsigned int num_threads, bool return_values, unsigned int min_batch_size, bool verbose);
 RcppExport SEXP _QuickBLAST_BLAST2Files(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP, SEXP out_fileSEXP, SEXP out_formatSEXP, SEXP num_threadsSEXP, SEXP return_valuesSEXP, SEXP min_batch_sizeSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -189,7 +189,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // RemoteBLAST
-RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input_type, SEXP outFile, SEXP outFormat, bool return_values, unsigned int max_poll_seconds, unsigned int poll_interval_ms, bool verbose);
+SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input_type, SEXP outFile, SEXP outFormat, bool return_values, unsigned int max_poll_seconds, unsigned int poll_interval_ms, bool verbose);
 RcppExport SEXP _QuickBLAST_RemoteBLAST(SEXP ptrSEXP, SEXP databaseSEXP, SEXP query_inputSEXP, SEXP input_typeSEXP, SEXP outFileSEXP, SEXP outFormatSEXP, SEXP return_valuesSEXP, SEXP max_poll_secondsSEXP, SEXP poll_interval_msSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -221,7 +221,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // MakeBLASTDB
-RcppExport SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool parse_seqids);
+SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool parse_seqids);
 RcppExport SEXP _QuickBLAST_MakeBLASTDB(SEXP ptrSEXP, SEXP input_fileSEXP, SEXP database_nameSEXP, SEXP parse_seqidsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -235,7 +235,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // BLAST2DBs
-RcppExport SEXP BLAST2DBs(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, SEXP out_format, unsigned int num_threads, bool refresh_db, bool return_values, unsigned int min_batch_size, const bool& enable_chunking, unsigned int chunk_size, unsigned int overlap, bool verbose);
+SEXP BLAST2DBs(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, SEXP out_format, unsigned int num_threads, bool refresh_db, bool return_values, unsigned int min_batch_size, const bool& enable_chunking, unsigned int chunk_size, unsigned int overlap, bool verbose);
 RcppExport SEXP _QuickBLAST_BLAST2DBs(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP, SEXP out_fileSEXP, SEXP out_formatSEXP, SEXP num_threadsSEXP, SEXP refresh_dbSEXP, SEXP return_valuesSEXP, SEXP min_batch_sizeSEXP, SEXP enable_chunkingSEXP, SEXP chunk_sizeSEXP, SEXP overlapSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -258,7 +258,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // GetFASTAHeaders
-RcppExport SEXP GetFASTAHeaders(const std::string& path, bool keep_gt);
+SEXP GetFASTAHeaders(const std::string& path, bool keep_gt);
 RcppExport SEXP _QuickBLAST_GetFASTAHeaders(SEXP pathSEXP, SEXP keep_gtSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -270,7 +270,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // BLASTFile2DB
-RcppExport SEXP BLASTFile2DB(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, SEXP out_format, unsigned int num_threads, bool return_values, unsigned int min_batch_size);
+SEXP BLASTFile2DB(SEXP ptr, SEXP query, SEXP subject, SEXP out_file, SEXP out_format, unsigned int num_threads, bool return_values, unsigned int min_batch_size);
 RcppExport SEXP _QuickBLAST_BLASTFile2DB(SEXP ptrSEXP, SEXP querySEXP, SEXP subjectSEXP, SEXP out_fileSEXP, SEXP out_formatSEXP, SEXP num_threadsSEXP, SEXP return_valuesSEXP, SEXP min_batch_sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

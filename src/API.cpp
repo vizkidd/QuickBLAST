@@ -24,7 +24,7 @@ using namespace Rcpp;
 //' @return String that successfully confirms when the package is loaded properly
 //' @export
 // [[Rcpp::export]]
-RcppExport bool isQuickBLASTLoaded()
+bool isQuickBLASTLoaded()
  {
    ArrowWrapper *testwrap = new ArrowWrapper();
    std::shared_ptr<ArrowWrapper> testwrap_ = std::make_shared<ArrowWrapper>();
@@ -997,7 +997,7 @@ std::string ConvertBLASTOptions2String(SEXP options)
 //' }
 //' @export
 // [[Rcpp::export]]
-RcppExport SEXP CreateQuickBLASTInstance(const int seq_type, const int strand, SEXP program, SEXP options = R_NilValue, const bool save_sequences = false, const bool save_hsp_sequences = false) 
+SEXP CreateQuickBLASTInstance(const int seq_type, const int strand, SEXP program, SEXP options = R_NilValue, const bool save_sequences = false, const bool save_hsp_sequences = false) 
  {
    try
    {
@@ -1045,7 +1045,7 @@ RcppExport SEXP CreateQuickBLASTInstance(const int seq_type, const int strand, S
 //' @return Count of QuickBLAST instances
 //' @export
 // [[Rcpp::export]]
-RcppExport unsigned int GetInstanceCount()
+unsigned int GetInstanceCount()
  {
    return (unsigned int)cppObj_list.size();
  }
@@ -1136,7 +1136,7 @@ Rcpp::XPtr<QuickBLAST> ResolveQuickBLASTInstance(SEXP inst)
 //' }
 //' @export
 // [[Rcpp::export]]
-RcppExport SEXP GetInstanceID(SEXP ptr)
+SEXP GetInstanceID(SEXP ptr)
  {
    try
    {
@@ -1173,7 +1173,7 @@ RcppExport SEXP GetInstanceID(SEXP ptr)
 //' @return (\code{Rcpp::XPtr<QuickBLAST>}) Pointer to a QuickBLAST instance, FALSE otherwise
 //' @export
 // [[Rcpp::export]]
-RcppExport SEXP GetQuickBLASTInstance(unsigned int ptr_id)
+SEXP GetQuickBLASTInstance(unsigned int ptr_id)
  {
    try {
      return cppObj_list.at(ptr_id);
@@ -1225,7 +1225,7 @@ unsigned int DetectThreadLimit(unsigned int num_threads){
 //' }
 //' @export
 // [[Rcpp::export]]
-RcppExport SEXP DeleteQuickBLASTInstance(SEXP ptr)
+SEXP DeleteQuickBLASTInstance(SEXP ptr)
  {
    try
    {
@@ -1276,7 +1276,7 @@ RcppExport SEXP DeleteQuickBLASTInstance(SEXP ptr)
 //' }
 //' @export
 // [[Rcpp::export]]
-RcppExport SEXP GetQuickBLASTOptions(SEXP ptr)
+SEXP GetQuickBLASTOptions(SEXP ptr)
  {
    try
    {
@@ -1323,7 +1323,7 @@ RcppExport SEXP GetQuickBLASTOptions(SEXP ptr)
 //' }
 //' @export
 // [[Rcpp::export]]
-RcppExport bool SetQuickBLASTOptions(SEXP ptr, SEXP program_name, SEXP options, bool verbose = true)
+bool SetQuickBLASTOptions(SEXP ptr, SEXP program_name, SEXP options, bool verbose = true)
  {
    try
    {
@@ -1391,7 +1391,7 @@ RcppExport bool SetQuickBLASTOptions(SEXP ptr, SEXP program_name, SEXP options, 
 //' }
 //' @export
 // [[Rcpp::export]]
-RcppExport SEXP BLAST2Seqs(SEXP ptr, SEXP query, SEXP subject, bool verbose = true)
+SEXP BLAST2Seqs(SEXP ptr, SEXP query, SEXP subject, bool verbose = true)
  {
    try{
      
@@ -1489,7 +1489,7 @@ RcppExport SEXP BLAST2Seqs(SEXP ptr, SEXP query, SEXP subject, bool verbose = tr
 //' @return (bool) TRUE - on success, FALSE - Otherwise. (Results are not returned as R Lists to reduce overhead)
 //' @export
 // [[Rcpp::export]]
-RcppExport bool BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension, SEXP out_folder, SEXP out_format = R_NilValue, unsigned int num_threads = 0, bool reciprocal_hits = false, unsigned int min_batch_size = 0, bool verbose = true)
+bool BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension, SEXP out_folder, SEXP out_format = R_NilValue, unsigned int num_threads = 0, bool reciprocal_hits = false, unsigned int min_batch_size = 0, bool verbose = true)
  {
    try{
      auto start = std::chrono::high_resolution_clock::now();
@@ -1623,7 +1623,7 @@ RcppExport bool BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension
 //' @return (bool) TRUE - on success, FALSE - Otherwise. (Results are not returned as R Lists to reduce overhead)
 //' @export
 // [[Rcpp::export]]
-RcppExport bool BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP out_folder, SEXP out_format = R_NilValue, unsigned int num_threads = 0, bool reciprocal_hits = false, unsigned int min_batch_size = 0, bool verbose = true)
+bool BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP out_folder, SEXP out_format = R_NilValue, unsigned int num_threads = 0, bool reciprocal_hits = false, unsigned int min_batch_size = 0, bool verbose = true)
  {
    
    try{
@@ -1803,7 +1803,7 @@ RcppExport bool BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP o
 //' }
 //' @export
 // [[Rcpp::export]]
-RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = R_NilValue, SEXP out_format = R_NilValue, unsigned int num_threads = 0, bool return_values = true, unsigned int min_batch_size = 0, bool verbose = true)
+SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = R_NilValue, SEXP out_format = R_NilValue, unsigned int num_threads = 0, bool return_values = true, unsigned int min_batch_size = 0, bool verbose = true)
  {
    try{
      auto start = std::chrono::high_resolution_clock::now();
@@ -1934,7 +1934,7 @@ RcppExport SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = 
 //' }
 //' @export
 // [[Rcpp::export]]
-RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input_type, SEXP outFile = R_NilValue, SEXP outFormat = R_NilValue, bool return_values = true, unsigned int max_poll_seconds = 360, unsigned int poll_interval_ms = 4000, bool verbose = true)
+SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input_type, SEXP outFile = R_NilValue, SEXP outFormat = R_NilValue, bool return_values = true, unsigned int max_poll_seconds = 360, unsigned int poll_interval_ms = 4000, bool verbose = true)
  {
    try{
      auto start = std::chrono::high_resolution_clock::now();
@@ -2412,7 +2412,7 @@ RcppExport SEXP RemoteBLAST(SEXP ptr, SEXP database, SEXP query_input, int input
 //' }
 //' @export
 // [[Rcpp::export]]
-RcppExport SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool parse_seqids = false){
+SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool parse_seqids = false){
    try{
      
      if (TYPEOF(input_file) != STRSXP || input_file == R_NilValue) {
@@ -2684,7 +2684,7 @@ RcppExport SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool 
 //' }
 //' @export
 // [[Rcpp::export]]
-RcppExport SEXP BLAST2DBs(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = R_NilValue, SEXP out_format = R_NilValue, unsigned int num_threads = 0, bool refresh_db = false, bool return_values = true, unsigned int min_batch_size = 0, const bool& enable_chunking = false, unsigned int chunk_size = 50000, unsigned int overlap = 1000, bool verbose = true){
+SEXP BLAST2DBs(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = R_NilValue, SEXP out_format = R_NilValue, unsigned int num_threads = 0, bool refresh_db = false, bool return_values = true, unsigned int min_batch_size = 0, const bool& enable_chunking = false, unsigned int chunk_size = 50000, unsigned int overlap = 1000, bool verbose = true){
    try{
      auto start = std::chrono::high_resolution_clock::now();
      unsigned int threads = DetectThreadLimit(num_threads);
@@ -2838,7 +2838,7 @@ static inline void trim(std::string &s) { ltrim(s); rtrim(s); }
 //' }
 //' @export
 // [[Rcpp::export]]
-RcppExport SEXP GetFASTAHeaders(const std::string &path, bool keep_gt = false) {
+SEXP GetFASTAHeaders(const std::string &path, bool keep_gt = false) {
    std::ifstream in(path, std::ios::in | std::ios::binary);
    if (!in.is_open()) {
      Rcpp::Rcerr << "Cannot open file: " + path << std::endl <<std::flush;
@@ -2940,7 +2940,7 @@ RcppExport SEXP GetFASTAHeaders(const std::string &path, bool keep_gt = false) {
 //' }
 //' @export
 // [[Rcpp::export]]
-RcppExport SEXP BLASTFile2DB(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = R_NilValue, SEXP out_format = R_NilValue, unsigned int num_threads = 0, bool return_values = true, unsigned int min_batch_size = 0){
+SEXP BLASTFile2DB(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = R_NilValue, SEXP out_format = R_NilValue, unsigned int num_threads = 0, bool return_values = true, unsigned int min_batch_size = 0){
    try{
      auto start = std::chrono::high_resolution_clock::now();
      unsigned int threads = DetectThreadLimit(num_threads);
