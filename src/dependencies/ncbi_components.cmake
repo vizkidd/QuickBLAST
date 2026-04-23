@@ -45,3 +45,23 @@ if(EXISTS "${CUSTOM_SQLITE_LIB}")
 else()
     message(FATAL_ERROR "Custom SQLite lib NOT FOUND at: ${CUSTOM_SQLITE_LIB}")
 endif()
+
+# ==========================================
+# Force libuv component paths
+# ==========================================
+get_filename_component(QUICKBLAST_BUILD_DIR "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
+set(CUSTOM_UV_INC "${QUICKBLAST_BUILD_DIR}/libuv/include")
+
+if(EXISTS "${CUSTOM_UV_INC}")
+    message(STATUS "Injecting pre-built libuv paths into NCBI scanner...")
+    
+    # 1. Append to native CMake search paths
+    list(APPEND CMAKE_INCLUDE_PATH "${CUSTOM_UV_INC}")
+    set(ENV{CMAKE_INCLUDE_PATH} "${CUSTOM_UV_INC}:$ENV{CMAKE_INCLUDE_PATH}")
+    
+    # 2. Force the NCBI component variables
+    set(NCBI_COMPONENT_uv_FOUND YES)
+    set(NCBI_COMPONENT_uv_INCLUDE "${CUSTOM_UV_INC}")
+else()
+    message(WARNING "Custom libuv include NOT FOUND at: ${CUSTOM_UV_INC}")
+endif()

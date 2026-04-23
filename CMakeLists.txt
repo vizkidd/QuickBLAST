@@ -913,17 +913,51 @@ elseif(WIN32)
         set_target_properties(QuickBLAST PROPERTIES COMPILE_DEFINITIONS "${QB_DEFS}")
     endif()
 
+  # if(WIN32 OR MINGW)
+  #    # Prevent MinGW from exceeding the 64k DLL export limit by hiding static lib symbols
+  #    # Tell CMake explicitly NOT to auto-export everything
+  #    set_target_properties(QuickBLAST PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS OFF)
+  #    # Tell the MinGW linker not to re-export symbols from all the NCBI static archives
+  #    target_link_options(QuickBLAST PRIVATE "-Wl,--exclude-libs=ALL")
+  #    # Force RcppExport to act as a Windows DLLExport macro for this target
+  #    target_compile_definitions(QuickBLAST PRIVATE 
+  #        RcppExport=extern\ \"C\"\ __declspec(dllexport)
+  #    )
+  # endif()
+  
   if(WIN32 OR MINGW)
-      # Prevent MinGW from exceeding the 64k DLL export limit by hiding static lib symbols
-      # Tell CMake explicitly NOT to auto-export everything
-      set_target_properties(QuickBLAST PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS OFF)
-      # Tell the MinGW linker not to re-export symbols from all the NCBI static archives
-      target_link_options(QuickBLAST PRIVATE "-Wl,--exclude-libs=ALL")
-      # Force RcppExport to act as a Windows DLLExport macro for this target
-      target_compile_definitions(QuickBLAST PRIVATE 
-          RcppExport=extern\ \"C\"\ __declspec(dllexport)
-      )
-    endif()
+    # 1. Keep this to ensure static archive symbols stay private
+    target_link_options(QuickBLAST PRIVATE "-Wl,--exclude-libs=ALL")
+    # 2. Automatically generate a .def file exporting !~~ONLY~~ the R (side) functions
+    set(DEF_FILE "${CMAKE_CURRENT_BINARY_DIR}/QuickBLAST.def")
+    file(WRITE "${DEF_FILE}" 
+    "EXPORTS
+        R_init_QuickBLAST
+        _QuickBLAST_isQuickBLASTLoaded
+        _QuickBLAST_RecordBatchVectorToFlattenedDFList
+        _QuickBLAST_CreateQuickBLASTInstance
+        _QuickBLAST_GetInstanceCount
+        _QuickBLAST_GetInstanceID
+        _QuickBLAST_GetQuickBLASTInstance
+        _QuickBLAST_DeleteQuickBLASTInstance
+        _QuickBLAST_GetQuickBLASTOptions
+        _QuickBLAST_SetQuickBLASTOptions
+        _QuickBLAST_BLAST2Seqs
+        _QuickBLAST_BLAST2Folders
+        _QuickBLAST_BLAST1Folder
+        _QuickBLAST_BLAST2Files
+        _QuickBLAST_RemoteBLAST
+        _QuickBLAST_isBLASTDB
+        _QuickBLAST_MakeBLASTDB
+        _QuickBLAST_BLAST2DBs
+        _QuickBLAST_GetFASTAHeaders
+        _QuickBLAST_BLASTFile2DB
+    ")
+    # 3. Add the .def file directly to the target sources
+    # The Windows linker will read this and open the door exclusively for R!
+    target_sources(QuickBLAST PRIVATE "${DEF_FILE}")
+    # NOTE: Completely REMOVE the target_compile_definitions(QuickBLAST PRIVATE "RcppExport=...") line!
+  endif()
     set_target_properties(QuickBLAST PROPERTIES 
         PREFIX "" 
         OUTPUT_NAME "QuickBLAST"
