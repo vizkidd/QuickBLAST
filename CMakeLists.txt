@@ -921,7 +921,8 @@ elseif(WIN32)
   #    target_link_options(QuickBLAST PRIVATE "-Wl,--exclude-libs=ALL")
   #    # Force RcppExport to act as a Windows DLLExport macro for this target
   #    target_compile_definitions(QuickBLAST PRIVATE 
-  #        RcppExport=extern\ \"C\"\ __declspec(dllexport)
+  #       # RcppExport=extern\ \"C\"\ __declspec(dllexport)
+  #        "RcppExport=extern \"C\" __declspec(dllexport)"
   #    )
   # endif()
   
