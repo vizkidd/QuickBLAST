@@ -629,12 +629,12 @@ elseif(WIN32)
     };
     
     // 2. Catch GCC 14's failing standard time_zone with ratio<86400> (Days)
-    template <> struct std::formatter<std::chrono::zoned_time<std::chrono::duration<long long int, std::ratio<86400>>, const std::chrono::time_zone*>, char> : std::formatter<std::string_view, cha>
+    template <> struct std::formatter<std::chrono::zoned_time<std::chrono::duration<long long int, std::ratio<86400>>, const std::chrono::time_zone*>, char> : std::formatter<std::string_view, char> { 
         template <typename C> auto format(const auto&, C& ctx) const { return std::formatter<std::string_view, char>::format("ArrowTime", ctx); } 
     };
     
     // 3. Catch GCC 14's failing standard time_zone with ratio<1> (Seconds)
-    template <> struct std::formatter<std::chrono::zoned_time<std::chrono::duration<long long int, std::ratio<1>>, const std::chrono::time_zone*>, char> : std::formatter<std::string_view, char> {
+    template <> struct std::formatter<std::chrono::zoned_time<std::chrono::duration<long long int, std::ratio<1>>, const std::chrono::time_zone*>, char> : std::formatter<std::string_view, char> { 
         template <typename C> auto format(const auto&, C& ctx) const { return std::formatter<std::string_view, char>::format("ArrowTime", ctx); } 
     };
     
@@ -655,5 +655,551 @@ elseif(WIN32)
     ]==])
     file(WRITE "${ARROW_FILE}" "${POLYFILL}\n${FILE_CONTENT}")
     ]=])
+
+     ExternalProject_Add(build_arrow
+        PREFIX "${CMAKE_CURRENT_BINARY_DIR}/arrow_ep"
+        SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp"
+        BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/BUILD_MSYS2"
+        
+        PATCH_COMMAND ${CMAKE_COMMAND} -DARROW_FILE=${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/src/arrow/compute/kernels/scalar_temporal_unary.cc -P "${CMAKE_CURRENT_BINARY_DIR}/patch_arrow.cmake"
+        
+        CMAKE_GENERATOR "MSYS Makefiles"
+        
+        # Pass all your definitions here
+        CMAKE_ARGS
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+            -DARROW_BUILD_INTEGRATION=OFF
+            -DARROW_BUILD_TESTS=OFF
+            -DARROW_DEPENDENCY_USE_SHARED=OFF
+            -DARROW_WITH_BZ2=ON
+            -DARROW_WITH_LZ4=ON
+            -DARROW_BUILD_SHARED=OFF
+            -DPARQUET_BUILD_SHARED=OFF
+            -DPARQUET_BUILD_STATIC=ON  
+            -DARROW_BUILD_STATIC=ON
+            -DBUILD_SHARED_LIBS=OFF
+            -DBUILD_STATIC_LIBS=ON
+            -DPARQUET_MINIMAL_DEPENDENCY=OFF
+            -DARROW_WITH_BROTLI=ON
+            -DARROW_WITH_RE2=OFF
+            -DARROW_WITH_ZLIB=ON
+            -DARROW_WITH_ZSTD=ON
+            -DARROW_IPC=ON
+            -DARROW_FILESYSTEM=ON
+            -DARROW_COMPUTE=ON
+            -DARROW_PYTHON=OFF
+            -DARROW_ENABLE_THREADING=ON
+            -DARROW_MIMALLOC=OFF
+            -DARROW_JEMALLOC=OFF
+            -DARROW_DATASET=OFF
+            -DARROW_ACERO=OFF
+            -DARROW_PARQUET=ON
+            #-DARROW_WITH_THRIFT=ON
+            #-DThrift_SOURCE=BUNDLED
+            #-DTHRIFT_BUILD_COMPILER=OFF
+            -DARROW_CSV=ON
+            -DARROW_HDFS=ON
+            -DARROW_VERBOSE_THIRDPARTY_BUILD=ON
+            -DARROW_POSITION_INDEPENDENT_CODE=ON
+            -DARROW_JSON=ON
+            -DARROW_SUBSTRAIT=ON
+            -DARROW_WITH_SNAPPY=ON
+            -DARROW_WITH_UTF8PROC=ON
+            -DARROW_RPATH_ORIGIN=ON
+            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+            -DCMAKE_C_COMPILER=gcc.exe
+            -DCMAKE_CXX_COMPILER=g++.exe
+            "-DCMAKE_C_FLAGS= -pedantic -Wformat -Werror=format-security -UHAVE_AF_UNIX_H -D__MINGW32__ -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -mtune=generic -maccumulate-outgoing-args -pthread -mconsole -mstackrealign "
+            "-DCMAKE_CXX_FLAGS= -pedantic -Wformat -Werror=format-security -UHAVE_AF_UNIX_H -D__MINGW32__ -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -mtune=generic -march=native -maccumulate-outgoing-args -pthread -mconsole -mstackrealign"
+            "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,--demangle -Wl,--pic-executable -Wl,--subsystem,console -Wl,-shared -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,--dll -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--no-whole-archive -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -lsqlite3 -liconv -lintl -lbcrypt -Wl,--end-group "
+        
+        #-Wall -static-libstdc++ -static-libgcc
+        #-DARROW_EXPORTING
+        #-std=gnu2x
+        #-std=gnu++20
+        #-O3 -fPIC  -fdiagnostics-color=always
+
+        # Map the Makevars build command
+        BUILD_COMMAND $(MAKE) -j ${N_PROC} 
+        #arrow parquet
+        
+        # Map the Makevars copy/install command
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow.a"
+            "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.a"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/release/libparquet.a"
+            "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/release/libparquet_msys2.a"
+    )
+
+    # =========================================================================
+    # AUTOMATE CURL DISCOVERY & WINDOWS DEPENDENCY EXTRACTION
+    # =========================================================================
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(CURL_PKG REQUIRED libcurl)
+
+    # 1. Find the absolute path to the main curl library
+    find_library(AUTO_CURL_LIB 
+        NAMES libcurl.a curl
+        PATHS ${CURL_PKG_LIBRARY_DIRS}
+        NO_DEFAULT_PATH
+    )
+
+    # 2. Extract the include directory
+    list(GET CURL_PKG_INCLUDE_DIRS 0 AUTO_CURL_INC)
+
+    # 3. Extract dependencies (ws2_32, crypt32, etc.) and format as "-lws2_32 -lcrypt32"
+    set(AUTO_CURL_DEPS "")
+    foreach(_lib IN LISTS CURL_PKG_LIBRARIES)
+        # Skip the main library, we only want the dependencies
+        if(NOT _lib STREQUAL "curl")
+            string(APPEND AUTO_CURL_DEPS " -l${_lib}")
+        endif()
+    endforeach()
+
+    message(STATUS "Automated CURL Library: ${AUTO_CURL_LIB}")
+    message(STATUS "Automated CURL Include: ${AUTO_CURL_INC}")
+    message(STATUS "Automated CURL Deps: ${AUTO_CURL_DEPS}")
+
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/sqlite/libsqlite3.a")    
+        file(DOWNLOAD
+            "https://sqlite.org/download.html"
+            "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/download.html"
+            SHOW_PROGRESS
+            STATUS download_status
+            TIMEOUT 10
+        )
+        list(GET download_status 0 download_code)
+        if(NOT "${download_code}" STREQUAL "0")
+            message(FATAL_ERROR "SQLite version check failed: ${download_status}")
+        endif()
+        execute_process(
+            COMMAND bash -c "grep -Eo '[0-9]{4}/sqlite-amalgamation-[0-9]+\\\\.zip' ${CMAKE_CURRENT_SOURCE_DIR}/BUILD/download.html | head -n 1"
+            OUTPUT_VARIABLE SQLITE_LINK
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        if (SQLITE_LINK)
+            message(STATUS "SQLite version link found: https://sqlite.org/${SQLITE_LINK}")
+        else()
+            message(FATAL_ERROR "SQLite version link not found")
+        endif()
+        execute_process(
+            COMMAND bash -c "mkdir -p ${CMAKE_CURRENT_SOURCE_DIR}/BUILD/sqlite/"
+            )
+        file(DOWNLOAD
+            "https://sqlite.org/${SQLITE_LINK}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/sqlite/sqlite.zip"
+            SHOW_PROGRESS
+            STATUS download_status
+            TIMEOUT 10
+        )
+        list(GET download_status 0 download_code)
+        if(NOT "${download_code}" STREQUAL "0")
+            message(FATAL_ERROR "SQLite download failed: ${download_status}")
+        endif()
+    endif()
+    # =========================================================================
+
+    # Setup the massive CMAKE_ARGS string for the NCBI script
+    #--log-level=VERBOSE 
+    set(NCBI_CMAKE_ARGS " \
+        --fresh \
+        -G 'MSYS Makefiles' \
+        -DCMAKE_MAKE_PROGRAM=make \
+        -DCMAKE_SYSTEM_NAME=Windows \
+        -DMINGW=1 \
+        -DWIN32=1 \
+        -DUNIX=0 \
+        -DCYGWIN=0 \
+        -DMSYS=0 \
+        -DNCBI_COMPILER_MSVC=0 \
+        -DNCBI_COMPILER_GCC=1 \
+        -DCMAKE_CXX_COMPILER_VERSION=${GCC_VER} \
+        -DSHLIB_OPENMP_CXXFLAGS='${SHLIB_OPENMP_CXXFLAGS}' \
+        -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}' \
+        -DROOT_SRC_DIR=${CMAKE_CURRENT_SOURCE_DIR} \
+        -DR_INCLUDE_DIR='${R_INCLUDE_DIR}' \
+        -DNCBITK_ROOT_DIR=${CMAKE_CURRENT_SOURCE_DIR}/BUILD/ncbi-cxx-toolkit-public \
+        -DR_HOME='$ENV{R_HOME}' \
+        -DR_ARCH='$ENV{R_ARCH}' \
+        -DRCPP_FOLDER='${RCPP_FOLDER}' \
+        -DRCPPPROG_FOLDER='${RCPPPROG_FOLDER}' \
+        -DRCPPTHREAD_FOLDER='${RCPPTHREAD_FOLDER}' \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DBUILD_STATIC_LIBS=ON \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+        -DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY \
+        -DNCBI_COMPONENT_CURL_FOUND=YES \
+        -DNCBI_COMPONENT_CURL_LIBS='${AUTO_CURL_LIB}' \
+        -DNCBI_COMPONENT_CURL_INCLUDE='${AUTO_CURL_INC}' \
+        -DCMAKE_C_STANDARD_LIBRARIES='${AUTO_CURL_DEPS}' \
+        -DCMAKE_CXX_STANDARD_LIBRARIES='${AUTO_CURL_DEPS}' \
+        -DCMAKE_C_FLAGS='${CMAKE_C_FLAGS} -pedantic -Wno-attributes -Wno-date-time -Wno-unused-parameter -Wno-ignored-attributes -Wformat -Werror=format-security -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -mtune=generic -maccumulate-outgoing-args -pthread -mconsole -mstackrealign ' \
+        -DCMAKE_CXX_FLAGS='${CMAKE_CXX_FLAGS} -DLIBICONV_STATIC -pedantic -Wno-attributes -Wno-date-time -Wno-unused-parameter -Wno-ignored-attributes -Wformat -Werror=format-security -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  -mtune=generic -march=native -maccumulate-outgoing-args -pthread -mconsole -mstackrealign ' \
+        -DCMAKE_SHARED_LINKER_FLAGS=' -Wl,--allow-multiple-definition -Wl,--demangle -Wl,--pic-executable -Wl,--subsystem,console -Wl,-shared -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,--dll -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--no-whole-archive -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -lsqlite3 -liconv -lintl -lbcrypt -Wl,--end-group ' \
+        -DCMAKE_EXE_LINKER_FLAGS=' -Wl,--allow-multiple-definition -Wl,--demangle -Wl,--pic-executable -Wl,--subsystem,console -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -lsqlite3 -liconv -lintl -lbcrypt -Wl,--end-group ' \
+        -DCMAKE_USE_WIN32_THREADS_INIT=1 \
+        -DCMAKE_USE_PTHREADS_INIT=0 \
+        -DTHREADS_PREFER_PTHREAD_FLAG=OFF \
+    ")
+    #-static-libstdc++ -static-libgcc
+    #-ftrack-macro-expansion=0 -pipe 
+    #-std=gnu2x
+    #-std=gnu++20
+    #-O3 -fPIC
+
+    ExternalProject_Add(ncbi_toolkit
+        PREFIX "${CMAKE_CURRENT_BINARY_DIR}/ncbi_ep"
+        SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/ncbi-cxx-toolkit-public"
+        BUILD_IN_SOURCE TRUE
+        
+        # STEP 1: Run pre-inject and cmake-configure
+        CONFIGURE_COMMAND bash -c "SHLIB_OPENMP_CXXFLAGS='${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}' RTOOLS_DIR='${RTOOLS_DIR}' R_INCLUDE_DIR='${R_INCLUDE_DIR}' ./ncbi_crosscomp_inject_pre.sh && export CMAKE_ARGS=\"${NCBI_CMAKE_ARGS}\" && export CMAKE='${RTOOLS_DIR}/ucrt64/bin/cmake.exe' && ./cmake-configure GCC ${GCC_VER} --with-projects=QuickBLAST.prj --without-dll --with-composite --without-debug --with-build-root=BUILD"
+        #--with-dll
+        # STEP 2: Use double quotes, escape inner quotes, and use $$ to pass command substitution safely to Bash
+        BUILD_COMMAND $(MAKE) -C BUILD/build -j ${N_PROC} datatool all makeblastdb QuickBLASTcpp
+        
+        # STEP 3: Run the post-injection script
+        INSTALL_COMMAND bash -c "echo ncbi-cxx-toolkit build complete!"
+        #INSTALL_COMMAND bash -c "RTOOLS_DIR='${RTOOLS_DIR}' ./ncbi_crosscomp_inject_post.sh"
+    )
+
+    execute_process(COMMAND Rscript -e "cat(Sys.getenv('R_HOME'))" OUTPUT_VARIABLE R_USR_HOME OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set(R_INC "${R_USR_HOME}/include")
+    cygpath_cmd(R_INC "${R_USR_HOME}/include")
+    message("R inc:" ${R_INC})
+    
+    execute_process(COMMAND Rscript -e "cat(file.path(Sys.getenv('R_HOME'),'bin',Sys.getenv('R_ARCH')))" OUTPUT_VARIABLE R_BIN OUTPUT_STRIP_TRAILING_WHITESPACE)
+    cygpath_cmd(R_BIN "${R_BIN}")
+    message("R BIN:" ${R_BIN})
+
+    #ExternalProject_Add(configure_R
+    #    PREFIX "${CMAKE_CURRENT_BINARY_DIR}/configure_r_ep"
+    #    SOURCE_DIR "${R_ROOT_SRC_DIR}"
+    #    BUILD_IN_SOURCE TRUE
+    #    
+    #    # STEP 1: Run pre-inject and cmake-configure
+    #    CONFIGURE_COMMAND bash -c "SHLIB_OPENMP_CXXFLAGS='${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}' RTOOLS_DIR='${RTOOLS_DIR}' ./configure --enable-R-static-lib --enable-lto --enable-static --with-gnu-ld --with-internal-tzcode --without-x --disable-rpath "
+    #
+    #    # STEP 2: Use double quotes, escape inner quotes, and use $$ to pass command substitution safely to Bash
+    #    BUILD_COMMAND bash -c "echo ${R_INC}..."
+    #    
+    #    # STEP 3: Run the post-injection script
+    #    INSTALL_COMMAND bash -c "echo Skipping R INSTALL..."
+    #)
+
+    # Ensure Arrow builds before NCBI
+    add_dependencies(ncbi_toolkit build_arrow)
+    #add_dependencies(ncbi_toolkit_static ncbi_toolkit)
+
+    # =========================================================================
+    # 3. DEFINE THE MAIN QUICKBLAST TARGET
+    # =========================================================================
+
+    # Gather your main Rcpp / C++ source files
+    file(GLOB QUICKBLAST_SOURCES "src/*.cpp" "src/*.c")
+    
+    execute_process(COMMAND Rscript -e "cat(system.file(package = 'Rcpp'))" OUTPUT_VARIABLE RCPP_FOLDER OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(COMMAND Rscript -e "cat(system.file(package = 'RcppProgress'))" OUTPUT_VARIABLE RCPPPROG_FOLDER OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(COMMAND Rscript -e "cat(system.file(package = 'RcppThread'))" OUTPUT_VARIABLE RCPPTHREAD_FOLDER OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+    # Create the shared library target for R
+    #add_library(QuickBLAST STATIC ${QUICKBLAST_SOURCES})
+    add_library(QuickBLAST SHARED ${QUICKBLAST_SOURCES})
+    
+    add_dependencies(QuickBLAST ncbi_toolkit)
+    #add_dependencies(QuickBLAST ncbi_toolkit_static)
+    #add_dependencies(QuickBLAST configure_R)
+    
+    # =========================================================================
+    # 4. LINK ARROW (IMPORTED TARGET)
+    # =========================================================================
+
+    # Create a "fake" target for Arrow so CMake knows how to link it
+    add_library(Arrow::msys2 STATIC IMPORTED GLOBAL)
+    set_target_properties(Arrow::msys2 PROPERTIES
+        IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.a"
+    )
+    # Tell CMake: "Do not try to link Arrow until build_arrow is 100% finished"
+    add_dependencies(Arrow::msys2 build_arrow)
+
+    # =========================================================================
+    # 5. LINK NCBI (IMPORTED TARGETS)
+    # =========================================================================
+
+    # Example: Linking the core NCBI static libraries (update names based on what NCBI outputs)
+    add_library(NCBI::core STATIC IMPORTED GLOBAL)
+    set_target_properties(NCBI::core PROPERTIES
+        IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/ncbi-cxx-toolkit-public/BUILD/lib/libncbi_core.a"
+    )
+    # Tell CMake: "Do not try to link NCBI until setup_ncbi is 100% finished"
+    add_dependencies(NCBI::core setup_ncbi)
+    
+    # =========================================================================
+    # FORCE QUICKBLAST TO MATCH NCBI TOOLKIT'S WINDOWS ABI
+    # =========================================================================
+    target_compile_definitions(QuickBLAST PUBLIC
+        NCBI_OS_MSWIN=1
+        WIN32=1
+        _WIN32=1
+        UNICODE
+        _UNICODE
+        NCBI_WIN32_THREADS=1
+    )
+    target_compile_features(QuickBLAST PRIVATE cxx_std_20)
+    # Tell the compiler that iconv is a static library
+    target_compile_definitions(QuickBLAST PUBLIC LIBICONV_STATIC)
+    target_compile_definitions(QuickBLAST PRIVATE ARROW_STATIC)
+    target_compile_definitions(QuickBLAST PRIVATE PARQUET_STATIC)
+
+    # Forcefully remove POSIX thread macros if CMake's FindThreads injected them into QuickBLAST
+    get_target_property(QB_DEFS QuickBLAST COMPILE_DEFINITIONS)
+    if(QB_DEFS)
+        list(REMOVE_ITEM QB_DEFS "NCBI_POSIX_THREADS" "NCBI_USE_MUTEX_PTHREADS")
+        set_target_properties(QuickBLAST PROPERTIES COMPILE_DEFINITIONS "${QB_DEFS}")
+    endif()
+
+  # if(WIN32 OR MINGW)
+  #    # Prevent MinGW from exceeding the 64k DLL export limit by hiding static lib symbols
+  #    # Tell CMake explicitly NOT to auto-export everything
+  #    set_target_properties(QuickBLAST PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS OFF)
+  #    # Tell the MinGW linker not to re-export symbols from all the NCBI static archives
+  #    target_link_options(QuickBLAST PRIVATE "-Wl,--exclude-libs=ALL")
+  #    # Force RcppExport to act as a Windows DLLExport macro for this target
+  #    target_compile_definitions(QuickBLAST PRIVATE 
+  #       # RcppExport=extern\ \"C\"\ __declspec(dllexport)
+  #        "RcppExport=extern \"C\" __declspec(dllexport)"
+  #    )
+  # endif()
+  
+  if(WIN32 OR MINGW)
+    # 1. Keep this to ensure static archive symbols stay private
+    target_link_options(QuickBLAST PRIVATE "-Wl,--exclude-libs=ALL")
+    # 2. Automatically generate a .def file exporting !~~ONLY~~ the R (side) functions
+    set(DEF_FILE "${CMAKE_CURRENT_BINARY_DIR}/QuickBLAST.def")
+    file(WRITE "${DEF_FILE}" 
+    "EXPORTS
+        R_init_QuickBLAST
+        _QuickBLAST_isQuickBLASTLoaded
+        _QuickBLAST_RecordBatchVectorToFlattenedDFList
+        _QuickBLAST_CreateQuickBLASTInstance
+        _QuickBLAST_GetInstanceCount
+        _QuickBLAST_GetInstanceID
+        _QuickBLAST_GetQuickBLASTInstance
+        _QuickBLAST_DeleteQuickBLASTInstance
+        _QuickBLAST_GetQuickBLASTOptions
+        _QuickBLAST_SetQuickBLASTOptions
+        _QuickBLAST_BLAST2Seqs
+        _QuickBLAST_BLAST2Folders
+        _QuickBLAST_BLAST1Folder
+        _QuickBLAST_BLAST2Files
+        _QuickBLAST_RemoteBLAST
+        _QuickBLAST_isBLASTDB
+        _QuickBLAST_MakeBLASTDB
+        _QuickBLAST_BLAST2DBs
+        _QuickBLAST_GetFASTAHeaders
+        _QuickBLAST_BLASTFile2DB
+    ")
+    # 3. Add the .def file directly to the target sources
+    # The Windows linker will read this and open the door exclusively for R!
+    target_sources(QuickBLAST PRIVATE "${DEF_FILE}")
+    # NOTE: Completely REMOVE the target_compile_definitions(QuickBLAST PRIVATE "RcppExport=...") line!
+  endif()
+    set_target_properties(QuickBLAST PROPERTIES 
+        PREFIX "" 
+        OUTPUT_NAME "QuickBLAST"
+        SUFFIX ".dll"
+    )
+    # =========================================================================
+    # 6. BRING IT ALL TOGETHER
+    # =========================================================================
+
+    # Apply all include directories needed for your QuickBLAST code
+    target_include_directories(QuickBLAST PRIVATE
+        #"${R_INC_UNIX}"
+        "${R_INC}"
+        "${R_INC}/R_ext/"
+        "${R_INCLUDE_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/include/"
+        "${RCPP_FOLDER}/include"
+        "${RCPPPROG_FOLDER}/include"
+        "${RCPPTHREAD_FOLDER}/include"
+        "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/src"
+        "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/src"
+        "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/ncbi-cxx-toolkit-public/include" # To find QuickBLAST/commons.hpp
+    )
+    
+    target_compile_options(QuickBLAST PRIVATE
+        "-include" "rcpp_workaround.hpp"
+        ${SHLIB_OPENMP_CXXFLAGS}
+    )
+    
+    # 1. Tell CMake where the directory of the built libraries is
+    target_link_directories(QuickBLAST PRIVATE
+        "${CMAKE_CURRENT_BINARY_DIR}/sqlite"
+        "${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/bin"
+        "${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/lib"
+        "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/lib"
+        "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/bin"
+        "${CMAKE_CURRENT_BINARY_DIR}/arrow/cpp/BUILD_MSYS2/release"
+        "${CMAKE_CURRENT_BINARY_DIR}/arrow/cpp/BUILD_MSYS2/lib"
+        "${R_BIN}"
+    )
+
+    set(ICONV_STATIC_LIB "${RTOOLS_DIR}/x86_64-w64-mingw32.static.posix/lib/libiconv.a")
+
+    # 2. Link the libraries by name (do not include "lib" or ".a")
+    target_link_libraries(QuickBLAST PUBLIC
+        ${PKG_LIBS}
+        -Wl,--enable-auto-import
+        -Wl,--start-group
+        bz2
+        arrow
+        arrow_bundled_dependencies
+        parquet
+        thrift
+        "${CMAKE_CURRENT_BINARY_DIR}/sqlite/libsqlite3.a"
+        NCBI::core
+        ncbi_algo
+        ncbi_align_format
+        ncbi_blastinput
+        ncbi_dbapi_driver
+        ncbi_eutils
+        ncbi_general
+        ncbi_misc
+        ncbi_pub
+        ncbi_seq
+        ncbi_seqext
+        ncbi_trackmgr
+        ncbi_web
+        ncbi_xdbapi_ftds
+        ncbi_xloader_blastdb
+        ncbi_xloader_genbank
+        ncbi_xobjsimple
+        ncbi_xreader_cache
+        ncbi_xreader_id1
+        ncbi_xreader_id2
+        ncbi_xreader
+        xxconnect2
+        ct_ftds14
+        efetch
+        lmdb
+        ncbi_xloader_blastdb_rmt
+        psg_client
+        QuickBLASTcpp
+        sqlitewrapp
+        tds_ftds14
+        utrtprof
+        xflatfile
+        zcf
+        zstd
+        #R
+        "${R_BIN}/R.dll"
+        #Required Native Windows System Libraries
+        dbghelp
+        advapi32
+        psapi
+        iphlpapi
+        oleaut32
+        ole32
+        user32
+        netapi32
+        ws2_32      # Networking
+        wsock32     # Networking legacy
+        crypt32     # Cryptography
+        secur32     # Security
+        normaliz    # Unicode normalization
+        bcrypt
+        sqlite3
+        z
+        lz4
+        brotlidec
+        brotlienc
+        brotlicommon
+        iconv
+        #${ICONV_STATIC_LIB}
+        -Wl,--end-group
+    )
+
+    # 1. Identify the R architecture directory
+    if(DEFINED ENV{R_ARCH})
+        set(R_ARCH_DIR "/$ENV{R_ARCH}")
+    else()
+        set(R_ARCH_DIR "")
+    endif()
+
+    # Destination inside your R package source
+    set(DEV_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/libs${R_ARCH}")
+    set(INST_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/inst/libs${R_ARCH}")
+
+    add_custom_command(TARGET QuickBLAST POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${DEV_LIB_DEST}"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${INST_LIB_DEST}"
+    )
+
+    # Source paths (adjust these if your BUILD directories differ)
+    set(NCBI_BIN_DIR "${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/bin")
+    set(ARROW_BIN_DIR "${CMAKE_CURRENT_BINARY_DIR}/arrow/cpp/BUILD_MSYS2/release")
+
+    ## 2. List of specific NCBI files to strip and copy
+    set(NCBI_FILES
+    #    "libncbi_algo.dll"
+    #    "libncbi_align_format.dll"
+    #    "libncbi_blastinput.dll"
+    #    "libncbi_core.dll"
+    #    "libncbi_dbapi_driver.dll"
+    #    "libncbi_eutils.dll"
+    #    "libncbi_general.dll"
+    #    "libncbi_misc.dll"
+    #    "libncbi_pub.dll"
+    #    "libncbi_seq.dll"
+    #    "libncbi_seqext.dll"
+    #    "libncbi_trackmgr.dll"
+    #    "libncbi_web.dll"
+    #    "libncbi_xdbapi_ftds.dll"
+    #    "libncbi_xloader_blastdb.dll"
+    #    "libncbi_xloader_genbank.dll"
+    #    "libncbi_xobjsimple.dll"
+    #    "libncbi_xreader.dll"
+    #    "libncbi_xreader_cache.dll"
+    #    "libncbi_xreader_id1.dll"
+    #    "libncbi_xreader_id2.dll"
+    #    "libxxconnect2.dll"
+        "makeblastdb.exe"
+    )
+
+    # --- 1. Define Destinations (Make sure these variable names match exactly) ---
+    set(DEV_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/libs${R_ARCH}")
+    set(INST_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/inst/libs${R_ARCH}")
+
+    # --- 2. Create BOTH directories before copying ---
+    add_custom_command(TARGET QuickBLAST POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${DEV_LIB_DEST}"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${INST_LIB_DEST}"
+        COMMENT "Syncing QuickBLAST and NCBI libraries to R package directories..."
+    )
+
+    # --- 3. Process NCBI files ---
+    foreach(FILENAME ${NCBI_FILES})
+        add_custom_command(TARGET QuickBLAST POST_BUILD
+            # Copy to the root libs/ folder for devtools::load_all()
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+                    "${NCBI_BIN_DIR}/${FILENAME}" "${DEV_LIB_DEST}/${FILENAME}"
+                    
+            # Copy to inst/libs/ for the final package installation
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+                    "${NCBI_BIN_DIR}/${FILENAME}" "${INST_LIB_DEST}/${FILENAME}"
+        )
+    endforeach()
+
+    ## Process Arrow DLLs
+    ## Note: Since CMake's copy command doesn't support wildcards directly,
+    ## we use the system shell provided by Rtools/MinGW
+    #add_custom_command(TARGET QuickBLAST POST_BUILD
+    #    COMMAND bash -c "cp -uf ${ARROW_BIN_DIR}/*.dll ${INST_LIBS_DEST}/"
+    #    COMMENT "Deploying Arrow dependencies"
+    #)
 
 endif()
