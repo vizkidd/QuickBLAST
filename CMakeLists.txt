@@ -284,7 +284,7 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
         
         # 1. Download and Extract
         file(DOWNLOAD "https://sqlite.org/download.html" "${SQLITE_ROOT_DIR}/download.html" STATUS dl_status TIMEOUT 10)
-        execute_process(COMMAND bash -c "grep -Eo '[0-9]{4}/sqlite-amalgamation-[0-9]+\\.zip' ${SQLITE_ROOT_DIR}/download.html | head -n 1" OUTPUT_VARIABLE SQLITE_LINK OUTPUT_STRIP_TRAILING_WHITE)
+        execute_process(COMMAND bash -c "grep -Eo '[0-9]{4}/sqlite-amalgamation-[0-9]+\\.zip' ${SQLITE_ROOT_DIR}/download.html | head -n 1" OUTPUT_VARIABLE SQLITE_LINK OUTPUT_STRIP_TRAILING_WHITESPACE)
         file(DOWNLOAD "https://sqlite.org/${SQLITE_LINK}" "${SQLITE_ROOT_DIR}/sqlite.zip" STATUS dl_status TIMEOUT 10)
         execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf "sqlite.zip" WORKING_DIRECTORY "${SQLITE_ROOT_DIR}")
         file(GLOB SQLITE_SRC_DIR "${SQLITE_ROOT_DIR}/sqlite-amalgamation-*")
