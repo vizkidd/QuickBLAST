@@ -196,8 +196,8 @@ if(APPLE OR CMAKE_SYSTEM_NAME MATCHES "Darwin" OR CMAKE_C_COMPILER_ID MATCHES "A
 else()
     # GCC compatible flags
     #${R_FLAGS} -static-libgcc  -static-libstdc++ 
-    set(ARROW_CXX_FLAGS " -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -mtune=generic -march=native -maccumulate-outgoi")
-    set(ARROW_C_FLAGS  " -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -mtune=generic -maccumulate-outgoin")
+    set(ARROW_CXX_FLAGS " -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -mtune=generic -march=native -maccumulate-outgoing-args -pthread")
+    set(ARROW_C_FLAGS  " -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -march=native -mtune=generic -maccumulate-outgoing-args -pthread")
 endif()
 
 set(ARROW_EXE_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
