@@ -1,7 +1,8 @@
 # $Id$
 
-cmake_minimum_required(VERSION 3.20)
-cmake_policy(VERSION 3.20)
+#Apache Arrow requires a minimum CMake version of 3.25
+cmake_minimum_required(VERSION 3.25) 
+cmake_policy(VERSION 3.25)
 
 set(CMAKE_EXPORT_NO_PACKAGE_REGISTRY ON)
 set(CMAKE_FIND_USE_PACKAGE_REGISTRY OFF)

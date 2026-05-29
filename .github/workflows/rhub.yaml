@@ -52,6 +52,11 @@ jobs:
 
     steps:
       - uses: r-hub/actions/checkout@v1
+      - name: Install CMake 3.25+
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends cmake
+          cmake --version
       - uses: r-hub/actions/platform-info@v1
         with:
           token: ${{ secrets.RHUB_TOKEN }}
@@ -81,6 +86,15 @@ jobs:
         with:
           job-config: ${{ matrix.config.job-config }}
           token: ${{ secrets.RHUB_TOKEN }}
+      - name: Install/Upgrade CMake
+        run: |
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            brew install cmake
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            choco install cmake -y
+          fi
+          cmake --version
+        shell: bash
       - uses: r-hub/actions/platform-info@v1
         with:
           token: ${{ secrets.RHUB_TOKEN }}
