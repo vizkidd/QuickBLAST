@@ -54,8 +54,15 @@ jobs:
       - uses: r-hub/actions/checkout@v1
       - name: Install CMake 3.25+
         run: |
-          apt-get update -qq
-          apt-get install -y --no-install-recommends cmake
+          if command -v apt &> /dev/null; then
+            apt update -qq
+            apt install -y --no-install-recommends cmake
+          elif command -v apk &> /dev/null; then
+            apk update
+            apk add cmake
+          elif command -v yum &> /dev/null; then
+            yum install -y cmake
+          fi
           cmake --version
       - uses: r-hub/actions/platform-info@v1
         with:
