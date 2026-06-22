@@ -96,7 +96,7 @@ jobs:
       - name: Install/Upgrade CMake
         run: |
           if [ "$RUNNER_OS" == "macOS" ]; then
-            brew install cmake
+            brew install cmake libuv
           elif [ "$RUNNER_OS" == "Windows" ]; then
             choco install cmake -y
           fi
