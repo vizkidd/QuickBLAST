@@ -1131,8 +1131,8 @@ elseif(WIN32)
     endif()
 
     # Destination inside your R package source
-    set(DEV_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/libs${R_ARCH}")
-    set(INST_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/inst/libs${R_ARCH}")
+    set(DEV_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/libs${R_ARCH_DIR}")
+    set(INST_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/inst/libs${R_ARCH_DIR}")
 
     add_custom_command(TARGET QuickBLAST POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory "${DEV_LIB_DEST}"
@@ -1170,9 +1170,12 @@ elseif(WIN32)
         "makeblastdb.exe"
     )
 
+    message("HERE R_ARCH:" ${R_ARCH})
+    message("HERE R_ARCH_DIR:" ${R_ARCH_DIR})
+    
     # --- 1. Define Destinations (Make sure these variable names match exactly) ---
-    set(DEV_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/libs${R_ARCH}")
-    set(INST_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/inst/libs${R_ARCH}")
+    set(DEV_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/libs${R_ARCH_DIR}")
+    set(INST_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/inst/libs${R_ARCH_DIR}")
 
     # --- 2. Create BOTH directories before copying ---
     add_custom_command(TARGET QuickBLAST POST_BUILD
