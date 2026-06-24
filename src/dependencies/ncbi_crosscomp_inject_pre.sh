@@ -335,10 +335,19 @@ echo "Stripping false MSVC compiler definitions..."
 sed -i 's/#define  NCBI_COMPILER_MSVC 1/\/* #undef NCBI_COMPILER_MSVC *\//g' "$UNIX_TEMPLATE"
 sed -i 's/#cmakedefine NCBI_COMPILER_MSVC 1/\/* #undef NCBI_COMPILER_MSVC *\//g' "$UNIX_TEMPLATE"
 
-# 4. FIX: Patch ncbistre.hpp so it stops trying to use Microsoft _Openprot extensions
-echo "Patching ncbistre.hpp to use standard GNU libstdc++ file streams..."
+# # 4. FIX: Patch ncbistre.hpp so it stops trying to use Microsoft _Openprot extensions
+# echo "Patching ncbistre.hpp to use standard GNU libstdc++ file streams..."
+# sed -i 's/#if defined(NCBI_OS_MSWIN)/#if defined(NCBI_OS_MSWIN) \&\& defined(_MSC_VER)/g' include/corelib/ncbistre.hpp
+# sed -i 's/#ifdef NCBI_OS_MSWIN/#if defined(NCBI_OS_MSWIN) \&\& defined(_MSC_VER)/g' include/corelib/ncbistre.hpp
+
+# 4. FIX: Patch ncbistre.hpp AND ncbistre.cpp so they match!
+echo "Patching ncbistre to use standard GNU libstdc++ file streams..."
+# Patch the header
 sed -i 's/#if defined(NCBI_OS_MSWIN)/#if defined(NCBI_OS_MSWIN) \&\& defined(_MSC_VER)/g' include/corelib/ncbistre.hpp
 sed -i 's/#ifdef NCBI_OS_MSWIN/#if defined(NCBI_OS_MSWIN) \&\& defined(_MSC_VER)/g' include/corelib/ncbistre.hpp
+# Patch the implementation file so it doesn't try to compile what the header hid
+sed -i 's/#if defined(NCBI_OS_MSWIN)/#if defined(NCBI_OS_MSWIN) \&\& defined(_MSC_VER)/g' src/corelib/ncbistre.cpp
+sed -i 's/#ifdef NCBI_OS_MSWIN/#if defined(NCBI_OS_MSWIN) \&\& defined(_MSC_VER)/g' src/corelib/ncbistre.cpp
 
 # 5. FIX: Destroy the hardcoded MSVC requirement gate across ALL headers
 echo "Removing hardcoded MSVC restriction globally..."

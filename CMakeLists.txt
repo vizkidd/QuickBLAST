@@ -92,6 +92,17 @@ if(NOT WIN32)
        OUTPUT_VARIABLE UV_INC
        OUTPUT_STRIP_TRAILING_WHITESPACE
   	)
+  	if(APPLE)
+        find_path(UV_INC 
+            NAMES uv.h 
+            PATHS /opt/homebrew/include /usr/local/include
+        )
+        if(NOT UV_INC)
+            message(FATAL_ERROR "Could not find libuv.h! Ensure brew install libuv ran.")
+        endif()
+        message(STATUS "Found Homebrew libuv at: ${UV_INC}")
+    endif()
+  	
     if (NOT EXISTS "${ROOT_SRC_DIR}/ncbi-cxx-toolkit-public/")
     execute_process(
     COMMAND git clone https://github.com/ncbi/ncbi-cxx-toolkit-public ncbi-cxx-toolkit-public
