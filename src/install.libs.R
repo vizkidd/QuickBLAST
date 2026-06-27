@@ -17,6 +17,12 @@ dir.create(dest, recursive = TRUE, showWarnings = FALSE)
 ##  C:/Users/vishv/AppData/Local/Temp/RtmpO6DZ4p/temp_libpath2fb068301991/QuickBLAST/ 
 
 cat(paste("INSTALLING....", R_PACKAGE_NAME, " FOR R - ", R_ARCH, "\n", sep=""))
+
+cat(list.files(path = fs::path_package("QuickBLAST"), all.files = T, full.names = T, recursive = T))
+cat(list.files(path = getwd(), all.files = T, full.names = T, recursive = F))
+cat(list.files(path=dest, all.files = T, full.names = T, recursive = F))
+# cat(list.files(path = path.package(package = "QuickBLAST"), all.files = T, full.names = T, recursive = F))
+
 # cat(paste0(dest, "\n"))
 # cat(paste0(staged_dest, "\n"))
 # cat(paste0(R_PACKAGE_DIR, "\n"))

@@ -80,18 +80,31 @@ if(NOT WIN32)
         COMMAND_ERROR_IS_FATAL ANY
     )
     
-    if (NOT EXISTS "${ROOT_SRC_DIR}/libuv/")
+    set(UV_BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}/libuv/")
+    
+    if (NOT EXISTS "${UV_BASE_DIR}")
     execute_process(
     COMMAND git clone https://github.com/libuv/libuv libuv
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     #COMMAND_ERROR_IS_FATAL ANY
     )
     endif()
-    execute_process(
-  	  COMMAND bash -c "realpath ../../../libuv/include/" ;
-       OUTPUT_VARIABLE UV_INC
-       OUTPUT_STRIP_TRAILING_WHITESPACE
-  	)
+    #execute_process(
+  	#  COMMAND bash -c "realpath ../../../libuv/include/" ;
+    #   OUTPUT_VARIABLE UV_INC
+    #   OUTPUT_STRIP_TRAILING_WHITESPACE
+  	#)
+  	if (NOT EXISTS "${UV_BASE_DIR}")
+        message(STATUS "Cloning libuv into ${UV_BASE_DIR}...")
+        execute_process(
+            COMMAND git clone https://github.com/libuv/libuv libuv
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMAND_ERROR_IS_FATAL ANY
+        )
+    endif()
+    
+    # 3. Use CMake to get the absolute path securely (No bash required!)
+    get_filename_component(UV_INC "${UV_BASE_DIR}/include" ABSOLUTE)
   	if(APPLE)
         find_path(UV_INC 
             NAMES uv.h 
