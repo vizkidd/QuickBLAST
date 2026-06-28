@@ -407,13 +407,14 @@ endif()
     #    COMMAND_ERROR_IS_FATAL ANY
     #  )
     #else()
+    
+    #"CMAKE_PREFIX_PATH=${SQLITE_ROOT_DIR}"
+    #"CMAKE_INCLUDE_PATH=${SQLITE_INC_DIR};${UV_INC}"
+    #"CMAKE_LIBRARY_PATH=${SQLITE_ROOT_DIR}"
       execute_process(
         COMMAND ${CMAKE_COMMAND} -E env 
           "CC=${CMAKE_C_COMPILER}" 
           "CXX=${CMAKE_CXX_COMPILER}" 
-          "CMAKE_PREFIX_PATH=${SQLITE_ROOT_DIR}"
-          "CMAKE_INCLUDE_PATH=${SQLITE_INC_DIR};${UV_INC}"
-          "CMAKE_LIBRARY_PATH=${SQLITE_ROOT_DIR}"
       ./cmake-configure 
           --with-projects=QuickBLAST.prj 
           --without-debug 
@@ -424,6 +425,8 @@ endif()
           "-DNCBI_COMPONENT_SQLITE3_FOUND=YES"
           "-DNCBI_COMPONENT_SQLITE3_INCLUDE=${SQLITE_INC_DIR}"
           "-DNCBI_COMPONENT_SQLITE3_LIBS=${SQLITE_TARGET_LIB}"
+          "-DNCBI_COMPONENT_UV_FOUND=YES"
+          "-DNCBI_COMPONENT_UV_INCLUDE=${UV_INC}"
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
             COMMAND_ERROR_IS_FATAL ANY
         )

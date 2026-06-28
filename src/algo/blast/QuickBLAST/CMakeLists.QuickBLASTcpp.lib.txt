@@ -151,7 +151,7 @@ find_library(PARQUET_LIB
 		"${ARROW_DIR}/BUILD/src"
 		"${ARROW_DIR}/src"
 		"${CMAKE_SOURCE_DIR}/src/include"
-		"${UV_INC}"
+		#"${UV_INC}"
 	)
 	NCBI_uses_toolkit_libraries(
 		#corelib

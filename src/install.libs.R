@@ -18,9 +18,9 @@ dir.create(dest, recursive = TRUE, showWarnings = FALSE)
 
 cat(paste("INSTALLING....", R_PACKAGE_NAME, " FOR R - ", R_ARCH, "\n", sep=""))
 
-cat(list.files(path = fs::path_package("QuickBLAST"), all.files = T, full.names = T, recursive = T))
-cat(list.files(path = getwd(), all.files = T, full.names = T, recursive = F))
-cat(list.files(path=dest, all.files = T, full.names = T, recursive = F))
+# cat(list.files(path = fs::path_package("QuickBLAST"), all.files = T, full.names = T, recursive = T))
+# cat(list.files(path = getwd(), all.files = T, full.names = T, recursive = F))
+# cat(list.files(path=dest, all.files = T, full.names = T, recursive = F))
 # cat(list.files(path = path.package(package = "QuickBLAST"), all.files = T, full.names = T, recursive = F))
 
 # cat(paste0(dest, "\n"))
@@ -80,6 +80,34 @@ if (!dll_found) {
 
 if(file.exists("symbols.rds"))
   file.copy("symbols.rds", dest, overwrite = TRUE)
+
+exe_paths <- c(
+  "makeblastdb",
+  "makeblastdb.exe",
+  "../BUILD/makeblastdb",
+  "../BUILD/makeblastdb.exe",
+  "../inst/libs/makeblastdb",
+  "../inst/libs/makeblastdb.exe"
+)
+
+exe_found <- FALSE
+for (exe in exe_paths) {
+  if (fs::file_exists(exe)) {
+    # Copy it to the same 'dest' (libs/x64) as the DLL
+    file.copy(exe, dest, overwrite = TRUE)
+    exe_found <- TRUE
+    
+    # Optional: Clean up the misplaced copy in inst/libs so it doesn't get duplicated
+    if (grepl("inst/libs", exe)) {
+      unlink(exe)
+    }
+    break
+  }
+}
+
+if (!exe_found) {
+  stop("install.libs.R could not find makeblastdb executable to copy!")
+}
 
 # require(Rcpp)
 # require(RcppProgress)
