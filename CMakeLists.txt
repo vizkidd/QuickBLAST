@@ -113,7 +113,18 @@ if(NOT WIN32)
         if(NOT UV_INC)
             message(FATAL_ERROR "Could not find libuv.h! Ensure brew install libuv ran.")
         endif()
+        
+        # Find nghttp2
+        find_path(NGHTTP2_INC 
+            NAMES nghttp2/nghttp2.h 
+            PATHS /opt/homebrew/include /usr/local/include
+        )
+        if(NOT NGHTTP2_INC)
+            message(FATAL_ERROR "Could not find nghttp2.h! Ensure brew install nghttp2 ran.")
+        endif()
+        
         message(STATUS "Found Homebrew libuv at: ${UV_INC}")
+        message(STATUS "Found Homebrew nghttp2 at: ${NGHTTP2_INC}")
     endif()
   	
     if (NOT EXISTS "${ROOT_SRC_DIR}/ncbi-cxx-toolkit-public/")
@@ -411,6 +422,10 @@ endif()
     #"CMAKE_PREFIX_PATH=${SQLITE_ROOT_DIR}"
     #"CMAKE_INCLUDE_PATH=${SQLITE_INC_DIR};${UV_INC}"
     #"CMAKE_LIBRARY_PATH=${SQLITE_ROOT_DIR}"
+    
+    #"CFLAGS=-DPCRE2POSIX_EXP_DEFN= -DPCRE2POSIX_EXP_DECL= -DPCRE2_STATIC=1"
+    #"CXXFLAGS=-DPCRE2POSIX_EXP_DEFN= -DPCRE2POSIX_EXP_DECL= -DPCRE2_STATIC=1"
+    
       execute_process(
         COMMAND ${CMAKE_COMMAND} -E env 
           "CC=${CMAKE_C_COMPILER}" 
@@ -427,6 +442,8 @@ endif()
           "-DNCBI_COMPONENT_SQLITE3_LIBS=${SQLITE_TARGET_LIB}"
           "-DNCBI_COMPONENT_UV_FOUND=YES"
           "-DNCBI_COMPONENT_UV_INCLUDE=${UV_INC}"
+          "-DNCBI_COMPONENT_NGHTTP2_FOUND=YES"
+          "-DNCBI_COMPONENT_NGHTTP2_INCLUDE=${NGHTTP2_INC}"
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
             COMMAND_ERROR_IS_FATAL ANY
         )
@@ -1152,7 +1169,7 @@ elseif(WIN32)
 
     # 1. Identify the R architecture directory
     if(DEFINED ENV{R_ARCH})
-        set(R_ARCH_DIR "/$ENV{R_ARCH}")
+        set(R_ARCH_DIR "$ENV{R_ARCH}") 
     else()
         set(R_ARCH_DIR "")
     endif()
