@@ -106,26 +106,33 @@ if(NOT WIN32)
     # 3. Use CMake to get the absolute path securely (No bash required!)
     get_filename_component(UV_INC "${UV_BASE_DIR}/include" ABSOLUTE)
   	if(APPLE)
-        find_path(UV_INC 
-            NAMES uv.h 
-            PATHS /opt/homebrew/include /usr/local/include
-        )
+        # --- macOS (Apple Silicon & Intel Homebrew) ---
+        find_path(UV_INC NAMES uv.h PATHS /opt/homebrew/include /usr/local/include)
         if(NOT UV_INC)
             message(FATAL_ERROR "Could not find libuv.h! Ensure brew install libuv ran.")
         endif()
         
-        # Find nghttp2
-        find_path(NGHTTP2_INC 
-            NAMES nghttp2/nghttp2.h 
-            PATHS /opt/homebrew/include /usr/local/include
-        )
+        find_path(NGHTTP2_INC NAMES nghttp2/nghttp2.h PATHS /opt/homebrew/include /usr/local/include)
         if(NOT NGHTTP2_INC)
             message(FATAL_ERROR "Could not find nghttp2.h! Ensure brew install nghttp2 ran.")
         endif()
         
-        message(STATUS "Found Homebrew libuv at: ${UV_INC}")
-        message(STATUS "Found Homebrew nghttp2 at: ${NGHTTP2_INC}")
+    elseif(UNIX AND NOT APPLE)
+        # --- Linux (Ubuntu/Debian via apt-get or CentOS via yum) ---
+        # CMake will natively search /usr/include and /usr/local/include
+        find_path(UV_INC NAMES uv.h)
+        if(NOT UV_INC)
+            message(FATAL_ERROR "Could not find libuv.h! Ensure 'libuv1-dev' is installed.")
+        endif()
+        
+        find_path(NGHTTP2_INC NAMES nghttp2/nghttp2.h)
+        if(NOT NGHTTP2_INC)
+            message(FATAL_ERROR "Could not find nghttp2.h! Ensure 'libnghttp2-dev' is installed.")
+        endif()
     endif()
+
+    message(STATUS "Resolved UV_INC: ${UV_INC}")
+    message(STATUS "Resolved NGHTTP2_INC: ${NGHTTP2_INC}")
   	
     if (NOT EXISTS "${ROOT_SRC_DIR}/ncbi-cxx-toolkit-public/")
     execute_process(
