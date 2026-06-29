@@ -135,6 +135,25 @@ if(NOT WIN32)
     #message(STATUS "Resolved UV_INC: ${UV_INC}")
     #message(STATUS "Resolved NGHTTP2_INC: ${NGHTTP2_INC}")
   	
+  	# Add Homebrew to search paths on macOS (Apple Silicon & Intel)
+    if(APPLE)
+        find_program(BREW_EXECUTABLE brew)
+        if(BREW_EXECUTABLE)
+            # Get the homebrew prefix (/opt/homebrew on M-series, /usr/local on Intel)
+            execute_process(
+                COMMAND ${BREW_EXECUTABLE} --prefix 
+                OUTPUT_VARIABLE BREW_PREFIX 
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+            )
+            
+            # Point pkg-config to Homebrew's pkgconfig directory
+            set(ENV{PKG_CONFIG_PATH} "${BREW_PREFIX}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+            
+            # Point standard CMake find_package calls to Homebrew
+            list(APPEND CMAKE_PREFIX_PATH "${BREW_PREFIX}")
+        endif()
+    endif()
+  	
   	# --- Dependency Resolution via pkg-config ---
     find_package(PkgConfig QUIET)
     if(NOT PKG_CONFIG_FOUND)

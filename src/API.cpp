@@ -2441,14 +2441,19 @@ SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool parse_seqid
      
      Environment pkg = Environment::namespace_env("QuickBLAST"); 
      Function f = pkg[".GetLibsPath"];
-     std::string program_path = Rcpp::as<std::string>( f(Named("file_name")="makeblastdb") );
-     
+     std::string mbdb_exe = "makeblastdb";
      // --- 1. Handle Windows .exe Extension ---
 #if defined(_WIN32) || defined(__MINGW32__)
-     if (program_path.length() < 4 || program_path.substr(program_path.length() - 4) != ".exe") {
-       program_path += ".exe";
-     }
+     mbdb_exe += ".exe";
 #endif
+     std::string program_path = Rcpp::as<std::string>( f(Named("file_name")=mbdb_exe) );
+     
+     //      // --- 1. Handle Windows .exe Extension ---
+     // #if defined(_WIN32) || defined(__MINGW32__)
+     //      if (program_path.length() < 4 || program_path.substr(program_path.length() - 4) != ".exe") {
+     //        program_path += ".exe";
+     //      }
+     // #endif
      
      // --- 2. Check if the program actually exists ---
      if (!FileExists(program_path)) {
