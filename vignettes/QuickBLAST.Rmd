@@ -173,26 +173,26 @@ writeLines(c(
 
 db_path <- file.path(safe_temp_dir, "My_Test_DB")
 
-# 1. Compile the local BLAST database
-# db_type can be "nucl" or "prot"
-QuickBLAST::MakeBLASTDB(
-  ptr = blastn_inst,
-  input_file = subject_fasta,
-  database_name = db_path,
-)
-
-
-# 2. Search a query file against the custom local database
-db_results <- QuickBLAST::BLAST2DBs(
- blastn_inst, 
- query = query_fasta, 
- subject = db_path,
- return_values = TRUE,
- num_threads = 2
-)
- 
-
-print(db_results)
+# # 1. Compile the local BLAST database
+# # db_type can be "nucl" or "prot"
+# QuickBLAST::MakeBLASTDB(
+#   ptr = blastn_inst,
+#   input_file = subject_fasta,
+#   database_name = db_path,
+# )
+# 
+# 
+# # 2. Search a query file against the custom local database
+# db_results <- QuickBLAST::BLAST2DBs(
+#  blastn_inst, 
+#  query = query_fasta, 
+#  subject = db_path,
+#  return_values = TRUE,
+#  num_threads = 2
+# )
+#  
+# 
+# print(db_results)
 
 ```
 
