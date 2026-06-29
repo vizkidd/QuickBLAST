@@ -24,6 +24,7 @@ run_cmake_superbuild.o:
 	unset CC && unset CXX && \
 	cmake .. -G "MSYS Makefiles" \
 		-DCMAKE_BUILD_TYPE=Release \
+		-DR_ARCH="$(R_ARCH)" \
 		-DCMAKE_C_COMPILER=gcc.exe \
 		-DCMAKE_CXX_COMPILER=g++.exe \
 		-DR_SHELL=1 \

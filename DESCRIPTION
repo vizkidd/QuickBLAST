@@ -54,6 +54,6 @@ Collate:
     'QuickBLAST-package.R'
     'RcppExports.R'
     'QuickBLAST.R'
-SystemRequirements: libuv1-dev, libnghttp2-dev
+SystemRequirements: libuv: libuv1-dev (deb) or libuv-devel (rpm), libnghttp2: libnghttp2-dev (deb) or libnghttp2-devel (rpm)
 URL: https://github.com/vizkidd/QuickBLAST
 BugReports: https://github.com/vizkidd/QuickBLAST/issues

@@ -81,36 +81,36 @@ if (!dll_found) {
 if(file.exists("symbols.rds"))
   file.copy("symbols.rds", dest, overwrite = TRUE)
 
-# --- Copy makeblastdb executable to the architecture-specific folder ---
-r_arch <- Sys.getenv("R_ARCH") # Evaluates to "/x64" or ""
-
-# Look for the executable in all the locations CMake might have left it
-exe_paths <- c(
-  "makeblastdb",
-  "makeblastdb.exe",
-  # 1. Look in the exact architecture folders
-  paste0("../inst/libs", r_arch, "/makeblastdb.exe"),
-  paste0("../inst/libs", r_arch, "/makeblastdb"),
-  paste0("../libs", r_arch, "/makeblastdb.exe"),
-  paste0("../libs", r_arch, "/makeblastdb"),
-  # 2. Bulletproof Fallback: Grab it straight from the raw NCBI build output!
-  "../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/makeblastdb.exe",
-  "../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/makeblastdb"
-)
-
-exe_found <- FALSE
-for (exe in exe_paths) {
-  if (fs::file_exists(exe)) {
-    # Copy it to the same 'dest' (libs/x64) as the DLL
-    file.copy(exe, dest, overwrite = TRUE)
-    exe_found <- TRUE
-    break
-  }
-}
-
-if (!exe_found) {
-  stop("install.libs.R could not find makeblastdb executable to copy!")
-}
+# # --- Copy makeblastdb executable to the architecture-specific folder ---
+# r_arch <- Sys.getenv("R_ARCH") # Evaluates to "/x64" or ""
+# 
+# # Look for the executable in all the locations CMake might have left it
+# exe_paths <- c(
+#   "makeblastdb",
+#   "makeblastdb.exe",
+#   # 1. Look in the exact architecture folders
+#   paste0("../inst/libs", r_arch, "/makeblastdb.exe"),
+#   paste0("../inst/libs", r_arch, "/makeblastdb"),
+#   paste0("../libs", r_arch, "/makeblastdb.exe"),
+#   paste0("../libs", r_arch, "/makeblastdb"),
+#   # 2. Bulletproof Fallback: Grab it straight from the raw NCBI build output!
+#   "../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/makeblastdb.exe",
+#   "../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/makeblastdb"
+# )
+# 
+# exe_found <- FALSE
+# for (exe in exe_paths) {
+#   if (fs::file_exists(exe)) {
+#     # Copy it to the same 'dest' (libs/x64) as the DLL
+#     file.copy(exe, dest, overwrite = TRUE)
+#     exe_found <- TRUE
+#     break
+#   }
+# }
+# 
+# if (!exe_found) {
+#   stop("install.libs.R could not find makeblastdb executable to copy!")
+# }
 
 # require(Rcpp)
 # require(RcppProgress)

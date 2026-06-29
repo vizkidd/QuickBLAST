@@ -105,34 +105,85 @@ if(NOT WIN32)
     
     # 3. Use CMake to get the absolute path securely (No bash required!)
     get_filename_component(UV_INC "${UV_BASE_DIR}/include" ABSOLUTE)
-  	if(APPLE)
-        # --- macOS (Apple Silicon & Intel Homebrew) ---
-        find_path(UV_INC NAMES uv.h PATHS /opt/homebrew/include /usr/local/include)
-        if(NOT UV_INC)
-            message(FATAL_ERROR "Could not find libuv.h! Ensure brew install libuv ran.")
-        endif()
-        
-        find_path(NGHTTP2_INC NAMES nghttp2/nghttp2.h PATHS /opt/homebrew/include /usr/local/include)
-        if(NOT NGHTTP2_INC)
-            message(FATAL_ERROR "Could not find nghttp2.h! Ensure brew install nghttp2 ran.")
-        endif()
-        
-    elseif(UNIX AND NOT APPLE)
-        # --- Linux (Ubuntu/Debian via apt-get or CentOS via yum) ---
-        # CMake will natively search /usr/include and /usr/local/include
-        find_path(UV_INC NAMES uv.h)
-        if(NOT UV_INC)
-            message(FATAL_ERROR "Could not find libuv.h! Ensure 'libuv1-dev' is installed.")
-        endif()
-        
-        find_path(NGHTTP2_INC NAMES nghttp2/nghttp2.h)
-        if(NOT NGHTTP2_INC)
-            message(FATAL_ERROR "Could not find nghttp2.h! Ensure 'libnghttp2-dev' is installed.")
-        endif()
+  	
+  	#if(APPLE)
+    #    # --- macOS (Apple Silicon & Intel Homebrew) ---
+    #    find_path(UV_INC NAMES uv.h PATHS /opt/homebrew/include /usr/local/include)
+    #    if(NOT UV_INC)
+    #        message(FATAL_ERROR "Could not find libuv.h! Ensure brew install libuv ran.")
+    #    endif()
+    #    
+    #    find_path(NGHTTP2_INC NAMES nghttp2/nghttp2.h PATHS /opt/homebrew/include /usr/local/include)
+    #    if(NOT NGHTTP2_INC)
+    #        message(FATAL_ERROR "Could not find nghttp2.h! Ensure brew install nghttp2 ran.")
+    #    endif()
+    #    
+    #elseif(UNIX AND NOT APPLE)
+    #    # --- Linux (Ubuntu/Debian via apt-get or CentOS via yum) ---
+    #    # CMake will natively search /usr/include and /usr/local/include
+    #    find_path(UV_INC NAMES uv.h)
+    #    if(NOT UV_INC)
+    #        message(FATAL_ERROR "Could not find libuv.h! Ensure 'libuv1-dev' is installed.")
+    #    endif()
+    #    
+    #    find_path(NGHTTP2_INC NAMES nghttp2/nghttp2.h)
+    #    if(NOT NGHTTP2_INC)
+    #        message(FATAL_ERROR "Could not find nghttp2.h! Ensure 'libnghttp2-dev' is installed.")
+    #    endif()
+    #endif()
+    #
+    #message(STATUS "Resolved UV_INC: ${UV_INC}")
+    #message(STATUS "Resolved NGHTTP2_INC: ${NGHTTP2_INC}")
+  	
+  	# --- Dependency Resolution via pkg-config ---
+    find_package(PkgConfig QUIET)
+    if(NOT PKG_CONFIG_FOUND)
+        message(FATAL_ERROR 
+            "----------------------------------------------------------\n"
+            "Configuration failed: pkg-config is not installed.\n"
+            "Please install pkg-config to build QuickBLAST.\n"
+            "----------------------------------------------------------"
+        )
     endif()
-
-    message(STATUS "Resolved UV_INC: ${UV_INC}")
-    message(STATUS "Resolved NGHTTP2_INC: ${NGHTTP2_INC}")
+    
+    # 1. Check for libuv
+    pkg_check_modules(UV QUIET libuv)
+    if(NOT UV_FOUND)
+        message(FATAL_ERROR 
+            "----------------------------------------------------------\n"
+            "Configuration failed: libuv headers were not found!\n\n"
+            "Please install the libuv development package for your OS:\n"
+            "  Debian/Ubuntu:  sudo apt-get install libuv1-dev\n"
+            "  Fedora/RHEL:    sudo dnf install libuv-devel\n"
+            "  Alpine:         sudo apk add libuv-dev\n"
+            "  macOS:          brew install libuv\n"
+            "----------------------------------------------------------"
+        )
+    endif()
+    
+    # 2. Check for nghttp2
+    pkg_check_modules(NGHTTP2 QUIET libnghttp2)
+    if(NOT NGHTTP2_FOUND)
+        message(FATAL_ERROR 
+            "----------------------------------------------------------\n"
+            "Configuration failed: nghttp2 headers were not found!\n\n"
+            "Please install the nghttp2 development package for your OS:\n"
+            "  Debian/Ubuntu:  sudo apt-get install libnghttp2-dev\n"
+            "  Fedora/RHEL:    sudo dnf install libnghttp2-devel\n"
+            "  Alpine:         sudo apk add nghttp2-dev\n"
+            "  macOS:          brew install nghttp2\n"
+            "----------------------------------------------------------"
+        )
+    endif()
+    
+    # Map the pkg-config outputs to your existing CMake variables so 
+    # your execute_process() block downstream doesn't need to change.
+    # pkg-config returns a list (even if it's just one path), so we extract the first item.
+    list(GET UV_INCLUDE_DIRS 0 UV_INC)
+    list(GET NGHTTP2_INCLUDE_DIRS 0 NGHTTP2_INC)
+    
+    message(STATUS "Resolved UV_INC via pkg-config: ${UV_INC}")
+    message(STATUS "Resolved NGHTTP2_INC via pkg-config: ${NGHTTP2_INC}")
   	
     if (NOT EXISTS "${ROOT_SRC_DIR}/ncbi-cxx-toolkit-public/")
     execute_process(
@@ -430,13 +481,12 @@ endif()
     #"CMAKE_INCLUDE_PATH=${SQLITE_INC_DIR};${UV_INC}"
     #"CMAKE_LIBRARY_PATH=${SQLITE_ROOT_DIR}"
     
-    #"CFLAGS=-DPCRE2POSIX_EXP_DEFN= -DPCRE2POSIX_EXP_DECL= -DPCRE2_STATIC=1"
-    #"CXXFLAGS=-DPCRE2POSIX_EXP_DEFN= -DPCRE2POSIX_EXP_DECL= -DPCRE2_STATIC=1"
-    
       execute_process(
         COMMAND ${CMAKE_COMMAND} -E env 
           "CC=${CMAKE_C_COMPILER}" 
           "CXX=${CMAKE_CXX_COMPILER}" 
+          "CFLAGS=-DPCRE2POSIX_EXP_DEFN= -DPCRE2POSIX_EXP_DECL= -DPCRE2_STATIC=1"
+          "CXXFLAGS=-DPCRE2POSIX_EXP_DEFN= -DPCRE2POSIX_EXP_DECL= -DPCRE2_STATIC=1"
       ./cmake-configure 
           --with-projects=QuickBLAST.prj 
           --without-debug 
@@ -451,6 +501,7 @@ endif()
           "-DNCBI_COMPONENT_UV_INCLUDE=${UV_INC}"
           "-DNCBI_COMPONENT_NGHTTP2_FOUND=YES"
           "-DNCBI_COMPONENT_NGHTTP2_INCLUDE=${NGHTTP2_INC}"
+          "-DNCBI_COMPONENT_PSGLoader_DISABLED=YES"
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
             COMMAND_ERROR_IS_FATAL ANY
         )
@@ -1175,19 +1226,33 @@ elseif(WIN32)
     )
 
     # 1. Identify the R architecture directory
-    if(DEFINED ENV{R_ARCH})
-        set(R_ARCH_DIR "$ENV{R_ARCH}") 
-    else()
-        set(R_ARCH_DIR "")
+    if(NOT DEFINED R_ARCH)
+        if(DEFINED ENV{R_ARCH})
+            set(R_ARCH "$ENV{R_ARCH}")
+        else()
+            # Dynamically discover and ask the R executable for its active sub-architecture layout
+            find_program(R_EXECUTABLE NAMES R R.exe)
+            if(R_EXECUTABLE)
+                execute_process(
+                    COMMAND ${R_EXECUTABLE} CMD config R_ARCH
+                    OUTPUT_VARIABLE R_ARCH_OUT
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+                )
+                set(R_ARCH "${R_ARCH_OUT}")
+            else()
+                set(R_ARCH "")
+            endif()
+        endif()
     endif()
-
+    
     # Destination inside your R package source
-    set(DEV_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/libs${R_ARCH_DIR}")
-    set(INST_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/inst/libs${R_ARCH_DIR}")
+    set(DEV_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/libs${R_ARCH}")
+    set(INST_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/inst/libs${R_ARCH}")
 
     add_custom_command(TARGET QuickBLAST POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory "${DEV_LIB_DEST}"
         COMMAND ${CMAKE_COMMAND} -E make_directory "${INST_LIB_DEST}"
+        COMMENT "Syncing QuickBLAST and NCBI libraries to R package directories..."
     )
 
     # Source paths (adjust these if your BUILD directories differ)
@@ -1219,20 +1284,6 @@ elseif(WIN32)
     #    "libncbi_xreader_id2.dll"
     #    "libxxconnect2.dll"
         "makeblastdb.exe"
-    )
-
-    message("HERE R_ARCH:" ${R_ARCH})
-    message("HERE R_ARCH_DIR:" ${R_ARCH_DIR})
-    
-    # --- 1. Define Destinations (Make sure these variable names match exactly) ---
-    set(DEV_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/libs${R_ARCH_DIR}")
-    set(INST_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/inst/libs${R_ARCH_DIR}")
-
-    # --- 2. Create BOTH directories before copying ---
-    add_custom_command(TARGET QuickBLAST POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${DEV_LIB_DEST}"
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${INST_LIB_DEST}"
-        COMMENT "Syncing QuickBLAST and NCBI libraries to R package directories..."
     )
 
     # --- 3. Process NCBI files ---

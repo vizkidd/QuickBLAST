@@ -62,6 +62,6 @@ if(EXISTS "${CUSTOM_UV_INC}")
     # 2. Force the NCBI component variables
     set(NCBI_COMPONENT_uv_FOUND YES)
     set(NCBI_COMPONENT_uv_INCLUDE "${CUSTOM_UV_INC}")
-else()
-    message(WARNING "Custom libuv include NOT FOUND at: ${CUSTOM_UV_INC}")
+#else()
+#    message(WARNING "Custom libuv include NOT FOUND at: ${CUSTOM_UV_INC}")
 endif()

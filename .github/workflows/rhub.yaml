@@ -52,16 +52,22 @@ jobs:
 
     steps:
       - uses: r-hub/actions/checkout@v1
-      - name: Install CMake 3.25+
+      - name: Install CMake 3.25+ and other dependencies
         run: |
           if command -v apt &> /dev/null; then
+            # Debian / Ubuntu
             apt update -qq
-            apt install -y --no-install-recommends cmake
+            apt install -y --no-install-recommends cmake libnghttp2-dev libuv1-dev
           elif command -v apk &> /dev/null; then
+            # Alpine
             apk update
-            apk add cmake
+            apk add cmake nghttp2-dev libuv-dev
+          elif command -v dnf &> /dev/null; then
+            # Modern Fedora / RHEL
+            dnf install -y cmake libnghttp2-devel libuv-devel
           elif command -v yum &> /dev/null; then
-            yum install -y cmake
+            # Older CentOS / RHEL
+            yum install -y cmake libnghttp2-devel libuv-devel
           fi
           cmake --version
       - uses: r-hub/actions/platform-info@v1
