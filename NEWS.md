@@ -7,6 +7,15 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+# Version 1.7.1 - 2026-06-30
+
+## Updated:
+- [Windows] Fix for MakeBLASTDB()
+- Checked for cross-platform builds using r-hub
+- CRAN friendly build
+
+---
+
 # Version 1.7.0 - 2026-04-12
 
 ## Updated:
@@ -84,7 +93,7 @@ and this project follows [Semantic Versioning](https://semver.org/).
 ## Added:
 - Using boost headers for quick vector access in RecordBatch to R List conversion
 - auto-joining safe_jthread implementation wherever necessary
-- Support for genomes thorugh sequence chunking
+- Support for genomes through sequence chunking
 - Seperate stuct to simplify arrow container storage 
 
 ---
