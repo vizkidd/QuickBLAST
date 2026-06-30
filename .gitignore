@@ -28,8 +28,11 @@ tmp/*
 /doc/
 /Meta/
 pkgdown/
-
 docker_windows_setup.sh
 docs
 .token
 ..Rcheck
+.Renviron
+logo.png
+CRAN-SUBMISSION
+cran-comments.md
