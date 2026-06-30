@@ -504,8 +504,8 @@ endif()
         COMMAND ${CMAKE_COMMAND} -E env 
           "CC=${CMAKE_C_COMPILER}" 
           "CXX=${CMAKE_CXX_COMPILER}" 
-          "CFLAGS=-DPCRE2POSIX_EXP_DEFN= -DPCRE2POSIX_EXP_DECL= -DPCRE2_STATIC=1"
-          "CXXFLAGS=-DPCRE2POSIX_EXP_DEFN= -DPCRE2POSIX_EXP_DECL= -DPCRE2_STATIC=1"
+          "CFLAGS=-DPCRE2POSIX_EXP_DEFN= -DPCRE2_STATIC=1"
+          "CXXFLAGS=-DPCRE2POSIX_EXP_DEFN= -DPCRE2_STATIC=1"
       ./cmake-configure 
           --with-projects=QuickBLAST.prj 
           --without-debug 
@@ -1262,6 +1262,14 @@ elseif(WIN32)
                 set(R_ARCH "")
             endif()
         endif()
+    endif()
+    
+    # ---------------------------------------------------------------------
+    # Sanitize MSYS2 path conversion on Windows
+    # If MSYS2 translated "/x64" into "C:/rtools45/x64", strip it back down.
+    # ---------------------------------------------------------------------
+    if(R_ARCH MATCHES "(x64|i386)$")
+        set(R_ARCH "/${CMAKE_MATCH_1}")
     endif()
     
     # Destination inside your R package source

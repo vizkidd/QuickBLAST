@@ -181,7 +181,6 @@ find_library(PARQUET_LIB
 	NCBI_add_definitions(
 		QBLIBRARY_EXPORTS 
 		PCRE2POSIX_EXP_DEFN
-		PCRE2POSIX_EXP_DECL
 		PCRE2_STATIC
 	)
 	NCBI_uses_external_libraries(
