@@ -7,6 +7,13 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+# Version 1.7.2 - 2026-07-01
+
+## Updated:
+- Included CMake variables to prevent home folder usage for CRAN policy compliance.
+
+---
+
 # Version 1.7.1 - 2026-06-30
 
 ## Updated:

@@ -8,6 +8,10 @@ set(CMAKE_EXPORT_NO_PACKAGE_REGISTRY ON)
 set(CMAKE_FIND_USE_PACKAGE_REGISTRY OFF)
 set(CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY OFF)
 
+#set(ENV{CMAKE_EXPORT_NO_PACKAGE_REGISTRY} "1")
+#set(ENV{XDG_DATA_HOME} "${CMAKE_CURRENT_BINARY_DIR}/tmp_home")
+#set(ENV{HOME} "${CMAKE_CURRENT_BINARY_DIR}/tmp_home")
+
 project(QuickBLAST)
 
 if(NOT R_SHELL)
@@ -318,6 +322,11 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
 
     execute_process(
     COMMAND cmake .. -G "Unix Makefiles" 
+    # --- CRAN Policy Compliance Flags ---
+    "-DCMAKE_EXPORT_NO_PACKAGE_REGISTRY=ON"
+    "-DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF"
+    "-DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF"
+    # ------------------------------------    
     "-DCMAKE_CXX_FLAGS=${ARROW_CXX_FLAGS}"
     "-DCMAKE_C_FLAGS=${ARROW_C_FLAGS}"
     "-DCMAKE_EXE_LINKER_FLAGS=${ARROW_EXE_FLAGS}"
@@ -788,6 +797,9 @@ elseif(WIN32)
         
         # Pass all your definitions here
         CMAKE_ARGS
+            -DCMAKE_EXPORT_NO_PACKAGE_REGISTRY=ON
+            -DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF
+            -DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON
             -DARROW_BUILD_INTEGRATION=OFF
             -DARROW_BUILD_TESTS=OFF
