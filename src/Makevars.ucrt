@@ -43,4 +43,4 @@ run_cmake_superbuild.o:
 	touch $@
 
 # 4. Copy the compiled DLL to where R expects it
-SHLIB_LINK = if [ -f ../BUILD/libQuickBLAST.dll ]; then $(STRIP) -S ../BUILD/libQuickBLAST.dll && cp ../BUILD/libQuickBLAST.dll $@; elif [ -f ../BUILD/QuickBLAST.dll ]; then $(STRIP) -S ../BUILD/QuickBLAST.dll && cp ../BUILD/QuickBLAST.dll $@; fi; echo "Linked via CMake"
+SHLIB_LINK = if [ -f ../BUILD/libQuickBLAST.dll ]; then $(STRIP) -S ../BUILD/libQuickBLAST.dll && cp ../BUILD/libQuickBLAST.dll $@; elif [ -f ../BUILD/QuickBLAST.dll ]; then $(STRIP) -S ../BUILD/QuickBLAST.dll && cp ../BUILD/QuickBLAST.dll $@; fi; echo "Linked via CMake"; rm -rf ../BUILD

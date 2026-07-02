@@ -48,8 +48,8 @@ PKG_CXXFLAGS = -include include/rcpp_workaround.hpp -Ilibsrc $(SHLIB_OPENMP_CXXF
 #-I/usr/local/include/ncbi-tools++/ -I/usr/include/arrow/ -I/usr/include/parquet/ 
 
 #build_patchelf #fix-rpath
-all: builddeps $(SHLIB) copy_lib
-$(SHLIB): install_libs
+all: builddeps $(SHLIB) copy_lib post_build_cleanup
+$(SHLIB): install_libs 
 #install_libs
 
 #cd ../ ; \
@@ -101,6 +101,9 @@ install_libs:
 
 copy_lib:
 		strip -S *.so && cp -uf *.so ../inst/libs/$(R_ARCH) ; 
+	
+post_build_cleanup:
+		rm -rf ../BUILD;
 	
 #fix-rpath:
 #	@cd ../ ; \
