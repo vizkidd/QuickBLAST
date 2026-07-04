@@ -40,6 +40,19 @@ jobs:
           r-version: ${{ matrix.config.r }}
           use-public-rspm: true
 
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends pkg-config cmake libnghttp2-dev libuv1-dev
+        shell: bash
+
+      - name: Install system dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install pkg-config cmake libnghttp2 libuv
+        shell: bash
+
       - name: Setup R Dependencies
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
@@ -50,7 +63,3 @@ jobs:
         uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
-          build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
-          # The action defaults to running with --as-cran internally.
-          # You can configure strictly here:
-          error-on: '"warning"' # Fails the run if there are any warnings or errors
