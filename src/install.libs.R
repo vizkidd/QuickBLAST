@@ -81,6 +81,10 @@ if (!dll_found) {
 if(file.exists("symbols.rds"))
   file.copy("symbols.rds", dest, overwrite = TRUE)
 
+# rm -rf ../BUILD
+
+try(fs::dir_delete("../BUILD"), silent = T)
+
 # # --- Copy makeblastdb executable to the architecture-specific folder ---
 # r_arch <- Sys.getenv("R_ARCH") # Evaluates to "/x64" or ""
 # 

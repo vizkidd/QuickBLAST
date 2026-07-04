@@ -1286,7 +1286,18 @@ elseif(WIN32)
     
     # Destination inside your R package source
     set(DEV_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/libs${R_ARCH}")
-    set(INST_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/inst/libs${R_ARCH}")
+    
+    # ---------------------------------------------------------------------
+    # Dynamically target R's temporary staging folder during installation
+    # ---------------------------------------------------------------------
+    if(DEFINED ENV{R_PACKAGE_DIR})
+        # R CMD INSTALL is running
+        file(TO_CMAKE_PATH "$ENV{R_PACKAGE_DIR}" R_PKG_DIR)
+        set(INST_LIB_DEST "${R_PKG_DIR}/libs${R_ARCH}")
+    else()
+        # Fallback for local development outside of R's build system
+        set(INST_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/inst/libs${R_ARCH}")
+    endif()
 
     add_custom_command(TARGET QuickBLAST POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory "${DEV_LIB_DEST}"

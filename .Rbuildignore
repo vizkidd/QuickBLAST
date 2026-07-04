@@ -12,6 +12,15 @@
 \.github$
 \BUILD$
 ^BUILD$
+^BUILD$
+^BUILD/.*
+^ncbi-cxx-toolkit-public$
+^arrow$
+^\.github$
+^\.git$
+^\.token$
+^\.RData$
+^\.\.Rcheck$
 \.vscode$
 ^\.gitignore$
 ^\.Rinstignore$
