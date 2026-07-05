@@ -221,8 +221,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // MakeBLASTDB
-SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool parse_seqids);
-RcppExport SEXP _QuickBLAST_MakeBLASTDB(SEXP ptrSEXP, SEXP input_fileSEXP, SEXP database_nameSEXP, SEXP parse_seqidsSEXP) {
+SEXP MakeBLASTDB(SEXP ptr, SEXP input_file, SEXP database_name, bool parse_seqids, SEXP stdout_opt, SEXP stderr_opt);
+RcppExport SEXP _QuickBLAST_MakeBLASTDB(SEXP ptrSEXP, SEXP input_fileSEXP, SEXP database_nameSEXP, SEXP parse_seqidsSEXP, SEXP stdout_optSEXP, SEXP stderr_optSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -230,7 +230,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type input_file(input_fileSEXP);
     Rcpp::traits::input_parameter< SEXP >::type database_name(database_nameSEXP);
     Rcpp::traits::input_parameter< bool >::type parse_seqids(parse_seqidsSEXP);
-    rcpp_result_gen = Rcpp::wrap(MakeBLASTDB(ptr, input_file, database_name, parse_seqids));
+    Rcpp::traits::input_parameter< SEXP >::type stdout_opt(stdout_optSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type stderr_opt(stderr_optSEXP);
+    rcpp_result_gen = Rcpp::wrap(MakeBLASTDB(ptr, input_file, database_name, parse_seqids, stdout_opt, stderr_opt));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -304,7 +306,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_QuickBLAST_BLAST2Files", (DL_FUNC) &_QuickBLAST_BLAST2Files, 9},
     {"_QuickBLAST_RemoteBLAST", (DL_FUNC) &_QuickBLAST_RemoteBLAST, 10},
     {"_QuickBLAST_isBLASTDB", (DL_FUNC) &_QuickBLAST_isBLASTDB, 2},
-    {"_QuickBLAST_MakeBLASTDB", (DL_FUNC) &_QuickBLAST_MakeBLASTDB, 4},
+    {"_QuickBLAST_MakeBLASTDB", (DL_FUNC) &_QuickBLAST_MakeBLASTDB, 6},
     {"_QuickBLAST_BLAST2DBs", (DL_FUNC) &_QuickBLAST_BLAST2DBs, 13},
     {"_QuickBLAST_GetFASTAHeaders", (DL_FUNC) &_QuickBLAST_GetFASTAHeaders, 2},
     {"_QuickBLAST_BLASTFile2DB", (DL_FUNC) &_QuickBLAST_BLASTFile2DB, 8},
