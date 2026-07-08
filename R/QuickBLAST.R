@@ -10,32 +10,32 @@
   return(system.file(libs_path, package = "QuickBLAST", mustWork = T))
 }
 
-# arrow_lfs <- arrow::LocalFileSystem$create()
-## internal single-file-system getter for the package
-.arrow_fs_singleton <- local({
-  fs <- NULL
-  function() {
-    if (!is.null(fs)) return(fs)
-    
-    fs <- tryCatch(
-      {
-        arrow::LocalFileSystem$create()
-      },
-      error = function(e) {
-        # fallback if the "file" scheme is already registered (common when arrow already initialized)
-        if (grepl("Attempted to register factory for scheme 'file'", e$message, fixed = TRUE)) {
-          arrow::FileSystem$from_uri("file:///")
-        } else {
-          stop(e)
-        }
-      }
-    )
-    
-    # cache and return
-    force(fs)
-    fs
-  }
-})
+# # arrow_lfs <- arrow::LocalFileSystem$create()
+# ## internal single-file-system getter for the package
+# .arrow_fs_singleton <- local({
+#   fs <- NULL
+#   function() {
+#     if (!is.null(fs)) return(fs)
+#     
+#     fs <- tryCatch(
+#       {
+#         arrow::LocalFileSystem$create()
+#       },
+#       error = function(e) {
+#         # fallback if the "file" scheme is already registered (common when arrow already initialized)
+#         if (grepl("Attempted to register factory for scheme 'file'", e$message, fixed = TRUE)) {
+#           arrow::FileSystem$from_uri("file:///")
+#         } else {
+#           stop(e)
+#         }
+#       }
+#     )
+#     
+#     # cache and return
+#     force(fs)
+#     fs
+#   }
+# })
 
 # #' Get an Instance of QuickBLAST class and its exposed methods
 # #' @note Check BLAST C++ Call in Help for the list of parameters for the exposed BLAST function. Exposed C++ function only takes BLAST options as string.
@@ -127,39 +127,65 @@ LoadBLASTHits <- function(infile, sep = "\t", header = F, format = 'parquet') {
       blast_results <- iterators::iread.table(file = infile, row.names = NULL, header = header, sep = sep, quote = "", blank.lines.skip = T, fill = T, na.strings = "NA") # data.table::fread(file = infile,header = header,sep=sep,quote = "", blank.lines.skip = T, nThread = n_threads)
       return(blast_results)
     } else if (format == "ipc") {
-      # arrow_lfs <- arrow::LocalFileSystem$create()
-      arrow_lfs <- .arrow_fs_singleton()
-      # arrow_i_stream <- arrow_lfs$OpenInputStream(infile)
-      # batch_reader <- arrow::RecordBatchStreamReader$create(arrow_i_stream)
-      in_stream <- arrow_lfs$OpenInputStream(infile)
-      # compressed_stream <- arrow::CompressedInputStream$create(infile, "gzip")
-      # Use the FileReader (not StreamReader)
-      file_reader <- arrow::RecordBatchFileReader$create(in_stream)
-      # file_reader <- arrow::RecordBatchStreamReader$create(compressed_stream)
-      # # create an iterator over 1..n, mapping to get_batch
-      # n <- file_reader$num_record_batches
-      # batch_iter <- iterators::iter(seq_len(n), function(j) {
-      #   return(file_reader$get_batch(j - 1L)$to_data_frame())
-      # })
-      ret_tib <- dplyr::bind_rows(lapply(file_reader$batches(), FUN = function(x){
-        return(x$to_data_frame())
-      }))
+      # # arrow_lfs <- arrow::LocalFileSystem$create()
+      # arrow_lfs <- .arrow_fs_singleton()
+      # # arrow_i_stream <- arrow_lfs$OpenInputStream(infile)
+      # # batch_reader <- arrow::RecordBatchStreamReader$create(arrow_i_stream)
+      # in_stream <- arrow_lfs$OpenInputStream(infile)
+      # # compressed_stream <- arrow::CompressedInputStream$create(infile, "gzip")
+      # # Use the FileReader (not StreamReader)
+      # file_reader <- arrow::RecordBatchFileReader$create(in_stream)
+      # # file_reader <- arrow::RecordBatchStreamReader$create(compressed_stream)
+      # # # create an iterator over 1..n, mapping to get_batch
+      # # n <- file_reader$num_record_batches
+      # # batch_iter <- iterators::iter(seq_len(n), function(j) {
+      # #   return(file_reader$get_batch(j - 1L)$to_data_frame())
+      # # })
+      # ret_tib <- dplyr::bind_rows(lapply(file_reader$batches(), FUN = function(x){
+      #   return(x$to_data_frame())
+      # }))
+      # 
+      # ret_df <- ret_tib %>%
+      #   # expand seq_info (it is a tibble/list-col)
+      #   tidyr::unnest(cols = c(seq_info)) %>%
+      #   # expand seqids and seqs and lengths which are themselves nested tibbles
+      #   tidyr::unnest_wider(seqids, names_sep = "_") %>%
+      #   tidyr::unnest_wider(seqs,   names_sep = "_") %>%
+      #   tidyr::unnest_wider(lengths, names_sep = "_") %>%
+      #   # expand hsps which is another nested tibble
+      #   tidyr::unnest(cols = c(hsps)) %>%
+      #   # if any columns are still list-columns of length-1, unnest them:
+      #   dplyr::mutate(dplyr::across(dplyr::where(~ is.list(.) && all(lengths(.) == n())), ~ unlist(.))) %>%
+      #   tidyr::as_tibble()
+      # 
+      # # blast_results <- arrow::read_feather(file = infile, mmap = T)
+      # return(ret_df) # batch_iter <- iter(function())
       
-      ret_df <- ret_tib %>%
-        # expand seq_info (it is a tibble/list-col)
-        tidyr::unnest(cols = c(seq_info)) %>%
-        # expand seqids and seqs and lengths which are themselves nested tibbles
-        tidyr::unnest_wider(seqids, names_sep = "_") %>%
-        tidyr::unnest_wider(seqs,   names_sep = "_") %>%
-        tidyr::unnest_wider(lengths, names_sep = "_") %>%
-        # expand hsps which is another nested tibble
-        tidyr::unnest(cols = c(hsps)) %>%
-        # if any columns are still list-columns of length-1, unnest them:
-        dplyr::mutate(dplyr::across(dplyr::where(~ is.list(.) && all(lengths(.) == n())), ~ unlist(.))) %>%
-        tidyr::as_tibble()
+      # 1. Safely read the IPC/Feather file directly into a tibble
+      # This completely bypasses the LocalFileSystem registry bug!
+      ret_tib <- arrow::read_ipc_file(file = infile, as_data_frame = TRUE)
       
-      # blast_results <- arrow::read_feather(file = infile, mmap = T)
-      return(ret_df) # batch_iter <- iter(function())
+      # 2. Check if the data is nested (i.e. 'seq_info' exists)
+      if ("seq_info" %in% names(ret_tib)) {
+        ret_df <- ret_tib %>%
+          # expand seq_info (it is a tibble/list-col)
+          tidyr::unnest(cols = c(seq_info)) %>%
+          # expand seqids and seqs and lengths which are themselves nested tibbles
+          tidyr::unnest_wider(seqids, names_sep = "_") %>%
+          tidyr::unnest_wider(seqs,   names_sep = "_") %>%
+          tidyr::unnest_wider(lengths, names_sep = "_") %>%
+          # expand hsps which is another nested tibble
+          tidyr::unnest(cols = c(hsps)) %>%
+          # if any columns are still list-columns of length-1, unnest them:
+          dplyr::mutate(dplyr::across(dplyr::where(~ is.list(.) && all(lengths(.) == dplyr::n())), ~ unlist(.))) %>%
+          tidyr::as_tibble()
+        
+        return(ret_df)
+      } else {
+        # If the backend C++ already flattened the structure (like we did for CSV), 
+        # return it immediately without the unnesting pipeline
+        return(ret_tib)
+      }
     }
       else if (format == "parquet") {
         return(arrow::read_parquet(infile))
