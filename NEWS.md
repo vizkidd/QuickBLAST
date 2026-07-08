@@ -7,6 +7,19 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+# Version 1.7.4 - 2026-07-08
+
+## Fixed:
+- Parquet threads crashing vignettes on windows. Single thread enforced for parquet writers.
+## Updated:
+- Vignette block for outputformats
+- RccpThread::R* wherever necessary
+## Added:
+- CSV and IPC output format support
+- O3 optimization
+
+---
+
 # Version 1.7.2 - 2026-07-01
 
 ## Updated:

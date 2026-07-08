@@ -145,80 +145,81 @@ ArrowWrapper::Impl::Impl()
     ->compression(Compression::LZ4)
     ->build();
     
-#if defined(_OPENMP)
+    // #if defined(_OPENMP)
+    //     parquet_arrow_props = ArrowWriterProperties::Builder().store_schema()
+    //       ->set_use_threads(true)
+    //       ->set_engine_version(ArrowWriterProperties::V2)
+    //       ->build();
+    // #else
+    //Using parquet threads crashes windows since we already use threading in QuickBLAST
     parquet_arrow_props = ArrowWriterProperties::Builder().store_schema()
-      ->set_use_threads(true)
+      ->set_use_threads(false)
       ->set_engine_version(ArrowWriterProperties::V2)
       ->build();
-#else
-      parquet_arrow_props = ArrowWriterProperties::Builder().store_schema()
-        ->set_use_threads(false)
-        ->set_engine_version(ArrowWriterProperties::V2)
-        ->build();
-#endif
-        
-        rbv_batch = std::make_shared<arrow::RecordBatchVector>();
-        blast_metadata = std::make_shared<arrow::KeyValueMetadata>();
-        AddFASTAMetadata("format", "Arrow IPC/Parquet");
-        AddFASTAMetadata("Created By", username);
-        AddFASTAMetadata("R package", "QuickBLAST");
-        fasta_schema = arrow::schema({arrow::field("index", arrow::int64()), arrow::field("header", arrow::utf8()), arrow::field("sequence", arrow::utf8())});
-        
-        seq_info_type = arrow::struct_({
-          arrow::field("num_alignments", arrow::int64()),
-          arrow::field("seqids", arrow::struct_({arrow::field("qseqid", arrow::utf8()),
-                                          arrow::field("sseqid", arrow::utf8())})),
-                                          arrow::field("seqs", arrow::struct_({arrow::field("qseq", arrow::large_utf8()),
-                                                                          arrow::field("sseq", arrow::large_utf8())})),
-                                                                          arrow::field("strands", arrow::utf8()),
-                                                                          arrow::field("lengths", arrow::struct_({arrow::field("qlen", arrow::int64()),
-                                                                                                          arrow::field("slen", arrow::int64())})),
-        });
-        this->hsp_type = arrow::struct_({arrow::field("qhsp", arrow::large_utf8()),
-                                        arrow::field("shsp", arrow::large_utf8()),
-                                        arrow::field("pident", arrow::float64()),
-                                        arrow::field("pident_gap", arrow::float64()),
-                                        arrow::field("frames", arrow::utf8()),
-                                        arrow::field("evalue", arrow::float64()),
-                                        arrow::field("length", arrow::int64()),
-                                        arrow::field("length01", arrow::float64()),
-                                        arrow::field("qstart", arrow::int64()),
-                                        arrow::field("qend", arrow::int64()),
-                                        arrow::field("sstart", arrow::int64()),
-                                        arrow::field("send", arrow::int64()),
-                                        arrow::field("bitscore", arrow::float64()),
-                                        arrow::field("score", arrow::float64()),
-                                        arrow::field("qcovhsp", arrow::float64()),
-                                        arrow::field("blast_score", arrow::float64()),
-                                        arrow::field("gaps", arrow::int64()),
-                                        arrow::field("nident", arrow::int64()),
-                                        arrow::field("mismatch", arrow::int64()),
-                                        arrow::field("positive", arrow::int64()),
-                                        arrow::field("n_splices", arrow::int64()),
-                                        arrow::field("hsp_num", arrow::int64()),
-                                        arrow::field("sum_evalue", arrow::float64()),
-                                        arrow::field("product_coverage", arrow::float64()),
-                                        arrow::field("overall_identity", arrow::float64()),
-                                        arrow::field("negative_count", arrow::int64()),
-                                        arrow::field("matches", arrow::float64()),
-                                        arrow::field("high_quality_percent_coverage", arrow::float64()),
-                                        arrow::field("exon_identity", arrow::float64()),
-                                        arrow::field("consensus_splices", arrow::float64()),
-                                        arrow::field("comp_adj_method", arrow::float64())});
-        this->alignment_scores_type = arrow::list({hsp_type});
-        
-        blast_schema = arrow::schema({arrow::field("seq_info", seq_info_type),
-                                     arrow::field("hsps", hsp_type)});
-        
+      // #endif
+      
+      rbv_batch = std::make_shared<arrow::RecordBatchVector>();
+      blast_metadata = std::make_shared<arrow::KeyValueMetadata>();
+      AddFASTAMetadata("format", "Arrow IPC/Parquet");
+      AddFASTAMetadata("Created By", username);
+      AddFASTAMetadata("R package", "QuickBLAST");
+      fasta_schema = arrow::schema({arrow::field("index", arrow::int64()), arrow::field("header", arrow::utf8()), arrow::field("sequence", arrow::utf8())});
+      
+      seq_info_type = arrow::struct_({
+        arrow::field("num_alignments", arrow::int64()),
+        arrow::field("seqids", arrow::struct_({arrow::field("qseqid", arrow::utf8()),
+                                        arrow::field("sseqid", arrow::utf8())})),
+                                        arrow::field("seqs", arrow::struct_({arrow::field("qseq", arrow::large_utf8()),
+                                                                        arrow::field("sseq", arrow::large_utf8())})),
+                                                                        arrow::field("strands", arrow::utf8()),
+                                                                        arrow::field("lengths", arrow::struct_({arrow::field("qlen", arrow::int64()),
+                                                                                                        arrow::field("slen", arrow::int64())})),
+      });
+      this->hsp_type = arrow::struct_({arrow::field("qhsp", arrow::large_utf8()),
+                                      arrow::field("shsp", arrow::large_utf8()),
+                                      arrow::field("pident", arrow::float64()),
+                                      arrow::field("pident_gap", arrow::float64()),
+                                      arrow::field("frames", arrow::utf8()),
+                                      arrow::field("evalue", arrow::float64()),
+                                      arrow::field("length", arrow::int64()),
+                                      arrow::field("length01", arrow::float64()),
+                                      arrow::field("qstart", arrow::int64()),
+                                      arrow::field("qend", arrow::int64()),
+                                      arrow::field("sstart", arrow::int64()),
+                                      arrow::field("send", arrow::int64()),
+                                      arrow::field("bitscore", arrow::float64()),
+                                      arrow::field("score", arrow::float64()),
+                                      arrow::field("qcovhsp", arrow::float64()),
+                                      arrow::field("blast_score", arrow::float64()),
+                                      arrow::field("gaps", arrow::int64()),
+                                      arrow::field("nident", arrow::int64()),
+                                      arrow::field("mismatch", arrow::int64()),
+                                      arrow::field("positive", arrow::int64()),
+                                      arrow::field("n_splices", arrow::int64()),
+                                      arrow::field("hsp_num", arrow::int64()),
+                                      arrow::field("sum_evalue", arrow::float64()),
+                                      arrow::field("product_coverage", arrow::float64()),
+                                      arrow::field("overall_identity", arrow::float64()),
+                                      arrow::field("negative_count", arrow::int64()),
+                                      arrow::field("matches", arrow::float64()),
+                                      arrow::field("high_quality_percent_coverage", arrow::float64()),
+                                      arrow::field("exon_identity", arrow::float64()),
+                                      arrow::field("consensus_splices", arrow::float64()),
+                                      arrow::field("comp_adj_method", arrow::float64())});
+      this->alignment_scores_type = arrow::list({hsp_type});
+      
+      blast_schema = arrow::schema({arrow::field("seq_info", seq_info_type),
+                                   arrow::field("hsps", hsp_type)});
+      
 #if defined(_OPENMP)
-        omp_init_lock(&rec_countLock);
-        omp_init_lock(&proc_rec_countLock);
-        omp_init_lock(&writer_threadsLock);
-        omp_init_lock(&rbv_batchLock);
-        omp_init_lock(&rec_writerLock);
+      omp_init_lock(&rec_countLock);
+      omp_init_lock(&proc_rec_countLock);
+      omp_init_lock(&writer_threadsLock);
+      omp_init_lock(&rbv_batchLock);
+      omp_init_lock(&rec_writerLock);
 #endif
-        
-        Rcpp::Rcout << std::flush;
+      
+      Rcpp::Rcout << std::flush;
   }
   catch(const std::runtime_error &e){
     Rcpp::Rcerr << std::string("[ArrowWrapper::Impl()]: C++ Runtime Error : ") + e.what() << std::endl << std::flush;
@@ -565,13 +566,13 @@ arrow::Status ArrowWrapper::Impl::AddRB2Batch(std::shared_ptr<arrow::RecordBatch
     
     return arrow::Status::OK();
   }catch(const std::runtime_error &e){
-    Rcpp::Rcerr << std::string("[AddRB2Batch()]: C++ Runtime Exception : ") + e.what() << std::endl << std::flush;
+    RcppThread::Rcerr << std::string("[AddRB2Batch()]: C++ Runtime Exception : ") + e.what() << std::endl << std::flush;
   }catch(const Rcpp::exception &e){
-    Rcpp::Rcerr << std::string("[AddRB2Batch()]: Rcpp Exception : ") + e.what() << std::endl << std::flush;
+    RcppThread::Rcerr << std::string("[AddRB2Batch()]: Rcpp Exception : ") + e.what() << std::endl << std::flush;
   }catch(const std::exception &e){
-    Rcpp::Rcerr << std::string("[AddRB2Batch()]: C++ Exception : ") + e.what() << std::endl << std::flush;
+    RcppThread::Rcerr << std::string("[AddRB2Batch()]: C++ Exception : ") + e.what() << std::endl << std::flush;
   }catch(...){
-    Rcpp::Rcerr << "[AddRB2Batch()]: Unknown Exception" << std::endl << std::flush;
+    RcppThread::Rcerr << "[AddRB2Batch()]: Unknown Exception" << std::endl << std::flush;
   }
   return arrow::Status::Invalid("[AddRB2Batch()]: Caught an Exception.");
 }
@@ -586,6 +587,73 @@ std::string ArrowWrapper::Impl::GetOutputFormat(){
 }
 std::string ArrowWrapper::GetOutputFormat(){
   return pImpl->GetOutputFormat();
+}
+
+// Recursive helper function to dig through nested structs
+inline arrow::Status FlattenArrayRecursive(
+    const std::shared_ptr<arrow::Field>& field,
+    const std::shared_ptr<arrow::Array>& array,
+    arrow::MemoryPool* pool,
+    arrow::FieldVector& flat_fields,
+    arrow::ArrayVector& flat_arrays) {
+  
+  // If it's a struct, we unroll it
+  if (array->type_id() == arrow::Type::STRUCT) {
+    auto struct_array = std::static_pointer_cast<arrow::StructArray>(array);
+    auto struct_type = std::static_pointer_cast<arrow::StructType>(field->type());
+    
+    // Zero-copy extraction of child arrays. 
+    // (Only allocates a validity bitmap if the parent struct has nulls masking child values).
+    ARROW_ASSIGN_OR_RAISE(auto child_arrays, struct_array->Flatten(pool));
+    
+    for (int i = 0; i < struct_type->num_fields(); ++i) {
+      auto child_field = struct_type->field(i);
+      
+      // Concatenate names (e.g., "seqids.qseqid")
+      std::string flat_name = field->name() + "." + child_field->name();
+      auto flat_child_field = child_field->WithName(flat_name);
+      
+      // Recurse in case the child is ALSO a struct
+      ARROW_RETURN_NOT_OK(FlattenArrayRecursive(
+          flat_child_field, 
+          child_arrays[i], 
+                      pool, 
+                      flat_fields, 
+                      flat_arrays
+      ));
+    }
+  } else {
+    // Base case: Primitive/List array, push it directly (Zero-Copy)
+    flat_fields.push_back(field);
+    flat_arrays.push_back(array);
+  }
+  return arrow::Status::OK();
+}
+
+// Main function to flatten the RecordBatch
+arrow::Result<std::shared_ptr<arrow::RecordBatch>> FlattenRecordBatchManual(
+    const std::shared_ptr<arrow::RecordBatch>& batch, 
+    arrow::MemoryPool* pool = arrow::default_memory_pool()) {
+  
+  arrow::FieldVector flat_fields;
+  arrow::ArrayVector flat_arrays;
+  
+  // Pre-reserve to avoid vector reallocation overhead
+  flat_fields.reserve(batch->num_columns() * 2); 
+  flat_arrays.reserve(batch->num_columns() * 2);
+  
+  for (int i = 0; i < batch->num_columns(); ++i) {
+    ARROW_RETURN_NOT_OK(FlattenArrayRecursive(
+        batch->schema()->field(i),
+        batch->column(i),
+        pool,
+        flat_fields,
+        flat_arrays
+    ));
+  }
+  
+  auto flat_schema = arrow::schema(std::move(flat_fields), batch->schema()->metadata());
+  return arrow::RecordBatch::Make(flat_schema, batch->num_rows(), std::move(flat_arrays));
 }
 
 arrow::Status ArrowWrapper::Impl::CreateOutputStream(std::string &outFile, const std::string& outputFormat)
@@ -616,25 +684,45 @@ arrow::Status ArrowWrapper::Impl::CreateOutputStream(std::string &outFile, const
       rbv_batch->shrink_to_fit();
       
       switch(OutputFormat2Enum(output_format)){
+      // case ArrowWrapper::EOutputFormat::eIPC: {
+      //   auto outFileStream_res = arrow_LFS.OpenAppendStream(output_filename, blast_metadata);
+      //   if(!outFileStream_res.ok()){
+      //     Rcpp::Rcerr << std::string("[CreateOutputStream()] - Could not open append stream to ") + output_filename<< std::endl << std::flush;
+      //     return outFileStream_res.status();
+      //   }
+      //   outFileStream = outFileStream_res.ValueOrDie();
+      //   auto writer_ = arrow::ipc::MakeFileWriter(outFileStream.get(), GetBLASTSchema(), GetArrowIPCOptions(), GetBLASTMetadata());
+      //   if (!writer_.ok())
+      //   {
+      //     RcppThread::Rcerr << std::string("WriteBatch2File() - Error initiating IPC file writer: ") + writer_.status().message() << std::endl << std::flush;
+      //     return writer_.status();
+      //   }
+      //   rec_writer = writer_.ValueOrDie();
+      //   break;
+      // }
+      case ArrowWrapper::EOutputFormat::unknown:
+      default: {
+        return arrow::Status::Invalid((std::string("CreateOutputStream() - Unsupported output format. Supported values ipc/csv/parquet")));
+        break;
+      }
       case ArrowWrapper::EOutputFormat::eIPC: {
-        auto outFileStream_res = arrow_LFS.OpenAppendStream(output_filename, blast_metadata);
+        // Use FileOutputStream::Open to ensure a clean binary file layout (matching Parquet)
+        auto outFileStream_res = arrow::io::FileOutputStream::Open(output_filename);
         if(!outFileStream_res.ok()){
-          Rcpp::Rcerr << std::string("[CreateOutputStream()] - Could not open append stream to ") + output_filename<< std::endl << std::flush;
+          Rcpp::Rcerr << std::string("[CreateOutputStream()] - Could not open output stream to ") + output_filename << std::endl << std::flush;
           return outFileStream_res.status();
         }
         outFileStream = outFileStream_res.ValueOrDie();
+        
+        // Initiate the IPC file writer using the clean file stream
         auto writer_ = arrow::ipc::MakeFileWriter(outFileStream.get(), GetBLASTSchema(), GetArrowIPCOptions(), GetBLASTMetadata());
         if (!writer_.ok())
         {
-          Rcpp::Rcerr << std::string("WriteBatch2File() - Error initiating IPC file writer: ") + writer_.status().message() << std::endl << std::flush;
+          RcppThread::Rcerr << std::string("CreateOutputStream() - Error initiating IPC file writer: ") + writer_.status().message() << std::endl << std::flush;
           return writer_.status();
         }
         rec_writer = writer_.ValueOrDie();
         break;
-      }
-      case ArrowWrapper::EOutputFormat::unknown:
-      default: {
-        return arrow::Status::Invalid((std::string("CreateOutputStream() - Unsupported output format. Supported values ipc/csv/parquet")));
       }
       case ArrowWrapper::EOutputFormat::eCSV: {
         auto outFileStream_res = arrow_LFS.OpenAppendStream(output_filename, blast_metadata);
@@ -643,7 +731,26 @@ arrow::Status ArrowWrapper::Impl::CreateOutputStream(std::string &outFile, const
           return outFileStream_res.status();
         }
         outFileStream = outFileStream_res.ValueOrDie();
-        auto writer_ = arrow::csv::MakeCSVWriter(outFileStream.get(), GetBLASTSchema(), GetArrowCSVOptions());
+        
+        // Flatten the nested schema for CSV compatibility ---
+        std::shared_ptr<arrow::Schema> nested_schema = GetBLASTSchema();
+        arrow::ArrayVector empty_arrays;
+        for (const auto& field : nested_schema->fields()) {
+          auto empty_arr_res = arrow::MakeEmptyArray(field->type(), arrow::default_memory_pool());
+          if (!empty_arr_res.ok()) {
+            return empty_arr_res.status();
+          }
+          empty_arrays.push_back(empty_arr_res.ValueOrDie());
+        }
+        
+        auto dummy_batch = arrow::RecordBatch::Make(nested_schema, 0, empty_arrays);
+        auto flat_batch_res = FlattenRecordBatchManual(dummy_batch);
+        if (!flat_batch_res.ok()) {
+          return flat_batch_res.status();
+        }
+        std::shared_ptr<arrow::Schema> flat_schema = flat_batch_res.ValueOrDie()->schema();
+        
+        auto writer_ = arrow::csv::MakeCSVWriter(outFileStream.get(), flat_schema, GetArrowCSVOptions());
         if (!writer_.ok())
         {
           Rcpp::Rcerr << std::string("CreateOutputStream() - Error initiating CSV file writer: ") + writer_.status().message() << std::endl << std::flush;
@@ -652,6 +759,22 @@ arrow::Status ArrowWrapper::Impl::CreateOutputStream(std::string &outFile, const
         rec_writer = writer_.ValueOrDie();
         break;
       }
+      // case ArrowWrapper::EOutputFormat::eCSV: {
+      //   auto outFileStream_res = arrow_LFS.OpenAppendStream(output_filename, blast_metadata);
+      //   if(!outFileStream_res.ok()){
+      //     Rcpp::Rcerr << std::string("CreateOutputStream() - Could not open append stream to ") + output_filename << std::endl << std::flush;
+      //     return outFileStream_res.status();
+      //   }
+      //   outFileStream = outFileStream_res.ValueOrDie();
+      //   auto writer_ = arrow::csv::MakeCSVWriter(outFileStream.get(), GetBLASTSchema(), GetArrowCSVOptions());
+      //   if (!writer_.ok())
+      //   {
+      //     Rcpp::Rcerr << std::string("CreateOutputStream() - Error initiating CSV file writer: ") + writer_.status().message() << std::endl << std::flush;
+      //     return writer_.status();
+      //   }
+      //   rec_writer = writer_.ValueOrDie();
+      //   break;
+      // }
       case ArrowWrapper::EOutputFormat::eParquet: {
         ARROW_ASSIGN_OR_RAISE(parquetFileStream,  arrow::io::FileOutputStream::Open(output_filename));
         parquet_writer = std::move(parquet::arrow::FileWriter::Open(*GetBLASTSchema(),
@@ -1254,11 +1377,13 @@ arrow::Status ArrowWrapper::Impl::FinishOutputStream()
     
     writer_running.store(false, std::memory_order_release);
     waiting4writer_cond.notify_all();
-    Rcpp::Rcout << output_filename << std::endl << std::flush; //DEBUG
-    if(writer_failed.load(std::memory_order_acquire))
-    {
-      return arrow::Status::Invalid(std::string("FinishOutputStream(): Writer thread(s) failed: ") + writer_error_msg);
-    } 
+    // Rcpp::Rcout << output_filename << std::endl << std::flush; //DEBUG
+    // Rcpp::Rcerr << writer_error_msg << std::endl << std::flush; //DEBUG
+    // Rcpp::Rcerr << "HERE4.0" << std::endl << std::flush; //DEBUG
+    // if(writer_failed.load(std::memory_order_acquire))
+    // {
+    //   return arrow::Status::Invalid(std::string("FinishOutputStream(): Writer thread(s) failed: ") + writer_error_msg);
+    // } 
     
     {
       std::unique_lock<std::mutex> lk(finishing_mutex);
@@ -1292,8 +1417,37 @@ arrow::Status ArrowWrapper::Impl::FinishOutputStream()
 #if defined(_OPENMP)
     omp_unset_lock(&rbv_batchLock);
 #endif
+    
+    if(writer_failed.load(std::memory_order_acquire))
+    {
+      // Clean up streams so we don't leave hanging file locks
+      if(parquet_writer){
+        arrow::Status st2 = parquet_writer->Close();
+        if (!st2.ok()) {
+          Rcpp::Rcerr << std::string("FinishOutputStream(): Error closing output writer stream (Parquet): ") + st2.message() + std::string(" : ") + st2.detail()->ToString() << std::endl << std::flush;
+          return st2;
+        }
+        parquet_writer.reset();
+      }
+      
+      if(parquetFileStream){
+        if(!parquetFileStream->closed())
+        {
+          arrow::Status st2 = parquetFileStream->Close();
+          if (!st2.ok()) {
+            Rcpp::Rcerr << std::string("FinishOutputStream(): Error closing parquetFileStream: ") + st2.ToString() << std::endl << std::flush;
+            return st2;
+          }
+        }
+        parquetFileStream.reset();
+      }
+      
+      // return arrow::Status::Invalid(std::string("FinishOutputStream(): Writer thread(s) failed during execution: ") + writer_error_msg);
+      Rcpp::Rcerr << std::string("FinishOutputStream(): Writer thread(s) failed during execution: ") + writer_error_msg << std::endl << std::flush;
+    }
+    
     if(verbose)
-      Rcpp::Rcout << "Done writing to file." << std::endl <<std::flush; 
+      RcppThread::Rcout << "Done writing to file." << std::endl <<std::flush; 
     
     if(outFileStream)
       ARROW_RETURN_NOT_OK(outFileStream->Flush());
@@ -1418,52 +1572,104 @@ arrow::Status ArrowWrapper::Impl::WriteBatch2File()
     
     
     switch(OutputFormat2Enum(output_format)){
-    case ArrowWrapper::EOutputFormat::eIPC:
-    case ArrowWrapper::EOutputFormat::eCSV:
-    {
-      for (std::shared_ptr<arrow::RecordBatch> &rb : rbv_buffer) //const auto
-    {
-      // assert(!Progress::check_abort()); // R API calls inside threads will crash c++ runtime
-      RcppThread::checkUserInterrupt(); // R API calls inside threads will crash c++ runtime
-      if (rb)
-      {
-        if (rb->num_rows() > 0)
+    case ArrowWrapper::EOutputFormat::eIPC: {
+      for(const auto &rb: rbv_buffer){
+#if defined(_OPENMP)
+      omp_set_lock(&rec_writerLock);
+#endif
+      // Write the record batch to the IPC stream
+      arrow::Status st1 = rec_writer->WriteRecordBatch(*rb);
+#if defined(_OPENMP)
+      omp_unset_lock(&rec_writerLock);
+#endif
+      if (!st1.ok()) {
         {
-          arrow::Status rb_sts = rb->ValidateFull();
-          arrow::Status sts;
-          if (rb_sts.ok())
-          {
-#if defined(_OPENMP)
-            omp_set_lock(&rec_writerLock);
-#endif
-#if defined(_OPENMP)
-#pragma omp critical (arrow_write_lock)
-#endif
-{
-  sts = rec_writer->WriteRecordBatch(*rb);
-  static_cast<void>(outFileStream->Flush());
-}
-#if defined(_OPENMP)
-omp_unset_lock(&rec_writerLock);
-#endif
-
-if (!sts.ok())
-{
-  {
-    std::lock_guard<std::mutex> lk(writer_error_mtx);
-    writer_error_msg = std::string("WriteBatch2File(): Error writing RB (CSV/IPC): ") + sts.message();
-  }
-  writer_failed.store(true, std::memory_order_release);
-  break;
-}  
-
-          }
+          std::lock_guard<std::mutex> lk(writer_error_mtx);
+          writer_error_msg = std::string("WriteBatch2File(): Error writing table to file (IPC): ") + st1.message();
         }
-        rb.reset();
+        writer_failed.store(true, std::memory_order_release);
+        break;
       }
     }
       break;
     }
+    case ArrowWrapper::EOutputFormat::eCSV: {
+      for(const auto &rb: rbv_buffer){
+      // Ensure the batch is flat to match the CSV writer initialization
+      auto flat_rb_res = FlattenRecordBatchManual(rb);
+      if (!flat_rb_res.ok()) {
+        {
+          std::lock_guard<std::mutex> lk(writer_error_mtx);
+          writer_error_msg = std::string("WriteBatch2File(): Error flattening batch for CSV: ") + flat_rb_res.status().message();
+        }
+        writer_failed.store(true, std::memory_order_release);
+        break;
+      }
+      auto flat_rb = flat_rb_res.ValueOrDie();
+      
+#if defined(_OPENMP)
+      omp_set_lock(&rec_writerLock);
+#endif
+      arrow::Status st1 = rec_writer->WriteRecordBatch(*flat_rb);
+#if defined(_OPENMP)
+      omp_unset_lock(&rec_writerLock);
+#endif
+      if (!st1.ok()) {
+        {
+          std::lock_guard<std::mutex> lk(writer_error_mtx);
+          writer_error_msg = std::string("WriteBatch2File(): Error writing table to file (CSV): ") + st1.message();
+        }
+        writer_failed.store(true, std::memory_order_release);
+        break;
+      }
+    }
+      break;
+    }
+//     case ArrowWrapper::EOutputFormat::eCSV:
+//     {
+//       for (std::shared_ptr<arrow::RecordBatch> &rb : rbv_buffer) //const auto
+//     {
+//       // assert(!Progress::check_abort()); // R API calls inside threads will crash c++ runtime
+//       RcppThread::checkUserInterrupt(); // R API calls inside threads will crash c++ runtime
+//       if (rb)
+//       {
+//         if (rb->num_rows() > 0)
+//         {
+//           arrow::Status rb_sts = rb->ValidateFull();
+//           arrow::Status sts;
+//           if (rb_sts.ok())
+//           {
+// #if defined(_OPENMP)
+//             omp_set_lock(&rec_writerLock);
+// #endif
+// #if defined(_OPENMP)
+// #pragma omp critical (arrow_write_lock)
+// #endif
+// {
+//   sts = rec_writer->WriteRecordBatch(*rb);
+//   static_cast<void>(outFileStream->Flush());
+// }
+// #if defined(_OPENMP)
+// omp_unset_lock(&rec_writerLock);
+// #endif
+// 
+// if (!sts.ok())
+// {
+//   {
+//     std::lock_guard<std::mutex> lk(writer_error_mtx);
+//     writer_error_msg = std::string("WriteBatch2File(): Error writing RB (CSV/IPC): ") + sts.message();
+//   }
+//   writer_failed.store(true, std::memory_order_release);
+//   break;
+// }  
+// 
+//           }
+//         }
+//         rb.reset();
+//       }
+//     }
+//       break;
+//     }
     case ArrowWrapper::EOutputFormat::eParquet :{
       for(const auto &rb: rbv_buffer){
 #if defined(_OPENMP)
@@ -1479,7 +1685,6 @@ if (!sts.ok())
           writer_error_msg = std::string("WriteBatch2File(): Error writing table to file (Parquet): ") + st1.message() + std::string(" : ") + st1.detail()->ToString();
         }
         writer_failed.store(true, std::memory_order_release);
-        Rcpp::Rcerr << writer_error_msg << std::endl << std::flush; //DEBUG
         break;
       }
       
@@ -1923,13 +2128,13 @@ omp_destroy_lock(&ret_resultsLock);
 
 return std::make_shared<arrow::RecordBatchVector>(ret_results);
   }catch(const std::runtime_error &e){
-    Rcpp::Rcerr << std::string("[SplitFilesIntoEntries()] - C++ Runtime Exception : ") + e.what() << std::endl << std::flush;
+    RcppThread::Rcerr << std::string("[SplitFilesIntoEntries()] - C++ Runtime Exception : ") + e.what() << std::endl << std::flush;
   }catch(const Rcpp::exception &e){
-    Rcpp::Rcerr << std::string("[SplitFilesIntoEntries()] - Rcpp Exception : ") + e.what() << std::endl << std::flush;
+    RcppThread::Rcerr << std::string("[SplitFilesIntoEntries()] - Rcpp Exception : ") + e.what() << std::endl << std::flush;
   }catch (const std::exception &e) {
-    Rcpp::Rcerr << std::string("[SplitFilesIntoEntries()] - C++ exception : ") + e.what() << std::endl << std::flush;
+    RcppThread::Rcerr << std::string("[SplitFilesIntoEntries()] - C++ exception : ") + e.what() << std::endl << std::flush;
   }catch (...) {
-    Rcpp::Rcerr << "[SplitFilesIntoEntries()]: Unknown exception" << std::endl << std::flush;
+    RcppThread::Rcerr << "[SplitFilesIntoEntries()]: Unknown exception" << std::endl << std::flush;
   }
   return std::make_shared<arrow::RecordBatchVector>();
 }

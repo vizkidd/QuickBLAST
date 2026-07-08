@@ -30,6 +30,12 @@
 #include <parquet/arrow/writer.h>
 #include <arrow/util/type_fwd.h>
 
+
+#include <arrow/type.h>
+#include <arrow/array/array_nested.h>
+#include <vector>
+
+
 using parquet::WriterProperties;
 using parquet::ArrowWriterProperties;
 using parquet::ParquetVersion;

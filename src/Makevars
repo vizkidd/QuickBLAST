@@ -36,7 +36,7 @@ PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) $(STDCPPFS_LIBS) $(BOOST_LIBS) $(TOOLKIT_CPP
 
 #-fsanitize=undefined -fno-omit-frame-pointer -g -O1
 
-PKG_CXXFLAGS = -include include/rcpp_workaround.hpp -Ilibsrc $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) -pthread -I/usr/local/src/ -I/usr/include/ -Isrc/include/ -I../BUILD/arrow/cpp/src/ -I../BUILD/arrow/cpp/BUILD/src/ -I../BUILD/ncbi-cxx-toolkit-public/include/ -I../BUILD/ncbi-cxx-toolkit-public/src/ -I../BUILD/ncbi-cxx-toolkit-public/BUILD/inc/
+PKG_CXXFLAGS = -include include/rcpp_workaround.hpp -O3 -Ilibsrc $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) -pthread -I/usr/local/src/ -I/usr/include/ -Isrc/include/ -I../BUILD/arrow/cpp/src/ -I../BUILD/arrow/cpp/BUILD/src/ -I../BUILD/ncbi-cxx-toolkit-public/include/ -I../BUILD/ncbi-cxx-toolkit-public/src/ -I../BUILD/ncbi-cxx-toolkit-public/BUILD/inc/
 
 #-O3 -fPIC -Wextra -shared
 #`$(R_HOME)/bin/Rscript -e "cat(Rcpp:::RcppCxxFlags())"`

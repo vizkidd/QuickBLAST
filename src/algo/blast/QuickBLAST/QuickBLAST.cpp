@@ -352,6 +352,7 @@ int QuickBLAST::Impl::GetFrame(int start, int length, ncbi::objects::ENa_strand 
 std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractFASTA(const FastaSequenceData &fasta_data)
 {
   RcppThread::checkUserInterrupt();
+  
   std::shared_ptr<arrow::Array> seqArr, hArr, recnoArr;
   std::shared_ptr<arrow::Int64Builder> rec_no_builder;
   std::shared_ptr<arrow::StringBuilder> fasta_h_builder, fasta_seq_builder;
@@ -770,6 +771,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
           progress_bar++;
           return std::make_shared<arrow::RecordBatchVector>();
         }
+        
         RcppThread::checkUserInterrupt();
         
         bool had_bad_q = false;
@@ -788,7 +790,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
         }
         if (had_bad_q) {
           if(verbose)
-            Rcpp::Rcout << "Warning: removed/normalized invalid bytes from Query sequence " << data_q->header << std::endl;
+            RcppThread::Rcout << "Warning: removed/normalized invalid bytes from Query sequence " << data_q->header << std::endl;
         }
         if(data_q->seq.empty()){
           return std::make_shared<arrow::RecordBatchVector>();
@@ -806,11 +808,11 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
         CRef<ncbi::CScope> scope(new ncbi::CScope(*CObjectManager::GetInstance()));
         auto [ query_loc, query_seq_entry ] = CreateSSeqLocFromType(*data_q, scope);
         if (!query_loc) {
-          Rcpp::Rcerr << "BLAST_files: CreateSSeqLocFromType(query) returned NULL." << std::endl << std::flush;
+          RcppThread::Rcerr << "BLAST_files: CreateSSeqLocFromType(query) returned NULL." << std::endl << std::flush;
           return std::make_shared<arrow::RecordBatchVector>();
         }
         if(!query_loc->seqloc.NotEmpty()){
-          Rcpp::Rcerr << "BLAST_files: CreateSSeqLocFromType(query) is empty." << std::endl << std::flush;
+          RcppThread::Rcerr << "BLAST_files: CreateSSeqLocFromType(query) is empty." << std::endl << std::flush;
           return std::make_shared<arrow::RecordBatchVector>();
         }
         
@@ -845,7 +847,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
                                          }
                                          if (had_bad_s) {
                                            if(verbose)
-                                             Rcpp::Rcout << "Warning: removed/normalized invalid bytes from Query sequence " << data_s->header << std::endl << std::flush;
+                                             RcppThread::Rcout << "Warning: removed/normalized invalid bytes from Query sequence " << data_s->header << std::endl << std::flush;
                                          }
                                          if(data_s->seq.empty()){
                                            return std::make_shared<arrow::RecordBatchVector>();
@@ -853,11 +855,11 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
                                          
                                          auto [ subject_loc, subject_seq_entry] = CreateSSeqLocFromType(*data_s, scope);
                                          if (!subject_loc) {
-                                           Rcpp::Rcerr << "BLAST_files: CreateSSeqLocFromType(subject) returned NULL." << std::endl << std::flush;
+                                           RcppThread::Rcerr << "BLAST_files: CreateSSeqLocFromType(subject) returned NULL." << std::endl << std::flush;
                                            return std::make_shared<arrow::RecordBatchVector>();
                                          }
                                          if(!subject_loc->seqloc.NotEmpty()){
-                                           Rcpp::Rcerr << "BLAST_files: CreateSSeqLocFromType(subject) is empty." << std::endl << std::flush;
+                                           RcppThread::Rcerr << "BLAST_files: CreateSSeqLocFromType(subject) is empty." << std::endl << std::flush;
                                            return std::make_shared<arrow::RecordBatchVector>();
                                          }
                                          
@@ -887,7 +889,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_files(const st
   try{
     alignments = blaster->Run();
   }catch (const ncbi::CException& e) {
-    Rcpp::Rcerr << std::string("[BLAST_files()] 1. BLAST Execution error: Check Sequence type mismatch (proteins != nucleotides) : ")  << e.GetFunction() << std::endl << e.GetErrCodeString() << std::endl << e.GetErrCode() << std::endl << e.GetModule() << std::endl << e.GetPredecessor() << std::endl << e.GetFile() << std::endl << e.GetLine() << std::endl << e.GetMsg() << std::endl << e.GetStackTrace() << std::endl << e.GetStackTraceLevel() << std::endl << e.GetClass() << std::endl << e.what() << std::endl << std::flush;
+    RcppThread::Rcerr << std::string("[BLAST_files()] 1. BLAST Execution error: Check Sequence type mismatch (proteins != nucleotides) : ")  << e.GetFunction() << std::endl << e.GetErrCodeString() << std::endl << e.GetErrCode() << std::endl << e.GetModule() << std::endl << e.GetPredecessor() << std::endl << e.GetFile() << std::endl << e.GetLine() << std::endl << e.GetMsg() << std::endl << e.GetStackTrace() << std::endl << e.GetStackTraceLevel() << std::endl << e.GetClass() << std::endl << e.what() << std::endl << std::flush;
     blast_interrupt_ctx->stop.store(true);      
     quickblast_running.store(false); 
   }
@@ -954,7 +956,7 @@ else
   try{
     alignments = blaster->Run();
   }catch (const ncbi::CException& e) {
-    Rcpp::Rcerr << std::string("[BLAST_files()] 2. BLAST Execution error: Check Sequence type mismatch (proteins != nucleotides) : ")  << e.GetFunction() << std::endl << e.GetErrCodeString() << std::endl << e.GetErrCode() << std::endl << e.GetModule() << std::endl << e.GetPredecessor() << std::endl << e.GetFile() << std::endl << e.GetLine() << std::endl << e.GetMsg() << std::endl << e.GetStackTrace() << std::endl << e.GetStackTraceLevel() << std::endl << e.GetClass() << std::endl << e.what() << std::endl << std::flush;
+    RcppThread::Rcerr << std::string("[BLAST_files()] 2. BLAST Execution error: Check Sequence type mismatch (proteins != nucleotides) : ")  << e.GetFunction() << std::endl << e.GetErrCodeString() << std::endl << e.GetErrCode() << std::endl << e.GetModule() << std::endl << e.GetPredecessor() << std::endl << e.GetFile() << std::endl << e.GetLine() << std::endl << e.GetMsg() << std::endl << e.GetStackTrace() << std::endl << e.GetStackTraceLevel() << std::endl << e.GetClass() << std::endl << e.what() << std::endl << std::flush;
     blast_interrupt_ctx->stop.store(true);      
     quickblast_running.store(false); 
   }
@@ -988,23 +990,23 @@ else
                                              break;
                                              }
                                            }catch (const CException& e){
-                                             Rcpp::Rcerr << std::string("[BLAST_files()]: 1. NCBI Exception: Stopping run :")  << e.GetFunction() << std::endl << e.GetErrCodeString() << std::endl << e.GetErrCode() << std::endl << e.GetModule() << std::endl << e.GetPredecessor() << std::endl << e.GetFile() << std::endl << e.GetLine() << std::endl << e.GetMsg() << std::endl << e.GetStackTrace() << std::endl << e.GetStackTraceLevel() << std::endl << e.GetClass() << std::endl << std::flush;
+                                             RcppThread::Rcerr << std::string("[BLAST_files()]: 1. NCBI Exception: Stopping run :")  << e.GetFunction() << std::endl << e.GetErrCodeString() << std::endl << e.GetErrCode() << std::endl << e.GetModule() << std::endl << e.GetPredecessor() << std::endl << e.GetFile() << std::endl << e.GetLine() << std::endl << e.GetMsg() << std::endl << e.GetStackTrace() << std::endl << e.GetStackTraceLevel() << std::endl << e.GetClass() << std::endl << std::flush;
                                              blast_interrupt_ctx->stop.store(true);      
                                              quickblast_running.store(false); 
                                            }catch(const Rcpp::exception &e){
-                                             Rcpp::Rcerr << std::string("[BLAST_files()] - 1. Rcpp Exception : ") + e.what() << std::endl << std::flush;
+                                             RcppThread::Rcerr << std::string("[BLAST_files()] - 1. Rcpp Exception : ") + e.what() << std::endl << std::flush;
                                              blast_interrupt_ctx->stop.store(true);      
                                              quickblast_running.store(false); 
                                            }catch (const std::runtime_error& e){
-                                             Rcpp::Rcerr << std::string("[BLAST_files()]: 1. C++ Runtime Error: ") + e.what() << std::endl << std::flush;
+                                             RcppThread::Rcerr << std::string("[BLAST_files()]: 1. C++ Runtime Error: ") + e.what() << std::endl << std::flush;
                                              blast_interrupt_ctx->stop.store(true);      
                                              quickblast_running.store(false); 
                                            }catch (const std::exception& e){
-                                             Rcpp::Rcerr << std::string("[BLAST_files()]: 1. C++ Exception: ") + e.what() << std::endl << std::flush;
+                                             RcppThread::Rcerr << std::string("[BLAST_files()]: 1. C++ Exception: ") + e.what() << std::endl << std::flush;
                                              blast_interrupt_ctx->stop.store(true);      
                                              quickblast_running.store(false); 
                                            }catch(...){
-                                             Rcpp::Rcerr << "[BLAST_files()] - 1. Unknown Exception" << std::endl << std::flush;
+                                             RcppThread::Rcerr << "[BLAST_files()] - 1. Unknown Exception" << std::endl << std::flush;
                                              blast_interrupt_ctx->stop.store(true);      
                                              quickblast_running.store(false); 
                                            }
@@ -1029,7 +1031,7 @@ else
   try{
     alignments = blaster->Run();
   }catch (const ncbi::CException& e) {
-    Rcpp::Rcerr << std::string("[BLAST_files()] 3. BLAST Execution error: Check Sequence type mismatch (proteins != nucleotides): ")  << e.GetFunction() << std::endl << e.GetErrCodeString() << std::endl << e.GetErrCode() << std::endl << e.GetModule() << std::endl << e.GetPredecessor() << std::endl << e.GetFile() << std::endl << e.GetLine() << std::endl << e.GetMsg() << std::endl << e.GetStackTrace() << std::endl << e.GetStackTraceLevel() << std::endl << e.GetClass() << std::endl << std::flush;
+    RcppThread::Rcerr << std::string("[BLAST_files()] 3. BLAST Execution error: Check Sequence type mismatch (proteins != nucleotides): ")  << e.GetFunction() << std::endl << e.GetErrCodeString() << std::endl << e.GetErrCode() << std::endl << e.GetModule() << std::endl << e.GetPredecessor() << std::endl << e.GetFile() << std::endl << e.GetLine() << std::endl << e.GetMsg() << std::endl << e.GetStackTrace() << std::endl << e.GetStackTraceLevel() << std::endl << e.GetClass() << std::endl << std::flush;
     quickblast_running.store(false); 
   }
 }
@@ -1330,7 +1332,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_f2db(const std
         lcl_blaster.SetInterruptCallback(&BlastInterruptFn, static_cast<void*>(blast_interrupt_ctx.get()));
         results = lcl_blaster.Run();
       } catch (const ncbi::CException& e) {
-        Rcpp::Rcerr << "[BLAST_f2db()] Execution error: " << e.GetFunction() << std::endl << e.GetErrCodeString() << std::endl << e.GetErrCode() << std::endl << e.GetModule() << std::endl << e.GetPredecessor() << std::endl << e.GetFile() << std::endl << e.GetLine() << std::endl << e.GetMsg() << std::endl << e.GetStackTrace() << std::endl << e.GetStackTraceLevel() << std::endl << e.GetClass() << std::endl << e.what() << std::endl << std::flush;
+        RcppThread::Rcerr << "[BLAST_f2db()] Execution error: " << e.GetFunction() << std::endl << e.GetErrCodeString() << std::endl << e.GetErrCode() << std::endl << e.GetModule() << std::endl << e.GetPredecessor() << std::endl << e.GetFile() << std::endl << e.GetLine() << std::endl << e.GetMsg() << std::endl << e.GetStackTrace() << std::endl << e.GetStackTraceLevel() << std::endl << e.GetClass() << std::endl << e.what() << std::endl << std::flush;
         quickblast_running.store(false);
         continue;
       }
@@ -1614,7 +1616,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_f2db(const std
           {"qhsp", "shsp", "pident", "pident_gap", "frames", "evalue", "length", "length01", "qstart", "qend", "sstart", "send", "bitscore", "score", "qcovhsp", "blast_score", "gaps", "nident", "mismatch", "positive", "n_splices", "hsp_num", "sum_evalue", "product_coverage", "overall_identity", "negative_count", "matches", "high_quality_percent_coverage", "exon_identity", "consensus_splices", "comp_adj_method"});
         
         if (!aln_struct_array.ok()) {
-          Rcpp::Rcerr << "[BLAST_f2db()] 1. Failed to build StructArray: " << aln_struct_array.status().ToString() << std::endl << std::flush;
+          RcppThread::Rcerr << "[BLAST_f2db()] 1. Failed to build StructArray: " << aln_struct_array.status().ToString() << std::endl << std::flush;
           quickblast_running.store(false); 
           continue;
         }
@@ -1639,7 +1641,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_f2db(const std
         {"num_alignments", "seqids", "seqs", "strands", "lengths"});
         
         if(!seq_info_array.ok()){
-          Rcpp::Rcerr << "[BLAST_f2db()] 2. Failed to build StructArray: " << seq_info_array.status().ToString() << std::endl << std::flush;
+          RcppThread::Rcerr << "[BLAST_f2db()] 2. Failed to build StructArray: " << seq_info_array.status().ToString() << std::endl << std::flush;
           quickblast_running.store(false); 
           continue;
         }
@@ -1668,13 +1670,13 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_f2db(const std
     }
     
   }catch (const ncbi::CException& e) {
-    Rcpp::Rcerr << "[BLAST_f2db()] 1. NCBI CException: " << e.GetFunction() << std::endl << e.GetErrCodeString() << std::endl << e.GetErrCode() << std::endl << e.GetModule() << std::endl << e.GetPredecessor() << std::endl << e.GetFile() << std::endl << e.GetLine() << std::endl << e.GetMsg() << std::endl << e.GetStackTrace() << std::endl << e.GetStackTraceLevel() << std::endl << e.GetClass() << std::endl << e.what() << std::endl << std::flush;
+    RcppThread::Rcerr << "[BLAST_f2db()] 1. NCBI CException: " << e.GetFunction() << std::endl << e.GetErrCodeString() << std::endl << e.GetErrCode() << std::endl << e.GetModule() << std::endl << e.GetPredecessor() << std::endl << e.GetFile() << std::endl << e.GetLine() << std::endl << e.GetMsg() << std::endl << e.GetStackTrace() << std::endl << e.GetStackTraceLevel() << std::endl << e.GetClass() << std::endl << e.what() << std::endl << std::flush;
   }catch (const std::runtime_error& e) {
-    Rcpp::Rcerr << "[BLAST_f2db()] 1. C++ Runtime error: " << e.what() << std::endl << std::flush;
+    RcppThread::Rcerr << "[BLAST_f2db()] 1. C++ Runtime error: " << e.what() << std::endl << std::flush;
   }catch (const std::exception& e) {
-    Rcpp::Rcerr << "[BLAST_f2db()] 1. C++ Exception: " << e.what() << std::endl << std::flush;
+    RcppThread::Rcerr << "[BLAST_f2db()] 1. C++ Exception: " << e.what() << std::endl << std::flush;
   }catch (...) {
-    Rcpp::Rcerr << "[BLAST_f2db()] 1. Unknown error" << std::endl << std::flush;
+    RcppThread::Rcerr << "[BLAST_f2db()] 1. Unknown error" << std::endl << std::flush;
   }
   
 }
@@ -1786,6 +1788,7 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHitsDB(CRef<CSearch
   ncbi::sequence::CDeflineGenerator defline_gen;
   for (const auto& res : *results) {
     if (!res->HasAlignments()) continue;
+    
     RcppThread::checkUserInterrupt();
     
     const CSeq_align_set& align_set = *res->GetSeqAlign();
@@ -1825,6 +1828,7 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHitsDB(CRef<CSearch
     }
     
     for (const auto& it : align_set.Get()) {
+      
       RcppThread::checkUserInterrupt();
       
       q_aligned.clear(); s_aligned.clear(); // Clean buffers
@@ -2278,7 +2282,9 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_dbs(const std:
       
       try {
         for (int j = i; j < current_batch_end; ++j) {
+          
           RcppThread::checkUserInterrupt();
+          
           CRef<CSeq_id> id = lcl_q_seqdb->GetSeqIDs(j).front();
           TSeqPos seq_len = lcl_q_seqdb->GetSeqLength(j);
           
@@ -2865,6 +2871,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::ExtractHits(const TS
 {
   try{
     RcppThread::checkUserInterrupt();
+    
     if(alignments.empty()){
       return std::make_shared<arrow::RecordBatchVector>();
     }
@@ -2911,6 +2918,7 @@ std::shared_ptr<arrow::RecordBatch> QuickBLAST::Impl::ExtractHits(const TSeqAlig
 {
   try{
     RcppThread::checkUserInterrupt();
+    
     if (alignments.empty()) {
       // return an empty but typed record batch
       return empty_rb;

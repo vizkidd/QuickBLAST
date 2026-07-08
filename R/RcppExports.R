@@ -472,8 +472,6 @@ isBLASTDB <- function(ptr, input_db) {
 #' @param input_file (string) Path to FASTA file.
 #' @param database_name (string) Name of the output DB.
 #' @param parse_seqids (bool) TRUE - Checks FASTA headers for malformations (Default: FALSE)
-#' @param stdout_opt (Bool/String) - Re-route STDOUT
-#' @param stderr_opt (Bool/String) - Re-route STDERR
 #' @return (bool) DB name on success, FALSE - Otherwise.
 #' @examples
 #' \dontrun{
@@ -514,8 +512,8 @@ isBLASTDB <- function(ptr, input_db) {
 #' )
 #' }
 #' @export
-MakeBLASTDB <- function(ptr, input_file, database_name, parse_seqids = FALSE, stdout_opt = NULL, stderr_opt = NULL) {
-    .Call(`_QuickBLAST_MakeBLASTDB`, ptr, input_file, database_name, parse_seqids, stdout_opt, stderr_opt)
+MakeBLASTDB <- function(ptr, input_file, database_name, parse_seqids = FALSE) {
+    .Call(`_QuickBLAST_MakeBLASTDB`, ptr, input_file, database_name, parse_seqids)
 }
 
 #' @name BLAST2DBs

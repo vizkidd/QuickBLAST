@@ -4,14 +4,7 @@
 \alias{MakeBLASTDB}
 \title{Make on-disk BLAST DB from a FASTA file}
 \usage{
-MakeBLASTDB(
-  ptr,
-  input_file,
-  database_name,
-  parse_seqids = FALSE,
-  stdout_opt = NULL,
-  stderr_opt = NULL
-)
+MakeBLASTDB(ptr, input_file, database_name, parse_seqids = FALSE)
 }
 \arguments{
 \item{ptr}{(\code{Rcpp::XPtr<QuickBLAST>}) or (unsigned int) Pointer/ID of QuickBLAST instance}
@@ -21,10 +14,6 @@ MakeBLASTDB(
 \item{database_name}{(string) Name of the output DB.}
 
 \item{parse_seqids}{(bool) TRUE - Checks FASTA headers for malformations (Default: FALSE)}
-
-\item{stdout_opt}{(Bool/String) - Re-route STDOUT}
-
-\item{stderr_opt}{(Bool/String) - Re-route STDERR}
 }
 \value{
 (bool) DB name on success, FALSE - Otherwise.
