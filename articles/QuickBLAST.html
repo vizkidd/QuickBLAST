@@ -124,7 +124,7 @@ open in memory.</p>
 <span></span>
 <span><span class="co"># Inspecting an instance reveals its underlying C++ pointer and attributes</span></span>
 <span><span class="va">blastn_inst</span></span>
-<span><span class="co">#&gt;  &lt;pointer: 0x559c3a672c90&gt;</span></span>
+<span><span class="co">#&gt;  &lt;pointer: 0x559f2548f090&gt;</span></span>
 <span><span class="co">#&gt;  attr(,"seq_type")</span></span>
 <span><span class="co">#&gt;  [1] 0</span></span>
 <span><span class="co">#&gt;  attr(,"strand")</span></span>
@@ -184,7 +184,7 @@ reload it.</p>
 <span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/BLAST2Seqs.html">BLAST2Seqs</a></span><span class="op">(</span><span class="va">tblastx_inst</span>, <span class="st">"AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC"</span>, <span class="st">"TTTTTTTTTTTGGGGGGGGGGGG"</span><span class="op">)</span>, silent <span class="op">=</span> <span class="cn">T</span>, outFile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/showConnections.html" class="external-link">stdout</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  Dead pointer detected. Attempting to reload...</span></span>
 <span><span class="co">#&gt;  Using tblastx Defaults...</span></span>
-<span><span class="co">#&gt;  Clock : 0.00226552 seconds</span></span>
+<span><span class="co">#&gt;  Clock : 0.00235619 seconds</span></span>
 <span><span class="co">#&gt;  1</span></span>
 <span><span class="co">#&gt;  RecordBatchVector size: 1</span></span>
 <span><span class="co">#&gt;  Total rows across all batches: 1</span></span>
@@ -210,14 +210,14 @@ reload it.</p>
 <span></span>
 <span><span class="co"># Expected empty results due to mismatched pointer type (Nucleotide vs Nucleotide with a blastp pointer) </span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/BLAST2Seqs.html">BLAST2Seqs</a></span><span class="op">(</span><span class="va">blastp_inst</span>, <span class="st">"AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC"</span>, <span class="st">"TTTTTTTTTTTGGGGGGGGGGGG"</span><span class="op">)</span>, silent <span class="op">=</span> <span class="cn">T</span>, outFile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/showConnections.html" class="external-link">stdout</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  Clock : 0.00124163 seconds</span></span>
+<span><span class="co">#&gt;  Clock : 0.00114116 seconds</span></span>
 <span><span class="co">#&gt;  1</span></span>
 <span><span class="co">#&gt;  RecordBatchVector size: 1</span></span>
 <span><span class="co">#&gt;  list()</span></span>
 <span></span>
 <span><span class="co"># (~)Successful Protein-Protein search : Same protein</span></span>
 <span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/BLAST2Seqs.html">BLAST2Seqs</a></span><span class="op">(</span><span class="va">blastp_inst</span>, <span class="st">"MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE"</span>, <span class="st">"MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  Clock : 0.00195553 seconds</span></span>
+<span><span class="co">#&gt;  Clock : 0.00180401 seconds</span></span>
 <span><span class="co">#&gt;  1</span></span>
 <span><span class="co">#&gt;  RecordBatchVector size: 1</span></span>
 <span><span class="co">#&gt;  Total rows across all batches: 1</span></span>
@@ -247,7 +247,7 @@ reload it.</p>
 <span></span>
 <span><span class="co"># Successful NT-NT search</span></span>
 <span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/BLAST2Seqs.html">BLAST2Seqs</a></span><span class="op">(</span><span class="va">blastn_inst</span>, <span class="st">"ATGGAGGAGCCGCAGTCAGATCCTAGCGTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA"</span>, <span class="st">"ATGGAGGAGCCGCAGTCAGATCCTAGCCTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  Clock : 0.000822599 seconds</span></span>
+<span><span class="co">#&gt;  Clock : 0.00096323 seconds</span></span>
 <span><span class="co">#&gt;  1</span></span>
 <span><span class="co">#&gt;  RecordBatchVector size: 1</span></span>
 <span><span class="co">#&gt;  Total rows across all batches: 1</span></span>
@@ -326,7 +326,7 @@ without loading everything into the R global environment first.</p>
 <span><span class="co">#&gt;  Batch Size: 2</span></span>
 <span><span class="co">#&gt;  Computing: [========================================] 100% (done)                         </span></span>
 <span><span class="co">#&gt;  Total Records Processed: 1</span></span>
-<span><span class="co">#&gt;  Clock : 0.00165334 seconds</span></span>
+<span><span class="co">#&gt;  Clock : 0.00174766 seconds</span></span>
 <span><span class="co">#&gt;  RecordBatchVector size: 1</span></span>
 <span><span class="co">#&gt;  Total rows across all batches: 1</span></span>
 <span></span>
@@ -393,9 +393,9 @@ functionality directly into R.</p>
 <span>  database_name <span class="op">=</span> <span class="va">db_path</span>,</span>
 <span>  parse_seqids <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span>, silent <span class="op">=</span> <span class="cn">TRUE</span>, outFile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/showConnections.html" class="external-link">stdout</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [MakeBLASTDB] Executing command: /home/runner/work/_temp/Library/QuickBLAST/libs//makeblastdb -in /tmp/RtmpwsU2UW/file967a772d108.fasta -dbtype nucl -out /tmp/RtmpwsU2UW/My_Test_DB </span></span>
+<span><span class="co">#&gt;  [MakeBLASTDB] Executing command: /home/runner/work/_temp/Library/QuickBLAST/libs//makeblastdb -in /tmp/Rtmp7N1ahF/file95f8585c2562.fasta -dbtype nucl -out /tmp/Rtmp7N1ahF/My_Test_DB </span></span>
 <span><span class="co">#&gt;  makeblastdb finished successfully</span></span>
-<span><span class="co">#&gt;  [1] "/tmp/RtmpwsU2UW/My_Test_DB"</span></span>
+<span><span class="co">#&gt;  [1] "/tmp/Rtmp7N1ahF/My_Test_DB"</span></span>
 <span></span>
 <span><span class="co"># 2. Search a query file or query database against the custom local database</span></span>
 <span><span class="va">db_results</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/BLAST2DBs.html">BLAST2DBs</a></span><span class="op">(</span></span>
@@ -405,17 +405,17 @@ functionality directly into R.</p>
 <span> return_values <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span> num_threads <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span>, silent <span class="op">=</span> <span class="cn">TRUE</span>, outFile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/showConnections.html" class="external-link">stdout</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [MakeBLASTDB] Executing command: /home/runner/work/_temp/Library/QuickBLAST/libs//makeblastdb -in /tmp/RtmpwsU2UW/file967a76707d45.fasta -dbtype nucl -out /tmp/RtmpwsU2UW/file967a76707d45.fasta.db </span></span>
+<span><span class="co">#&gt;  [MakeBLASTDB] Executing command: /home/runner/work/_temp/Library/QuickBLAST/libs//makeblastdb -in /tmp/Rtmp7N1ahF/file95f8219ac7b9.fasta -dbtype nucl -out /tmp/Rtmp7N1ahF/file95f8219ac7b9.fasta.db </span></span>
 <span><span class="co">#&gt;  makeblastdb finished successfully</span></span>
-<span><span class="co">#&gt;  Q :/tmp/RtmpwsU2UW/file967a76707d45.fasta.db</span></span>
-<span><span class="co">#&gt;  S :/tmp/RtmpwsU2UW/My_Test_DB</span></span>
+<span><span class="co">#&gt;  Q :/tmp/Rtmp7N1ahF/file95f8219ac7b9.fasta.db</span></span>
+<span><span class="co">#&gt;  S :/tmp/Rtmp7N1ahF/My_Test_DB</span></span>
 <span><span class="co">#&gt;  Num Threads: 2</span></span>
 <span><span class="co">#&gt;  Total Records (Q + S): 2 (1 + 1)</span></span>
 <span><span class="co">#&gt;  Batch Size: 3</span></span>
 <span><span class="co">#&gt;  Batch Hits: 1</span></span>
 <span><span class="co">#&gt;  Processed Batches:1</span></span>
 <span><span class="co">#&gt;  Total Records Processed: 2</span></span>
-<span><span class="co">#&gt;  Clock : 0.0745984 seconds</span></span>
+<span><span class="co">#&gt;  Clock : 0.262133 seconds</span></span>
 <span><span class="co">#&gt;  RecordBatchVector size: 1</span></span>
 <span><span class="co">#&gt;  Total rows across all batches: 1</span></span>
 <span></span>
@@ -481,7 +481,7 @@ inter-process-communicable file or a tabular CSV.</p>
 <span>  return_values <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">T</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt;  Writing to : /tmp/RtmpwsU2UW/file967a3db72973.parquet</span></span>
+<span><span class="co">#&gt;  Writing to : /tmp/Rtmp7N1ahF/file95f85c8106cd.parquet</span></span>
 <span><span class="co">#&gt;  Output Format : parquet</span></span>
 <span><span class="co">#&gt;  Num Threads: 2</span></span>
 <span><span class="co">#&gt;  Total Records (Q + S): 2 (1 + 1)</span></span>
@@ -489,7 +489,7 @@ inter-process-communicable file or a tabular CSV.</p>
 <span><span class="co">#&gt;  Computing: [========================================] 100% (done)                         </span></span>
 <span><span class="co">#&gt;  Done writing to file.</span></span>
 <span><span class="co">#&gt;  Total Records Processed: 5</span></span>
-<span><span class="co">#&gt;  Clock : 0.0503166 seconds</span></span>
+<span><span class="co">#&gt;  Clock : 0.0503465 seconds</span></span>
 <span><span class="co">#&gt;  [1] TRUE</span></span>
 <span></span>
 <span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/BLAST2Files.html">BLAST2Files</a></span><span class="op">(</span></span>
@@ -500,7 +500,7 @@ inter-process-communicable file or a tabular CSV.</p>
 <span>  out_format <span class="op">=</span> <span class="st">"ipc"</span>,</span>
 <span>  return_values <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt;  Writing to : /tmp/RtmpwsU2UW/file967a1ba3d26.ipc</span></span>
+<span><span class="co">#&gt;  Writing to : /tmp/Rtmp7N1ahF/file95f852b3edfc.ipc</span></span>
 <span><span class="co">#&gt;  Output Format : ipc</span></span>
 <span><span class="co">#&gt;  Num Threads: 2</span></span>
 <span><span class="co">#&gt;  Total Records (Q + S): 2 (1 + 1)</span></span>
@@ -508,7 +508,7 @@ inter-process-communicable file or a tabular CSV.</p>
 <span><span class="co">#&gt;  Computing: [========================================] 100% (done)                         </span></span>
 <span><span class="co">#&gt;  Done writing to file.</span></span>
 <span><span class="co">#&gt;  Total Records Processed: 5</span></span>
-<span><span class="co">#&gt;  Clock : 0.0502604 seconds</span></span>
+<span><span class="co">#&gt;  Clock : 0.050324 seconds</span></span>
 <span><span class="co">#&gt;  [1] TRUE</span></span>
 <span></span>
 <span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/BLAST2Files.html">BLAST2Files</a></span><span class="op">(</span></span>
@@ -519,7 +519,7 @@ inter-process-communicable file or a tabular CSV.</p>
 <span>  out_format <span class="op">=</span> <span class="st">"csv"</span>,</span>
 <span>  return_values <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt;  Writing to : /tmp/RtmpwsU2UW/file967a9f8273d.csv</span></span>
+<span><span class="co">#&gt;  Writing to : /tmp/Rtmp7N1ahF/file95f8584f31f.csv</span></span>
 <span><span class="co">#&gt;  Output Format : csv</span></span>
 <span><span class="co">#&gt;  Num Threads: 2</span></span>
 <span><span class="co">#&gt;  Total Records (Q + S): 2 (1 + 1)</span></span>
@@ -527,94 +527,22 @@ inter-process-communicable file or a tabular CSV.</p>
 <span><span class="co">#&gt;  Computing: [========================================] 100% (done)                         </span></span>
 <span><span class="co">#&gt;  Done writing to file.</span></span>
 <span><span class="co">#&gt;  Total Records Processed: 5</span></span>
-<span><span class="co">#&gt;  Clock : 0.0502578 seconds</span></span>
+<span><span class="co">#&gt;  Clock : 0.0502945 seconds</span></span>
 <span><span class="co">#&gt;  [1] TRUE</span></span>
 <span></span>
 <span><span class="co"># Load the hits back into an R data.frame natively via QuickBLAST</span></span>
 <span><span class="va">hits_df</span> <span class="op">&lt;-</span> <span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/LoadBLASTHits.html">LoadBLASTHits</a></span><span class="op">(</span><span class="va">out_parquet</span>, format <span class="op">=</span> <span class="st">"parquet"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">hits_df</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    seq_info.num_alignments seq_info.seqids.qseqid seq_info.seqids.sseqid</span></span>
-<span><span class="co">#&gt;  1                       1     Human_p53_fragment   Variant_p53_fragment</span></span>
-<span><span class="co">#&gt;  2                       1     Human_p53_fragment   Variant_p53_fragment</span></span>
-<span><span class="co">#&gt;  3                       1     Human_p53_fragment   Variant_p53_fragment</span></span>
-<span><span class="co">#&gt;  4                       1     Human_p53_fragment   Variant_p53_fragment</span></span>
-<span><span class="co">#&gt;  5                       1     Human_p53_fragment   Variant_p53_fragment</span></span>
-<span><span class="co">#&gt;  6                       1     Human_p53_fragment   Variant_p53_fragment</span></span>
-<span><span class="co">#&gt;    seq_info.seqs.qseq seq_info.seqs.sseq seq_info.strands seq_info.lengths.qlen</span></span>
-<span><span class="co">#&gt;  1                                                    +/+                    58</span></span>
-<span><span class="co">#&gt;  2                                                    +/+                    58</span></span>
-<span><span class="co">#&gt;  3                                                    +/+                    58</span></span>
-<span><span class="co">#&gt;  4                                                    +/+                    58</span></span>
-<span><span class="co">#&gt;  5                                                    +/+                    60</span></span>
-<span><span class="co">#&gt;  6                                                    +/+                    60</span></span>
-<span><span class="co">#&gt;    seq_info.lengths.slen hsps.qhsp hsps.shsp hsps.pident hsps.pident_gap</span></span>
-<span><span class="co">#&gt;  1                    58                        98.27586        98.27586</span></span>
-<span><span class="co">#&gt;  2                    58                        98.27586        98.27586</span></span>
-<span><span class="co">#&gt;  3                    58                        98.27586        98.27586</span></span>
-<span><span class="co">#&gt;  4                    58                        98.27586        98.27586</span></span>
-<span><span class="co">#&gt;  5                    58                        98.27586        98.27586</span></span>
-<span><span class="co">#&gt;  6                    58                        98.27586        98.27586</span></span>
-<span><span class="co">#&gt;    hsps.frames  hsps.evalue hsps.length hsps.length01 hsps.qstart hsps.qend</span></span>
-<span><span class="co">#&gt;  1         2/2 3.314614e-28          58             1           1        58</span></span>
-<span><span class="co">#&gt;  2         2/2 3.314614e-28          58             1           1        58</span></span>
-<span><span class="co">#&gt;  3         2/2 3.314614e-28          58             1           1        58</span></span>
-<span><span class="co">#&gt;  4         2/2 3.314614e-28          58             1           1        58</span></span>
-<span><span class="co">#&gt;  5         2/2 3.442099e-28          58             1           1        58</span></span>
-<span><span class="co">#&gt;  6         2/2 3.442099e-28          58             1           1        58</span></span>
-<span><span class="co">#&gt;    hsps.sstart hsps.send hsps.bitscore hsps.score hsps.qcovhsp hsps.blast_score</span></span>
-<span><span class="co">#&gt;  1           1        58       102.686         55            0               55</span></span>
-<span><span class="co">#&gt;  2           1        58       102.686         55            0               55</span></span>
-<span><span class="co">#&gt;  3           1        58       102.686         55            0               55</span></span>
-<span><span class="co">#&gt;  4           1        58       102.686         55            0               55</span></span>
-<span><span class="co">#&gt;  5           1        58       102.686         55            0               55</span></span>
-<span><span class="co">#&gt;  6           1        58       102.686         55            0               55</span></span>
-<span><span class="co">#&gt;    hsps.gaps hsps.nident hsps.mismatch hsps.positive hsps.n_splices hsps.hsp_num</span></span>
-<span><span class="co">#&gt;  1         0          57             1             0              0            1</span></span>
-<span><span class="co">#&gt;  2         0          57             1             0              0            2</span></span>
-<span><span class="co">#&gt;  3         0          57             1             0              0            1</span></span>
-<span><span class="co">#&gt;  4         0          57             1             0              0            2</span></span>
-<span><span class="co">#&gt;  5         0          57             1             0              0            1</span></span>
-<span><span class="co">#&gt;  6         0          57             1             0              0            2</span></span>
-<span><span class="co">#&gt;    hsps.sum_evalue hsps.product_coverage hsps.overall_identity</span></span>
-<span><span class="co">#&gt;  1               0                     0                     0</span></span>
-<span><span class="co">#&gt;  2               0                     0                     0</span></span>
-<span><span class="co">#&gt;  3               0                     0                     0</span></span>
-<span><span class="co">#&gt;  4               0                     0                     0</span></span>
-<span><span class="co">#&gt;  5               0                     0                     0</span></span>
-<span><span class="co">#&gt;  6               0                     0                     0</span></span>
-<span><span class="co">#&gt;    hsps.negative_count hsps.matches hsps.high_quality_percent_coverage</span></span>
-<span><span class="co">#&gt;  1                   0            0                                  0</span></span>
-<span><span class="co">#&gt;  2                   0            0                                  0</span></span>
-<span><span class="co">#&gt;  3                   0            0                                  0</span></span>
-<span><span class="co">#&gt;  4                   0            0                                  0</span></span>
-<span><span class="co">#&gt;  5                   0            0                                  0</span></span>
-<span><span class="co">#&gt;  6                   0            0                                  0</span></span>
-<span><span class="co">#&gt;    hsps.exon_identity hsps.consensus_splices hsps.comp_adj_method</span></span>
-<span><span class="co">#&gt;  1                  0                      0                    0</span></span>
-<span><span class="co">#&gt;  2                  0                      0                    0</span></span>
-<span><span class="co">#&gt;  3                  0                      0                    0</span></span>
-<span><span class="co">#&gt;  4                  0                      0                    0</span></span>
-<span><span class="co">#&gt;  5                  0                      0                    0</span></span>
-<span><span class="co">#&gt;  6                  0                      0                    0</span></span>
-<span></span>
-<span><span class="va">hits_df</span> <span class="op">&lt;-</span> <span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/LoadBLASTHits.html">LoadBLASTHits</a></span><span class="op">(</span><span class="va">out_ipc</span>, format <span class="op">=</span> <span class="st">"ipc"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  <span style="color: #BBBB00; font-weight: bold;">Error</span><span style="font-weight: bold;"> in `ret_tib %&gt;% tidyr::unnest(cols = c(seq_info)) %&gt;% tidyr::unnest_wider(seqids,</span></span></span>
-<span><span class="co"><span style="font-weight: bold;">#&gt;      names_sep = "_") %&gt;% tidyr::unnest_wider(seqs, names_sep = "_") %&gt;% tidyr::unnest_wider(</span></span></span>
-<span><span class="co"><span style="font-weight: bold;">#&gt;      lengths, names_sep = "_") %&gt;% tidyr::unnest(cols = c(hsps)) %&gt;% dplyr::mutate(</span></span></span>
-<span><span class="co"><span style="font-weight: bold;">#&gt;      dplyr::across(dplyr::where(~ is.list(.) &amp;&amp; all(lengths(.) == dplyr::n())),</span></span></span>
-<span><span class="co"><span style="font-weight: bold;">#&gt;      ~ unlist(.))) %&gt;% tidyr::as_tibble()`:</span></span></span>
-<span><span class="co">#&gt;  <span style="color: #BBBB00;">!</span> could not find function "%&gt;%"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">hits_df</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  <span style="color: #949494;"># A data frame: 6 × 2</span></span></span>
+<span><span class="co">#&gt;  <span style="color: #949494;"># A tibble: 6 × 2</span></span></span>
 <span><span class="co">#&gt;    seq_info$num_alignments $seqids$qseqid  $$sseqid $seqs$qseq $strands hsps$qhsp</span></span>
-<span><span class="co">#&gt;  <span style="color: #BCBCBC;">*</span>                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    </span></span>
+<span><span class="co">#&gt;                      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    </span></span>
 <span><span class="co">#&gt;  <span style="color: #BCBCBC;">1</span>                       1 Human_p53_frag… Variant… <span style="color: #949494;">""</span>         +/+      <span style="color: #949494;">""</span>       </span></span>
 <span><span class="co">#&gt;  <span style="color: #BCBCBC;">2</span>                       1 Human_p53_frag… Variant… <span style="color: #949494;">""</span>         +/+      <span style="color: #949494;">""</span>       </span></span>
 <span><span class="co">#&gt;  <span style="color: #BCBCBC;">3</span>                       1 Human_p53_frag… Variant… <span style="color: #949494;">""</span>         +/+      <span style="color: #949494;">""</span>       </span></span>
 <span><span class="co">#&gt;  <span style="color: #BCBCBC;">4</span>                       1 Human_p53_frag… Variant… <span style="color: #949494;">""</span>         +/+      <span style="color: #949494;">""</span>       </span></span>
 <span><span class="co">#&gt;  <span style="color: #BCBCBC;">5</span>                       1 Human_p53_frag… Variant… <span style="color: #949494;">""</span>         +/+      <span style="color: #949494;">""</span>       </span></span>
 <span><span class="co">#&gt;  <span style="color: #BCBCBC;">6</span>                       1 Human_p53_frag… Variant… <span style="color: #949494;">""</span>         +/+      <span style="color: #949494;">""</span>       </span></span>
-<span><span class="co">#&gt;  <span style="color: #949494;"># ℹ 32 more variables: seq_info$seqs$sseq &lt;chr&gt;, seq_info$lengths &lt;tbl_df[,2]&gt;,</span></span></span>
+<span><span class="co">#&gt;  <span style="color: #949494;"># ℹ 32 more variables: seq_info$seqs$sseq &lt;chr&gt;, seq_info$lengths &lt;tibble[,2]&gt;,</span></span></span>
 <span><span class="co">#&gt;  <span style="color: #949494;">#   hsps$shsp &lt;chr&gt;, $pident &lt;dbl&gt;, $pident_gap &lt;dbl&gt;, $frames &lt;chr&gt;,</span></span></span>
 <span><span class="co">#&gt;  <span style="color: #949494;">#   $evalue &lt;dbl&gt;, $length &lt;int&gt;, $length01 &lt;dbl&gt;, $qstart &lt;int&gt;, $qend &lt;int&gt;,</span></span></span>
 <span><span class="co">#&gt;  <span style="color: #949494;">#   $sstart &lt;int&gt;, $send &lt;int&gt;, $bitscore &lt;dbl&gt;, $score &lt;dbl&gt;, $qcovhsp &lt;dbl&gt;,</span></span></span>
@@ -622,26 +550,90 @@ inter-process-communicable file or a tabular CSV.</p>
 <span><span class="co">#&gt;  <span style="color: #949494;">#   $positive &lt;int&gt;, $n_splices &lt;int&gt;, $hsp_num &lt;int&gt;, $sum_evalue &lt;dbl&gt;,</span></span></span>
 <span><span class="co">#&gt;  <span style="color: #949494;">#   $product_coverage &lt;dbl&gt;, $overall_identity &lt;dbl&gt;, $negative_count &lt;int&gt;, …</span></span></span>
 <span></span>
-<span><span class="va">hits_df</span> <span class="op">&lt;-</span> <span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/LoadBLASTHits.html">LoadBLASTHits</a></span><span class="op">(</span><span class="va">out_csv</span>, format <span class="op">=</span> <span class="st">"csv"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  <span style="color: #BBBB00; font-weight: bold;">Error</span><span style="font-weight: bold;"> in `QuickBLAST::LoadBLASTHits()`:</span></span></span>
-<span><span class="co">#&gt;  <span style="color: #BBBB00;">!</span> Format: Should be one of 'table'/'ipc'/'parquet'</span></span>
+<span><span class="va">hits_df</span> <span class="op">&lt;-</span> <span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/LoadBLASTHits.html">LoadBLASTHits</a></span><span class="op">(</span><span class="va">out_ipc</span>, format <span class="op">=</span> <span class="st">"ipc"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">hits_df</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  <span style="color: #949494;"># A data frame: 6 × 2</span></span></span>
-<span><span class="co">#&gt;    seq_info$num_alignments $seqids$qseqid  $$sseqid $seqs$qseq $strands hsps$qhsp</span></span>
-<span><span class="co">#&gt;  <span style="color: #BCBCBC;">*</span>                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    </span></span>
-<span><span class="co">#&gt;  <span style="color: #BCBCBC;">1</span>                       1 Human_p53_frag… Variant… <span style="color: #949494;">""</span>         +/+      <span style="color: #949494;">""</span>       </span></span>
-<span><span class="co">#&gt;  <span style="color: #BCBCBC;">2</span>                       1 Human_p53_frag… Variant… <span style="color: #949494;">""</span>         +/+      <span style="color: #949494;">""</span>       </span></span>
-<span><span class="co">#&gt;  <span style="color: #BCBCBC;">3</span>                       1 Human_p53_frag… Variant… <span style="color: #949494;">""</span>         +/+      <span style="color: #949494;">""</span>       </span></span>
-<span><span class="co">#&gt;  <span style="color: #BCBCBC;">4</span>                       1 Human_p53_frag… Variant… <span style="color: #949494;">""</span>         +/+      <span style="color: #949494;">""</span>       </span></span>
-<span><span class="co">#&gt;  <span style="color: #BCBCBC;">5</span>                       1 Human_p53_frag… Variant… <span style="color: #949494;">""</span>         +/+      <span style="color: #949494;">""</span>       </span></span>
-<span><span class="co">#&gt;  <span style="color: #BCBCBC;">6</span>                       1 Human_p53_frag… Variant… <span style="color: #949494;">""</span>         +/+      <span style="color: #949494;">""</span>       </span></span>
-<span><span class="co">#&gt;  <span style="color: #949494;"># ℹ 32 more variables: seq_info$seqs$sseq &lt;chr&gt;, seq_info$lengths &lt;tbl_df[,2]&gt;,</span></span></span>
-<span><span class="co">#&gt;  <span style="color: #949494;">#   hsps$shsp &lt;chr&gt;, $pident &lt;dbl&gt;, $pident_gap &lt;dbl&gt;, $frames &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt;  <span style="color: #949494;">#   $evalue &lt;dbl&gt;, $length &lt;int&gt;, $length01 &lt;dbl&gt;, $qstart &lt;int&gt;, $qend &lt;int&gt;,</span></span></span>
-<span><span class="co">#&gt;  <span style="color: #949494;">#   $sstart &lt;int&gt;, $send &lt;int&gt;, $bitscore &lt;dbl&gt;, $score &lt;dbl&gt;, $qcovhsp &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt;  <span style="color: #949494;">#   $blast_score &lt;dbl&gt;, $gaps &lt;int&gt;, $nident &lt;int&gt;, $mismatch &lt;int&gt;,</span></span></span>
-<span><span class="co">#&gt;  <span style="color: #949494;">#   $positive &lt;int&gt;, $n_splices &lt;int&gt;, $hsp_num &lt;int&gt;, $sum_evalue &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt;  <span style="color: #949494;">#   $product_coverage &lt;dbl&gt;, $overall_identity &lt;dbl&gt;, $negative_count &lt;int&gt;, …</span></span></span></code></pre></div>
+<span><span class="co">#&gt;  <span style="color: #949494;"># A tibble: 6 × 39</span></span></span>
+<span><span class="co">#&gt;    num_alignments seqids_qseqid      seqids_sseqid    seqs_qseq seqs_sseq strands</span></span>
+<span><span class="co">#&gt;             <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span></span>
+<span><span class="co">#&gt;  <span style="color: #BCBCBC;">1</span>              1 Human_p53_fragment Variant_p53_fra… <span style="color: #949494;">""</span>        <span style="color: #949494;">""</span>        +/+    </span></span>
+<span><span class="co">#&gt;  <span style="color: #BCBCBC;">2</span>              1 Human_p53_fragment Variant_p53_fra… <span style="color: #949494;">""</span>        <span style="color: #949494;">""</span>        +/+    </span></span>
+<span><span class="co">#&gt;  <span style="color: #BCBCBC;">3</span>              1 Human_p53_fragment Variant_p53_fra… <span style="color: #949494;">""</span>        <span style="color: #949494;">""</span>        +/+    </span></span>
+<span><span class="co">#&gt;  <span style="color: #BCBCBC;">4</span>              1 Human_p53_fragment Variant_p53_fra… <span style="color: #949494;">""</span>        <span style="color: #949494;">""</span>        +/+    </span></span>
+<span><span class="co">#&gt;  <span style="color: #BCBCBC;">5</span>              1 Human_p53_fragment Variant_p53_fra… <span style="color: #949494;">""</span>        <span style="color: #949494;">""</span>        +/+    </span></span>
+<span><span class="co">#&gt;  <span style="color: #BCBCBC;">6</span>              1 Human_p53_fragment Variant_p53_fra… <span style="color: #949494;">""</span>        <span style="color: #949494;">""</span>        +/+    </span></span>
+<span><span class="co">#&gt;  <span style="color: #949494;"># ℹ 33 more variables: lengths_qlen &lt;int&gt;, lengths_slen &lt;int&gt;, qhsp &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt;  <span style="color: #949494;">#   shsp &lt;chr&gt;, pident &lt;dbl&gt;, pident_gap &lt;dbl&gt;, frames &lt;chr&gt;, evalue &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt;  <span style="color: #949494;">#   length &lt;int&gt;, length01 &lt;dbl&gt;, qstart &lt;int&gt;, qend &lt;int&gt;, sstart &lt;int&gt;,</span></span></span>
+<span><span class="co">#&gt;  <span style="color: #949494;">#   send &lt;int&gt;, bitscore &lt;dbl&gt;, score &lt;dbl&gt;, qcovhsp &lt;dbl&gt;, blast_score &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt;  <span style="color: #949494;">#   gaps &lt;int&gt;, nident &lt;int&gt;, mismatch &lt;int&gt;, positive &lt;int&gt;, n_splices &lt;int&gt;,</span></span></span>
+<span><span class="co">#&gt;  <span style="color: #949494;">#   hsp_num &lt;int&gt;, sum_evalue &lt;dbl&gt;, product_coverage &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt;  <span style="color: #949494;">#   overall_identity &lt;dbl&gt;, negative_count &lt;int&gt;, matches &lt;dbl&gt;, …</span></span></span>
+<span></span>
+<span><span class="va">hits_df</span> <span class="op">&lt;-</span> <span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/LoadBLASTHits.html">LoadBLASTHits</a></span><span class="op">(</span><span class="va">out_csv</span>, format <span class="op">=</span> <span class="st">"csv"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">hits_df</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  $nextElem</span></span>
+<span><span class="co">#&gt;  function () </span></span>
+<span><span class="co">#&gt;  {</span></span>
+<span><span class="co">#&gt;      if (!is.null(errmsg)) </span></span>
+<span><span class="co">#&gt;          stop(paste("iterator failed previously:", errmsg), call. = FALSE)</span></span>
+<span><span class="co">#&gt;      if (is.null(file)) </span></span>
+<span><span class="co">#&gt;          stop("StopIteration", call. = FALSE)</span></span>
+<span><span class="co">#&gt;      if (gotrownames) {</span></span>
+<span><span class="co">#&gt;          rem &lt;- rnlen - irow + 1</span></span>
+<span><span class="co">#&gt;          nrows &lt;&lt;- min(nrows, rem)</span></span>
+<span><span class="co">#&gt;          if (nrows &gt; 1) </span></span>
+<span><span class="co">#&gt;              m$row.names &lt;&lt;- row.names[seq(irow, length = nrows)]</span></span>
+<span><span class="co">#&gt;          else m["row.names"] &lt;&lt;- list(NULL)</span></span>
+<span><span class="co">#&gt;          m$nrows &lt;&lt;- nrows</span></span>
+<span><span class="co">#&gt;      }</span></span>
+<span><span class="co">#&gt;      r &lt;- tryCatch({</span></span>
+<span><span class="co">#&gt;          if (nrows &gt; 0) {</span></span>
+<span><span class="co">#&gt;              if (verbose) </span></span>
+<span><span class="co">#&gt;                  print(m)</span></span>
+<span><span class="co">#&gt;              eval(m, env)</span></span>
+<span><span class="co">#&gt;          }</span></span>
+<span><span class="co">#&gt;          else {</span></span>
+<span><span class="co">#&gt;              NULL</span></span>
+<span><span class="co">#&gt;          }</span></span>
+<span><span class="co">#&gt;      }, error = function(e) {</span></span>
+<span><span class="co">#&gt;          if (!identical(conditionMessage(e), "no lines available in input")) {</span></span>
+<span><span class="co">#&gt;              if (doClose) </span></span>
+<span><span class="co">#&gt;                  close(file)</span></span>
+<span><span class="co">#&gt;              file &lt;&lt;- NULL</span></span>
+<span><span class="co">#&gt;              errmsg &lt;&lt;- conditionMessage(e)</span></span>
+<span><span class="co">#&gt;              stop(e)</span></span>
+<span><span class="co">#&gt;          }</span></span>
+<span><span class="co">#&gt;          NULL</span></span>
+<span><span class="co">#&gt;      })</span></span>
+<span><span class="co">#&gt;      if (first.time) {</span></span>
+<span><span class="co">#&gt;          first.time &lt;&lt;- FALSE</span></span>
+<span><span class="co">#&gt;          m$header &lt;&lt;- FALSE</span></span>
+<span><span class="co">#&gt;          m$skip &lt;&lt;- 0</span></span>
+<span><span class="co">#&gt;          nms &lt;- names(r)</span></span>
+<span><span class="co">#&gt;          if (is.numeric(row.names)) {</span></span>
+<span><span class="co">#&gt;              nms &lt;- if (row.names == 1) </span></span>
+<span><span class="co">#&gt;                  c("", nms)</span></span>
+<span><span class="co">#&gt;              else if (row.names &gt;= length(nms)) </span></span>
+<span><span class="co">#&gt;                  c(nms, "")</span></span>
+<span><span class="co">#&gt;              else c(nms[1:(row.names - 1)], "", nms[row.names:length(nms)])</span></span>
+<span><span class="co">#&gt;          }</span></span>
+<span><span class="co">#&gt;          m$col.names &lt;&lt;- nms</span></span>
+<span><span class="co">#&gt;      }</span></span>
+<span><span class="co">#&gt;      if (is.null(r) || nrow(r) == 0) {</span></span>
+<span><span class="co">#&gt;          if (doClose) </span></span>
+<span><span class="co">#&gt;              close(file)</span></span>
+<span><span class="co">#&gt;          file &lt;&lt;- NULL</span></span>
+<span><span class="co">#&gt;          stop("StopIteration", call. = FALSE)</span></span>
+<span><span class="co">#&gt;      }</span></span>
+<span><span class="co">#&gt;      if (gotrownames) {</span></span>
+<span><span class="co">#&gt;          if (nrows == 1) </span></span>
+<span><span class="co">#&gt;              rownames(r) &lt;- row.names[irow]</span></span>
+<span><span class="co">#&gt;          irow &lt;&lt;- irow + nrows</span></span>
+<span><span class="co">#&gt;      }</span></span>
+<span><span class="co">#&gt;      r</span></span>
+<span><span class="co">#&gt;  }</span></span>
+<span><span class="co">#&gt;  &lt;bytecode: 0x559f26279df0&gt;</span></span>
+<span><span class="co">#&gt;  &lt;environment: 0x559f262813a8&gt;</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="conclusion">Conclusion<a class="anchor" aria-label="anchor" href="#conclusion"></a>
