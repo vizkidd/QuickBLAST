@@ -1,8 +1,4 @@
 #' @keywords internal
-"_PACKAGE"
-
-utils::globalVariables(c("seq_info", "seqids", "seqs", "hsps", "."))
-
 ## usethis namespace: start
 #' @importFrom magrittr %>%
 #' @importFrom dplyr %>%
@@ -16,3 +12,4 @@ utils::globalVariables(c("seq_info", "seqids", "seqs", "hsps", "."))
 #' @import future.apply
 #' @import future.callr
 ## usethis namespace: end
+"_PACKAGE"

@@ -123,7 +123,7 @@ LoadBLASTHits <- function(infile, sep = "\t", header = F, format = 'parquet') {
     #  infile <- gzfile(description = infile, open = "r")
     # }
     # blast_results <- read.table(file = infile,header = header,sep=sep,quote = "", blank.lines.skip = T, fill = t,na.strings = NA)
-    if (format == "table") {
+    if (format == "table" || format == "tsv" || format == "csv") {
       blast_results <- iterators::iread.table(file = infile, row.names = NULL, header = header, sep = sep, quote = "", blank.lines.skip = T, fill = T, na.strings = "NA") # data.table::fread(file = infile,header = header,sep=sep,quote = "", blank.lines.skip = T, nThread = n_threads)
       return(blast_results)
     } else if (format == "ipc") {
@@ -591,6 +591,6 @@ CreateQuickBLASTInstance <- compiler::cmpfun(CreateQuickBLASTInstance)
 RecordBatchVectorToFlattenedDFList <- compiler::cmpfun(RecordBatchVectorToFlattenedDFList)
 isQuickBLASTLoaded <- compiler::cmpfun(isQuickBLASTLoaded)
 
-
+utils::globalVariables(c("seq_info", "seqids", "seqs", "hsps", "."))
 
 NULL
