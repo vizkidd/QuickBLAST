@@ -119,11 +119,12 @@ ArrowWrapper::Impl::Impl()
     // arrow_writer_props = arrow_props_bldr.build();
     
     ipc_options.allow_64bit = true; //false;
-#if defined(_OPENMP)
-    ipc_options.use_threads = true;
-#else
+    // #if defined(_OPENMP)
+    //     ipc_options.use_threads = true;
+    // #else
+    //Using ipc threads crashes windows since we already use threading in QuickBLAST
     ipc_options.use_threads = false;
-#endif
+    // #endif
     ipc_options.metadata_version = arrow::ipc::MetadataVersion::V5;
     ipc_options.codec = arrow::util::Codec::Create(arrow::Compression::LZ4_FRAME).ValueOrDie();
     
@@ -360,14 +361,15 @@ unsigned int ArrowWrapper::Impl::GetBLASTSeqLimit(){
 
 void ArrowWrapper::Impl::SetThreadCount(int num_threads)
 {
-  if (num_threads > 1)
-  {
-    ipc_options.use_threads = true;
-  }
-  else
-  {
-    ipc_options.use_threads = false;
-  }
+  // if (num_threads > 1)
+  // {
+  //   ipc_options.use_threads = true;
+  // }
+  // else
+  // {
+  //Using ipc threads crashes windows since we already use threading in QuickBLAST
+  ipc_options.use_threads = false;
+  // }
   
 #if defined(_OPENMP)
 #pragma omp atomic read
@@ -759,22 +761,22 @@ arrow::Status ArrowWrapper::Impl::CreateOutputStream(std::string &outFile, const
         rec_writer = writer_.ValueOrDie();
         break;
       }
-      // case ArrowWrapper::EOutputFormat::eCSV: {
-      //   auto outFileStream_res = arrow_LFS.OpenAppendStream(output_filename, blast_metadata);
-      //   if(!outFileStream_res.ok()){
-      //     Rcpp::Rcerr << std::string("CreateOutputStream() - Could not open append stream to ") + output_filename << std::endl << std::flush;
-      //     return outFileStream_res.status();
-      //   }
-      //   outFileStream = outFileStream_res.ValueOrDie();
-      //   auto writer_ = arrow::csv::MakeCSVWriter(outFileStream.get(), GetBLASTSchema(), GetArrowCSVOptions());
-      //   if (!writer_.ok())
-      //   {
-      //     Rcpp::Rcerr << std::string("CreateOutputStream() - Error initiating CSV file writer: ") + writer_.status().message() << std::endl << std::flush;
-      //     return writer_.status();
-      //   }
-      //   rec_writer = writer_.ValueOrDie();
-      //   break;
-      // }
+        // case ArrowWrapper::EOutputFormat::eCSV: {
+        //   auto outFileStream_res = arrow_LFS.OpenAppendStream(output_filename, blast_metadata);
+        //   if(!outFileStream_res.ok()){
+        //     Rcpp::Rcerr << std::string("CreateOutputStream() - Could not open append stream to ") + output_filename << std::endl << std::flush;
+        //     return outFileStream_res.status();
+        //   }
+        //   outFileStream = outFileStream_res.ValueOrDie();
+        //   auto writer_ = arrow::csv::MakeCSVWriter(outFileStream.get(), GetBLASTSchema(), GetArrowCSVOptions());
+        //   if (!writer_.ok())
+        //   {
+        //     Rcpp::Rcerr << std::string("CreateOutputStream() - Error initiating CSV file writer: ") + writer_.status().message() << std::endl << std::flush;
+        //     return writer_.status();
+        //   }
+        //   rec_writer = writer_.ValueOrDie();
+        //   break;
+        // }
       case ArrowWrapper::EOutputFormat::eParquet: {
         ARROW_ASSIGN_OR_RAISE(parquetFileStream,  arrow::io::FileOutputStream::Open(output_filename));
         parquet_writer = std::move(parquet::arrow::FileWriter::Open(*GetBLASTSchema(),
@@ -1625,51 +1627,51 @@ arrow::Status ArrowWrapper::Impl::WriteBatch2File()
     }
       break;
     }
-//     case ArrowWrapper::EOutputFormat::eCSV:
-//     {
-//       for (std::shared_ptr<arrow::RecordBatch> &rb : rbv_buffer) //const auto
-//     {
-//       // assert(!Progress::check_abort()); // R API calls inside threads will crash c++ runtime
-//       RcppThread::checkUserInterrupt(); // R API calls inside threads will crash c++ runtime
-//       if (rb)
-//       {
-//         if (rb->num_rows() > 0)
-//         {
-//           arrow::Status rb_sts = rb->ValidateFull();
-//           arrow::Status sts;
-//           if (rb_sts.ok())
-//           {
-// #if defined(_OPENMP)
-//             omp_set_lock(&rec_writerLock);
-// #endif
-// #if defined(_OPENMP)
-// #pragma omp critical (arrow_write_lock)
-// #endif
-// {
-//   sts = rec_writer->WriteRecordBatch(*rb);
-//   static_cast<void>(outFileStream->Flush());
-// }
-// #if defined(_OPENMP)
-// omp_unset_lock(&rec_writerLock);
-// #endif
-// 
-// if (!sts.ok())
-// {
-//   {
-//     std::lock_guard<std::mutex> lk(writer_error_mtx);
-//     writer_error_msg = std::string("WriteBatch2File(): Error writing RB (CSV/IPC): ") + sts.message();
-//   }
-//   writer_failed.store(true, std::memory_order_release);
-//   break;
-// }  
-// 
-//           }
-//         }
-//         rb.reset();
-//       }
-//     }
-//       break;
-//     }
+      //     case ArrowWrapper::EOutputFormat::eCSV:
+      //     {
+      //       for (std::shared_ptr<arrow::RecordBatch> &rb : rbv_buffer) //const auto
+      //     {
+      //       // assert(!Progress::check_abort()); // R API calls inside threads will crash c++ runtime
+      //       RcppThread::checkUserInterrupt(); // R API calls inside threads will crash c++ runtime
+      //       if (rb)
+      //       {
+      //         if (rb->num_rows() > 0)
+      //         {
+      //           arrow::Status rb_sts = rb->ValidateFull();
+      //           arrow::Status sts;
+      //           if (rb_sts.ok())
+      //           {
+      // #if defined(_OPENMP)
+      //             omp_set_lock(&rec_writerLock);
+      // #endif
+      // #if defined(_OPENMP)
+      // #pragma omp critical (arrow_write_lock)
+      // #endif
+      // {
+      //   sts = rec_writer->WriteRecordBatch(*rb);
+      //   static_cast<void>(outFileStream->Flush());
+      // }
+      // #if defined(_OPENMP)
+      // omp_unset_lock(&rec_writerLock);
+      // #endif
+      // 
+      // if (!sts.ok())
+      // {
+      //   {
+      //     std::lock_guard<std::mutex> lk(writer_error_mtx);
+      //     writer_error_msg = std::string("WriteBatch2File(): Error writing RB (CSV/IPC): ") + sts.message();
+      //   }
+      //   writer_failed.store(true, std::memory_order_release);
+      //   break;
+      // }  
+      // 
+      //           }
+      //         }
+      //         rb.reset();
+      //       }
+      //     }
+      //       break;
+      //     }
     case ArrowWrapper::EOutputFormat::eParquet :{
       for(const auto &rb: rbv_buffer){
 #if defined(_OPENMP)
