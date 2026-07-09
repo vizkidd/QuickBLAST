@@ -147,6 +147,22 @@ QuickBLAST::GetInstanceCount()
 QuickBLAST::DeleteQuickBLASTInstance(1)
 ```
 
-Inherits and follows the licenses of Apache Arrow and NCBI-C++-Toolkit.
-Parts of the code, optimizations and documentation in the recent versions of QuickBLAST were written with the help of Google Gemini AI.
-Developed and maintained by [vizkidd](https://github.com/vizkidd/QuickBLAST).
+Inherits and follows the licenses of Apache Arrow and NCBI-C++-Toolkit. Parts of the code, optimizations and documentation in the recent versions of QuickBLAST were written with the help of Google Gemini AI. Developed and maintained by [vizkidd](https://github.com/vizkidd/QuickBLAST).
+
+#### 6) Citation
+
+If you use QuickBLAST please cite:
+
+-   GitHub:
+
+    Vishvesh Karthik (2026). QuickBLAST: High-Performance Sequence Alignment using BLAST and Apache Arrow. R package version 1.7.4, <https://github.com/vizkidd/QuickBLAST>.
+
+    ```         
+    @Manual{,
+      title = {QuickBLAST: High-Performance Sequence Alignment using BLAST and Apache Arrow},
+      author = {{Vishvesh Karthik}},
+      year = {2026},
+      note = {R package version 1.7.4},
+      url = {https://github.com/vizkidd/QuickBLAST},
+    }
+    ```
