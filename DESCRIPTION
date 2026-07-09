@@ -32,7 +32,9 @@ Imports:
   future (>= 1.69.0),
   future.apply (>= 1.20.2),
   future.callr (>= 0.10.2),
-  xfun (>= 0.56)
+  xfun (>= 0.56),
+  BH (>= 1.90.0),
+  magrittr (>= 2.0.5)
 LinkingTo:
     Rcpp,
     RcppProgress,
