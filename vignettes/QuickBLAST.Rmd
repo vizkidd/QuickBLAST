@@ -272,7 +272,7 @@ head(hits_df)
 hits_df <- QuickBLAST::LoadBLASTHits(out_ipc, format = "ipc")
 head(hits_df)
 
-hits_df <- QuickBLAST::LoadBLASTHits(out_csv, format = "csv")
+hits_df <- QuickBLAST::LoadBLASTHits(out_csv, format = "csv", sep = "\t", header = T)
 head(hits_df)
 
 ```

@@ -125,6 +125,13 @@ LoadBLASTHits <- function(infile, sep = "\t", header = F, format = 'parquet') {
     # blast_results <- read.table(file = infile,header = header,sep=sep,quote = "", blank.lines.skip = T, fill = t,na.strings = NA)
     if (format == "table" || format == "tsv" || format == "csv") {
       blast_results <- iterators::iread.table(file = infile, row.names = NULL, header = header, sep = sep, quote = "", blank.lines.skip = T, fill = T, na.strings = "NA") # data.table::fread(file = infile,header = header,sep=sep,quote = "", blank.lines.skip = T, nThread = n_threads)
+      # return(blast_results)
+      # Use read_delim_arrow to properly parse the \t (or user-provided) separator
+      blast_results <- arrow::read_delim_arrow(
+        file = infile, 
+        delim = sep, 
+        as_data_frame = TRUE
+      )
       return(blast_results)
     } else if (format == "ipc") {
       # # arrow_lfs <- arrow::LocalFileSystem$create()
