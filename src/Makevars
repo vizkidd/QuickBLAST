@@ -6,7 +6,7 @@ PKG_ROOT = ..
 MAIN_LIB = src/QuickBLAST.so
 LIB_DIR = inst/libs
 
-PKG_CFLAGS = -DARROW_STATIC -DPARQUET_STATIC -DLIBICONV_STATIC 
+#PKG_CFLAGS = -DARROW_STATIC -DPARQUET_STATIC -DLIBICONV_STATIC 
 PKG_CPPFLAGS = -DARROW_STATIC -DPARQUET_STATIC -DLIBICONV_STATIC 
 
 # FIX: Removed the outer double quotes from this definition
@@ -15,7 +15,7 @@ TOOLKIT_CPPFLAGS = $(CLINK_CPPFLAGS) $(PKG_CPPFLAGS)
 # Evaluate external libraries safely via the OS shell using backticks instead of GNU $(shell)
 PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) `ld -lstdc++fs --verbose > /dev/null 2>&1 && echo "-lstdc++fs"` `ld -lboost_system --verbose > /dev/null 2>&1 && echo "-lboost_system"` $(TOOLKIT_CPPFLAGS) -Wl,-rpath,\$$ORIGIN -Wl,-rpath,@loader_path/ -L../BUILD/arrow/cpp/BUILD/release/ -L../BUILD/arrow/cpp/BUILD/lib/ -L../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ -L/usr/local/lib/ -L/usr/lib/ -Wl,--start-group -larrow -lparquet -lthrift -larrow_bundled_dependencies -lz -llmdb -lrt -lalign_format -lbiblio -lblast -lblastdb -lblastdb_format -lblastinput -lblast_services -lcomposition_adjustment -lconnect -lct_ftds14 -ldbapi_driver -lefetch -legquery -lehistory -leinfo -lelink -lepost -lesearch -lespell -lesummary -leutils -lgeneral -lgenome_collection -lid1 -lid2 -lmedline -lncbi_xdbapi_ftds -lncbi_xloader_blastdb -lncbi_xloader_blastdb_rmt -lncbi_xloader_genbank -lncbi_xreader -lncbi_xreader_cache -lncbi_xreader_id1 -lncbi_xreader_id2 -lpub -lpubmed -lQuickBLASTcpp -lscoremat -lseq -lseqcode -lseqdb -lseqedit -lseqmasks_io -lseqset -lseqsplit -lsequtil -lsqlitewrapp -lsubmit -ltables -ltaxon1 -ltaxon3 -ltds_ftds14 -luilist -lutrtprof -lvalid -lwritedb -lxalgoalignutil -lxalgoblastdbindex -lxalgodustmask -lxalgoseq -lxalgowinmask -lxalnmgr -lxblast -lxcgi -lxcleanup -lxcompress -lxconnect -lxflatfile -lxhtml -lxlogging -lxncbi -lxnetblast -lxnetblastcli -lxobjedit -lxobjmgr -lxobjread -lxobjsimple -lxobjutil -lxqueryparse -lxregexp -lxser -lxutil -lzcf -Wl,--end-group
 
-PKG_CXXFLAGS = -include include/rcpp_workaround.hpp -O3 -Ilibsrc $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) -pthread -I/usr/local/src/ -I/usr/include/ -Isrc/include/ -I../BUILD/arrow/cpp/src/ -I../BUILD/arrow/cpp/BUILD/src/ -I../BUILD/ncbi-cxx-toolkit-public/include/ -I../BUILD/ncbi-cxx-toolkit-public/src/ -I../BUILD/ncbi-cxx-toolkit-public/BUILD/inc/
+PKG_CXXFLAGS = -include include/rcpp_workaround.hpp -Ilibsrc -Wno-stringop-overflow -Wno-odr $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) -pthread -I/usr/local/src/ -I/usr/include/ -Isrc/include/ -I../BUILD/arrow/cpp/src/ -I../BUILD/arrow/cpp/BUILD/src/ -I../BUILD/ncbi-cxx-toolkit-public/include/ -I../BUILD/ncbi-cxx-toolkit-public/src/ -I../BUILD/ncbi-cxx-toolkit-public/BUILD/inc/
 
 all: builddeps $(SHLIB) copy_lib post_build_cleanup
 $(SHLIB): install_libs 

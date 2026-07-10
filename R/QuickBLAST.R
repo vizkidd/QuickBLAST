@@ -496,6 +496,9 @@ dll_obj_list <-  list()
 .onLoad <- function(libname, pkgname) {
   # Sys.setenv("ASAN_OPTIONS"="detect_leaks=0") #ASAN - remove in prod
   # Sys.setenv("LD_PRELOAD"="/usr/lib/x86_64-linux-gnu/libasan.so.8") #ASAN - remove in prod
+  RcppThread::detectCores()
+  tzdb::tzdb_initialize()
+  
   if(xfun::is_windows()){
     Sys.setenv("ARROW_DEFAULT_MEMORY_POOL"="system")
   }else{

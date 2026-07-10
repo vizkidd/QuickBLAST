@@ -468,12 +468,12 @@ cat << 'EOF' >> src/build-system/cmake/CMakeChecks.cmake
 # 1. Added sqlite3 to the end of this list
 link_libraries(ws2_32 dbghelp advapi32 psapi iphlpapi crypt32 oleaut32 ole32 user32 netapi32 sqlite3)
 
-set(CMAKE_CREATE_WIN32_EXE "-mconsole -mstackrealign")
-set(CMAKE_CXX_CREATE_WIN32_EXE "-mconsole -mstackrealign")
-set(CMAKE_C_CREATE_WIN32_EXE "-mconsole -mstackrealign")
+#set(CMAKE_CREATE_WIN32_EXE "")
+#set(CMAKE_CXX_CREATE_WIN32_EXE "")
+#set(CMAKE_C_CREATE_WIN32_EXE "")
 
 # 2. Keep the EXE flag injection
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--allow-multiple-definition  -mconsole -mstackrealign -Wl,--subsystem,console -Wl,--demangle -Wl,--pic-executable -Wl,--support-old-code -Wl,--as-needed ")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--allow-multiple-definition   -Wl,--subsystem,console -Wl,--demangle -Wl,--pic-executable -Wl,--support-old-code -Wl,--as-needed ")
 
 # 3. ADD the SHARED flag injection for DLLs
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--allow-multiple-definition -Wl,--demangle -Wl,--subsystem,console -Wl,--pic-executable -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--dll -Wl,-shared -Wl,--no-whole-archive ")
@@ -488,8 +488,8 @@ echo "Surgically overriding CMake's internal MinGW GUI creation flags..."
 cat << 'EOF' >> src/build-system/cmake/CMakeChecks.cmake
 
 # Force CMake to translate WIN32_EXECUTABLE requests into Console apps
-set(CMAKE_CXX_CREATE_WIN32_EXE "-mconsole")
-set(CMAKE_C_CREATE_WIN32_EXE "-mconsole")
+#set(CMAKE_CXX_CREATE_WIN32_EXE "")
+#set(CMAKE_C_CREATE_WIN32_EXE "")
 EOF
 
 # 21. FIX: Adding WinMain to datatool
@@ -758,7 +758,7 @@ verify_destroyed "src/build-system/cmake/*.cmake" "/DNDEBUG" "MSVC /DNDEBUG flag
 verify_injected "src/build-system/cmake/CMakeChecks.cmake" "remove_definitions(-DNCBI_POSIX_THREADS" "POSIX thread strip failed."
 verify_injected "src/build-system/cmake/CMakeChecks.cmake" "-DNCBI_WIN32_THREADS=1" "Windows OS variables broadcast failed."
 verify_injected "src/build-system/cmake/CMakeChecks.cmake" "sqlite3" "CMake linker modifications missing SQLite3."
-verify_injected "src/build-system/cmake/CMakeChecks.cmake" "set(CMAKE_CXX_CREATE_WIN32_EXE \"-mconsole\")" "GUI override to Console failed."
+verify_injected "src/build-system/cmake/CMakeChecks.cmake" "set(CMAKE_CXX_CREATE_WIN32_EXE \"\")" "GUI override to Console failed."
 verify_injected "src/build-system/cmake/CMakeChecks.cmake" "-Wno-error=incompatible-pointer-types" "GCC 14 strict pointer override failed."
 # --- 2. Unix Template & OS Header Checks ---
 verify_injected "$UNIX_TEMPLATE" "ssize_t already defined" "ssize_t collision not patched in UNIX template."
@@ -805,15 +805,11 @@ echo "set(CMAKE_FIND_USE_PACKAGE_REGISTRY OFF)" >>src/build-system/cmake/toolcha
 echo "set(CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY OFF)" >>src/build-system/cmake/toolchains/$toolchain_file
 echo "set(NCBI_PTBCFG_FLAGS_DEFINED YES)" >>src/build-system/cmake/toolchains/$toolchain_file
 echo "include_guard(GLOBAL)" >>src/build-system/cmake/toolchains/$toolchain_file
-#-gdwarf-4
-#-Wall
-#-std=gnu2x
-#-std=gnu++20
-#-O3 -fPIC
-echo "set(CMAKE_C_FLAGS_INIT         \"-Wno-format-y2k -Wno-date-time -Wno-attributes -Wno-unused-parameter -Wno-ignored-attributes -Wa,-mbig-obj -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libgcc -march=native -mtune=generic -maccumulate-outgoing-args -mconsole -mstackrealign \")" >>src/build-system/cmake/toolchains/$toolchain_file
-echo "set(CMAKE_CXX_FLAGS_INIT       \"-Wno-format-y2k -Wno-date-time -Wno-attributes -Wno-unused-parameter -Wno-ignored-attributes -Wa,-mbig-obj -DLIBICONV_STATIC -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libstdc++ -march=native -mtune=generic -maccumulate-outgoing-args -mconsole -mstackrealign \")" >>src/build-system/cmake/toolchains/$toolchain_file
+
+echo "set(CMAKE_C_FLAGS_INIT         \" -w -Wno-stringop-overflow -Wno-array-bounds -Wa,-mbig-obj -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libgcc -mtune=generic  \")" >>src/build-system/cmake/toolchains/$toolchain_file
+echo "set(CMAKE_CXX_FLAGS_INIT       \" -w -Wno-odr -Wno-stringop-overflow -Wno-catch-value -Wno-array-bounds -Wa,-mbig-obj -DLIBICONV_STATIC -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libstdc++ -mtune=generic  \")" >>src/build-system/cmake/toolchains/$toolchain_file
 # echo "set(NCBI_COMPILER_FLAGS_SSE       \"-msse4.2\")" >>src/build-system/cmake/toolchains/$toolchain_file
-echo "set(NCBI_COMPILER_FLAGS_SSE       \"-march=native\")" >>src/build-system/cmake/toolchains/$toolchain_file
+echo "set(NCBI_COMPILER_FLAGS_SSE       \"\")" >>src/build-system/cmake/toolchains/$toolchain_file
 echo "set(NCBI_COMPILER_FLAGS_COVERAGE  \"--coverage\")" >>src/build-system/cmake/toolchains/$toolchain_file
 echo "set(NCBI_LINKER_FLAGS_COVERAGE     \"--coverage\")" >>src/build-system/cmake/toolchains/$toolchain_file
 echo "set(NCBI_COMPILER_FLAGS_MAXDEBUG  \"-fsanitize=address -fstack-check\")" >>src/build-system/cmake/toolchains/$toolchain_file
@@ -869,22 +865,22 @@ echo "set(CMAKE_SYSROOT \"/x86_64-w64-mingw32.static.posix\")" >> src/build-syst
 #-std=gnu2x
 #-O3 -fPIC
 #############COMPILER - MSYS2 - GCC#################################
-echo "set(CMAKE_C_FLAGS_RELEASE \" -I'$NCBI_DIR/BUILD/inc/common/config' -Wformat -Werror=format-security -DHAVE_IOSTREAM=1 -DNCBI_OS_OSF1=1 -D_WIN32 -D_WIN64 -DHAVE_INTTYPES_H=1 -DHAVE_NETINET_TCP_H=1 -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -static-libgcc -march=native -mtune=generic -maccumulate-outgoing-args -Wno-format-y2k -Wno-date-time -Wno-attributes -mconsole -mstackrealign \")" >>src/build-system/cmake/toolchains/$toolchain_file
-#-Wall
+echo "set(CMAKE_C_FLAGS_RELEASE \" -w -Wno-stringop-overflow -Wno-array-bounds -I'$NCBI_DIR/BUILD/inc/common/config' -Wformat -Werror=format-security -DHAVE_IOSTREAM=1 -DNCBI_OS_OSF1=1 -D_WIN32 -D_WIN64 -DHAVE_INTTYPES_H=1 -DHAVE_NETINET_TCP_H=1 -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -static-libgcc -mtune=generic  \")" >>src/build-system/cmake/toolchains/$toolchain_file
+
 #-D_DEBUG
 #-UNDEBUG
 #-fstack-protector-strong
 #-fdiagnostics-color=always
 #-U_WIN32
-#-Wall
+
 #-ftrack-macro-expansion=0 -pipe 
 #-std=gnu++20
 #-O3 -fPIC
-echo "set(CMAKE_CXX_FLAGS_RELEASE \" -Wformat -Werror=format-security -Wdate-time -DHAVE_IOSTREAM=1 -DNCBI_OS_OSF1=1 -D_WIN32 -D_WIN64 -DHAVE_INTTYPES_H=1 -DHAVE_NETINET_TCP_H=1 -D_FORTIFY_SOURCE=2 -DLIBICONV_STATIC -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libstdc++ -march=native -mtune=generic -maccumulate-outgoing-args -Wno-format-y2k -Wno-date-time -Wno-attributes -Wa,-mbig-obj -mconsole -mstackrealign \")" >>src/build-system/cmake/toolchains/$toolchain_file
+echo "set(CMAKE_CXX_FLAGS_RELEASE \" -w -Wno-odr -Wno-stringop-overflow -Wno-catch-value -Wno-array-bounds -Wformat -Werror=format-security -Wdate-time -DHAVE_IOSTREAM=1 -DNCBI_OS_OSF1=1 -D_WIN32 -D_WIN64 -DHAVE_INTTYPES_H=1 -DHAVE_NETINET_TCP_H=1 -D_FORTIFY_SOURCE=2 -DLIBICONV_STATIC -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -ffat-lto-objects -flto=auto -fstack-protector-strong -static-libstdc++ -mtune=generic -Wa,-mbig-obj  \")" >>src/build-system/cmake/toolchains/$toolchain_file
 ###################################################
 
 ##############LINKER - GCC##############
-echo "set(CMAKE_EXE_LINKER_FLAGS_INIT  \" \${CMAKE_EXE_LINKER_FLAGS} -Wl,--allow-multiple-definition -Wl,--demangle -mconsole -mstackrealign -Wl,--subsystem,console -Wl,--pic-executable -Wl,--support-old-code -Wl,--as-needed -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32  ${CUSTOM_SQLITE_LIB} -liconv -lintl -lbcrypt -Wl,--end-group \")" >>src/build-system/cmake/toolchains/$toolchain_file
+echo "set(CMAKE_EXE_LINKER_FLAGS_INIT  \" \${CMAKE_EXE_LINKER_FLAGS} -Wl,--allow-multiple-definition -Wl,--demangle  -Wl,--subsystem,console -Wl,--pic-executable -Wl,--support-old-code -Wl,--as-needed -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32  ${CUSTOM_SQLITE_LIB} -liconv -lintl -lbcrypt -Wl,--end-group \")" >>src/build-system/cmake/toolchains/$toolchain_file
 echo "set(CMAKE_SHARED_LINKER_FLAGS_INIT  \" \${CMAKE_SHARED_LINKER_FLAGS} -Wl,--allow-multiple-definition -Wl,--demangle -Wl,--subsystem,console -Wl,--pic-executable -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--dll -Wl,-shared -Wl,--no-whole-archive -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 ${CUSTOM_SQLITE_LIB} -liconv -lintl -lbcrypt -Wl,--end-group \")" >>src/build-system/cmake/toolchains/$toolchain_file
 
 echo "set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)" >>src/build-system/cmake/toolchains/$toolchain_file
@@ -967,7 +963,7 @@ export PATH="$RTOOLS_BIN:$PATH"
 
 #-std=gnu2x -O3 -fPIC
 
-gcc $PKG_CFLAGS $SHLIB_OPENMP_CXXFLAGS -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -static-libgcc -march=native -mtune=generic -maccumulate-outgoing-args -Wno-format-y2k -mconsole -mstackrealign  \
+gcc $PKG_CFLAGS $SHLIB_OPENMP_CXXFLAGS -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -pedantic $SHLIB_OPENMP_CXXFLAGS -pthread -static-libgcc -mtune=generic -w   \
   -DSQLITE_ENABLE_UNLOCK_NOTIFY=1 \
   -DSQLITE_ENABLE_MEMSYS5 \
   -DSQLITE_ENABLE_MEMSYS3 \

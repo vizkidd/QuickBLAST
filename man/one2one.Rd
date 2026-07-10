@@ -28,7 +28,7 @@ one2one(
 
 \item{strand}{(int) Strand. Check QuickBLAST::GetQuickBLASTEnums()$EStrand for available enums.}
 
-\item{blast_program}{BLAST Program to use.}
+\item{blast_program}{Give the name of the BLAST program to use (if in $PATH) or give the absolute path to the BLAST program.}
 
 \item{file_ext}{File extension of input files. eg- ".cds" or ".fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString}
 
@@ -36,27 +36,19 @@ one2one(
 
 \item{output_dir}{Path to BLAST output}
 
-\item{...}{Extended options blast_options, save_sequences, save_hsp_sequences, return_values, min_batch_size, n_threads, out_format, extension, reciprocal_hits, verbose}
-
-\item{n_threads}{Number of threads. Default - 8}
-
-\item{save_sequences}{(bool) Save full sequences to result?}
-
-\item{save_hsp_sequences}{(bool) Save HSP sequences to result?}
-
-\item{return_values}{(bool) Return values back to R? (Only valid for QuickBLAST::BLAST2Seqs(),QuickBLAST::BLAST2Files() and QuickBLAST::BLAST2DBs())}
-
-\item{min_batch_size}{Minimum batch size. (Default:256)}
-
-\item{out_format}{Output format. ipc/csv/parquet (Default: "parquet")}
-
-\item{extension}{File extension. (Only for QuickBLAST::BLAST2Folders())}
-
-\item{reciprocal_hits}{(bool) Reciprocal (Bi-directional) Hits? (Only valid for QuickBLAST::BLAST2Folders())}
-
-\item{blast_options}{BLAST Options to use - QuickBLAST::GetAvailableBLASTOptions()}
-
-\item{verbose}{Print DEBUG Messages?}
+\item{...}{Extended options passed to internal functions, including:
+\itemize{
+\item \code{blast_options}: BLAST Options to use - QuickBLAST::GetAvailableBLASTOptions()
+\item \code{save_sequences}: (bool) Save full sequences to result?
+\item \code{save_hsp_sequences}: (bool) Save HSP sequences to result?
+\item \code{return_values}: (bool) Return values back to R?
+\item \code{min_batch_size}: Minimum batch size. (Default: 256)
+\item \code{n_threads}: Number of threads. (Default: 8)
+\item \code{out_format}: Output format. ipc/csv/parquet (Default: "parquet")
+\item \code{extension}: File extension. (Only for QuickBLAST::BLAST2Folders())
+\item \code{reciprocal_hits}: (bool) Reciprocal (Bi-directional) Hits?
+\item \code{verbose}: (bool) Print DEBUG Messages?
+}}
 }
 \description{
 Executes One-to-One QuickBLAST between two lists of organisms/genes/clusters. The BLAST Hits are stored in Arrow::Feather/Parquet format.
@@ -64,21 +56,21 @@ Executes One-to-One QuickBLAST between two lists of organisms/genes/clusters. Th
 \examples{
 \dontrun{
 QuickBLAST::one2one(
- first_list=fs::path_package("QuickBLAST", "extdata", "protein_query.fasta")
+ first_list=fs::path_package("QuickBLAST", "extdata", "protein_query.fasta"),
  second_list=fs::path_package("QuickBLAST", "extdata", "protein_subject.fasta"), 
- blast_fun=QuickBLAST::BLAST2Files
+ blast_fun=QuickBLAST::BLAST2Files,
  seq_type = 0, 
  strand=0,
  output_dir = "./",
  n_threads = 8,
  blast_program = "tblastx",
- save_sequences=F,
- save_hsp_sequences=F,
- return_values=F,
+ save_sequences=FALSE,
+ save_hsp_sequences=FALSE,
+ return_values=FALSE,
  min_batch_size=256,
  out_format="parquet",
  blast_options="",
- verbose = T
+ verbose = TRUE
 )
 }
 

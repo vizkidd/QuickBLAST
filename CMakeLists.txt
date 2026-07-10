@@ -291,29 +291,15 @@ if(NOT WIN32)
     )
 
     message("If build fails, change -DARROW_DEPENDENCY_SOURCE=AUTO TO -DARROW_DEPENDENCY_SOURCE=BUNDLED or install arrow with package manager (Default paths are seached for lib)")
-  
-  	#execute_process(
-    #  COMMAND pkg-config --cflags libR;
-    #  OUTPUT_VARIABLE R_FLAGS
-    #  OUTPUT_STRIP_TRAILING_WHITESPACE
-  	#)
-  	#message("R flags:" ${R_FLAGS})
-
-#-fdiagnostics-color=always -Wall
-#-std=gnu++20
-#-std=gnu2x
-#-O3 -fPIC  -fdiagnostics-color=always
 
 if(APPLE OR CMAKE_SYSTEM_NAME MATCHES "Darwin" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     # Apple Clang (macOS) compatible flags
-    #${R_FLAGS}
-    set(ARROW_CXX_FLAGS " -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  -pthread")
-    set(ARROW_C_FLAGS  " -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  -pthread")
+    set(ARROW_CXX_FLAGS " -w -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  -pthread")
+    set(ARROW_C_FLAGS  " -w -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  -pthread")
 else()
     # GCC compatible flags
-    #${R_FLAGS} -static-libgcc  -static-libstdc++ 
-    set(ARROW_CXX_FLAGS " -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -mtune=generic   -pthread")
-    set(ARROW_C_FLAGS  " -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  -mtune=generic  -pthread")
+    set(ARROW_CXX_FLAGS " -w -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -mtune=generic   -pthread")
+    set(ARROW_C_FLAGS  " -w -fpermissive -pedantic -Wformat -Werror=format-security -D_FORTIFY_SOURCE=2 ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  -mtune=generic  -pthread")
 endif()
 
 set(ARROW_EXE_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
@@ -331,13 +317,23 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
     "-DCMAKE_C_FLAGS=${ARROW_C_FLAGS}"
     "-DCMAKE_EXE_LINKER_FLAGS=${ARROW_EXE_FLAGS}"
     "-DCMAKE_SHARED_LINKER_FLAGS=${ARROW_LINKER_FLAGS}"
+    -DARROW_SIMD_LEVEL=NONE 
+  	-DARROW_RUNTIME_SIMD_LEVEL=NONE 
+  	-DARROW_JEMALLOC=OFF 
+  	-DARROW_MIMALLOC=OFF 
+  	-DARROW_COMPUTE=OFF 
+  	-DARROW_DATASET=OFF 
+  	-DARROW_JSON=OFF 
+  	-DARROW_WITH_RE2=OFF 
+  	-DARROW_WITH_UTF8PROC=OFF 
+  	-DARROW_BUILD_TESTS=OFF 
     -DARROW_DEPENDENCY_USE_SHARED=OFF
     -DARROW_BUILD_SHARED=OFF
     -DARROW_BUILD_STATIC=ON
     -DPARQUET_BUILD_SHARED=OFF
     -DPARQUET_BUILD_STATIC=ON
     -DARROW_BZ2_USE_SHARED=OFF
-    -DARROW_COMPUTE=ON
+#    -DARROW_COMPUTE=ON
     -DARROW_PYTHON=OFF
     -DARROW_CSV=ON
     -DARROW_DEPENDENCY_SOURCE=BUNDLED
@@ -345,8 +341,8 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
     -DARROW_FILESYSTEM=ON
     -DARROW_HDFS=ON
     -DARROW_IPC=ON
-    -DARROW_JEMALLOC=ON
-    -DARROW_JSON=ON
+#    -DARROW_JEMALLOC=ON
+#    -DARROW_JSON=ON
     -DARROW_PARQUET=ON
     -DARROW_POSITION_INDEPENDENT_CODE=ON
     -DARROW_TENSORFLOW=ON
@@ -355,10 +351,10 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
     -DARROW_WITH_BROTLI=ON
     -DARROW_WITH_BZ2=ON
     -DARROW_WITH_LZ4=ON
-    -DARROW_WITH_RE2=ON
+#    -DARROW_WITH_RE2=ON
     -DARROW_RPATH_ORIGIN=ON
     -DARROW_WITH_SNAPPY=ON
-    -DARROW_WITH_UTF8PROC=ON
+#    -DARROW_WITH_UTF8PROC=ON
     -DARROW_WITH_ZLIB=OFF
     -DARROW_WITH_ZSTD=ON
     -DCMAKE_BUILD_TYPE=release
@@ -453,8 +449,8 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
 
 if(APPLE OR CMAKE_SYSTEM_NAME MATCHES "Darwin" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
 set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
-    -DCMAKE_C_FLAGS=' -pedantic -Wformat -Werror=format-security -flto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} ' \
-    -DCMAKE_CXX_FLAGS=' -pedantic -Wformat -Werror=format-security -flto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} ' \
+    -DCMAKE_C_FLAGS=' -w -Wno-stringop-overflow -Wno-array-bounds -pedantic -Wformat -Werror=format-security -flto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} ' \
+    -DCMAKE_CXX_FLAGS=' -w -Wno-odr -Wno-stringop-overflow -Wno-catch-value -Wno-array-bounds -pedantic -Wformat -Werror=format-security -flto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} ' \
     -DRCPPPROG_FOLDER=${RCPPPROG_FOLDER} \
     -DRCPPTHREAD_FOLDER=${RCPPTHREAD_FOLDER} \
     -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}' \
@@ -465,8 +461,8 @@ set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
     -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF")
 else()
     set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
-    -DCMAKE_C_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  ' \
-    -DCMAKE_CXX_FLAGS=' -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} ' \
+    -DCMAKE_C_FLAGS=' -w -Wno-stringop-overflow -Wno-array-bounds -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  ' \
+    -DCMAKE_CXX_FLAGS=' -w -Wno-odr -Wno-stringop-overflow -Wno-catch-value -Wno-array-bounds -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} ' \
     -DRCPPPROG_FOLDER=${RCPPPROG_FOLDER} \
     -DRCPPTHREAD_FOLDER=${RCPPTHREAD_FOLDER} \
     -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}' \
@@ -802,7 +798,16 @@ elseif(WIN32)
             -DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON
             -DARROW_BUILD_INTEGRATION=OFF
-            -DARROW_BUILD_TESTS=OFF
+            -DARROW_SIMD_LEVEL=NONE 
+          	-DARROW_RUNTIME_SIMD_LEVEL=NONE 
+          	-DARROW_JEMALLOC=OFF 
+          	-DARROW_MIMALLOC=OFF 
+          	-DARROW_COMPUTE=OFF 
+          	-DARROW_DATASET=OFF 
+          	-DARROW_JSON=OFF 
+          	-DARROW_WITH_RE2=OFF 
+          	-DARROW_WITH_UTF8PROC=OFF 
+          	-DARROW_BUILD_TESTS=OFF 
             -DARROW_DEPENDENCY_USE_SHARED=OFF
             -DARROW_WITH_BZ2=ON
             -DARROW_WITH_LZ4=ON
@@ -814,17 +819,17 @@ elseif(WIN32)
             -DBUILD_STATIC_LIBS=ON
             -DPARQUET_MINIMAL_DEPENDENCY=OFF
             -DARROW_WITH_BROTLI=ON
-            -DARROW_WITH_RE2=OFF
+#            -DARROW_WITH_RE2=OFF
             -DARROW_WITH_ZLIB=ON
             -DARROW_WITH_ZSTD=ON
             -DARROW_IPC=ON
             -DARROW_FILESYSTEM=ON
-            -DARROW_COMPUTE=ON
+#            -DARROW_COMPUTE=ON
             -DARROW_PYTHON=OFF
             -DARROW_ENABLE_THREADING=ON
-            -DARROW_MIMALLOC=OFF
+#            -DARROW_MIMALLOC=OFF
             -DARROW_JEMALLOC=OFF
-            -DARROW_DATASET=OFF
+#            -DARROW_DATASET=OFF
             -DARROW_ACERO=OFF
             -DARROW_PARQUET=ON
             #-DARROW_WITH_THRIFT=ON
@@ -834,10 +839,10 @@ elseif(WIN32)
             -DARROW_HDFS=ON
             -DARROW_VERBOSE_THIRDPARTY_BUILD=ON
             -DARROW_POSITION_INDEPENDENT_CODE=ON
-            -DARROW_JSON=ON
+#            -DARROW_JSON=ON
             -DARROW_SUBSTRAIT=ON
             -DARROW_WITH_SNAPPY=ON
-            -DARROW_WITH_UTF8PROC=ON
+#            -DARROW_WITH_UTF8PROC=ON
             -DARROW_RPATH_ORIGIN=ON
             -DCMAKE_BUILD_TYPE=Release
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
@@ -846,12 +851,6 @@ elseif(WIN32)
             "-DCMAKE_C_FLAGS= -pedantic -Wformat -Werror=format-security -UHAVE_AF_UNIX_H -D__MINGW32__ -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  -mtune=generic  -pthread   "
             "-DCMAKE_CXX_FLAGS= -pedantic -Wformat -Werror=format-security -UHAVE_AF_UNIX_H -D__MINGW32__ -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} -mtune=generic   -pthread  "
             "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,--demangle -Wl,--pic-executable -Wl,--subsystem,console -Wl,-shared -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,--dll -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--no-whole-archive -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -lsqlite3 -liconv -lintl -lbcrypt -Wl,--end-group "
-        
-        #-Wall -static-libstdc++ -static-libgcc
-        #-DARROW_EXPORTING
-        #-std=gnu2x
-        #-std=gnu++20
-        #-O3 -fPIC  -fdiagnostics-color=always
 
         # Map the Makevars build command
         BUILD_COMMAND $(MAKE) -j ${N_PROC} 
@@ -969,8 +968,8 @@ elseif(WIN32)
         -DNCBI_COMPONENT_CURL_INCLUDE='${AUTO_CURL_INC}' \
         -DCMAKE_C_STANDARD_LIBRARIES='${AUTO_CURL_DEPS}' \
         -DCMAKE_CXX_STANDARD_LIBRARIES='${AUTO_CURL_DEPS}' \
-        -DCMAKE_C_FLAGS='${CMAKE_C_FLAGS} -pedantic -Wformat -Werror=format-security -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  -mtune=generic  -pthread   ' \
-        -DCMAKE_CXX_FLAGS='${CMAKE_CXX_FLAGS} -DLIBICONV_STATIC -pedantic -Wformat -Werror=format-security -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  -mtune=generic   -pthread   ' \
+        -DCMAKE_C_FLAGS='${CMAKE_C_FLAGS} -pedantic -Wformat -Werror=format-security -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  -mtune=generic  -pthread  -w -Wno-stringop-overflow -Wno-array-bounds ' \
+        -DCMAKE_CXX_FLAGS='${CMAKE_CXX_FLAGS} -DLIBICONV_STATIC -pedantic -Wformat -Werror=format-security -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  -mtune=generic   -pthread  -w -Wno-odr -Wno-stringop-overflow -Wno-catch-value -Wno-array-bounds ' \
         -DCMAKE_SHARED_LINKER_FLAGS=' -Wl,--allow-multiple-definition -Wl,--demangle -Wl,--pic-executable -Wl,--subsystem,console -Wl,-shared -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,--dll -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--no-whole-archive -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -lsqlite3 -liconv -lintl -lbcrypt -Wl,--end-group ' \
         -DCMAKE_EXE_LINKER_FLAGS=' -Wl,--allow-multiple-definition -Wl,--demangle -Wl,--pic-executable -Wl,--subsystem,console -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -lsqlite3 -liconv -lintl -lbcrypt -Wl,--end-group ' \
         -DCMAKE_USE_WIN32_THREADS_INIT=1 \
