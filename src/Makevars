@@ -6,58 +6,24 @@ PKG_ROOT = ..
 MAIN_LIB = src/QuickBLAST.so
 LIB_DIR = inst/libs
 
-#PATCHELF ?= BUILD/patchelf/src/patchelf   # fallback if patchelf not in PATH
-
-#-std=gnu2x
-#-std=gnu++20
-
 PKG_CFLAGS = -DARROW_STATIC -DPARQUET_STATIC -DLIBICONV_STATIC 
 PKG_CPPFLAGS = -DARROW_STATIC -DPARQUET_STATIC -DLIBICONV_STATIC 
 
-#LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.8
-TOOLKIT_CPPFLAGS = "$(CLINK_CPPFLAGS) $(PKG_CPPFLAGS)"
-RCPP_FOLDER = $(shell $(R_HOME)/bin/Rscript -e "cat(system.file(package='Rcpp'))")
-RCPPPROG_FOLDER = $(shell $(R_HOME)/bin/Rscript -e "cat(system.file(package='RcppProgress'))")
-RCPPTHREAD_FOLDER = $(shell $(R_HOME)/bin/Rscript -e "cat(system.file(package='RcppThread'))")
-# We use --verbose so ld doesn't complain about "no input files" and returns 0 if found
-BOOST_LIBS = $(shell ld -lboost_system --verbose > /dev/null 2>&1 && echo "-lboost_system")
-STDCPPFS_LIBS = $(shell ld -lstdc++fs --verbose > /dev/null 2>&1 && echo "-lstdc++fs")
+# FIX: Removed the outer double quotes from this definition
+TOOLKIT_CPPFLAGS = $(CLINK_CPPFLAGS) $(PKG_CPPFLAGS)
 
-PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) $(STDCPPFS_LIBS) $(BOOST_LIBS) $(TOOLKIT_CPPFLAGS) -Wl,-rpath,\$$ORIGIN -Wl,-rpath,@loader_path/ -L../BUILD/arrow/cpp/BUILD/release/ -L../BUILD/arrow/cpp/BUILD/lib/ -L../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ -L/usr/local/lib/ -L/usr/lib/ -Wl,--start-group -larrow -lparquet -lthrift -larrow_bundled_dependencies -lz -llmdb -lrt -lalign_format -lbiblio -lblast -lblastdb -lblastdb_format -lblastinput -lblast_services -lcomposition_adjustment -lconnect -lct_ftds14 -ldbapi_driver -lefetch -legquery -lehistory -leinfo -lelink -lepost -lesearch -lespell -lesummary -leutils -lgeneral -lgenome_collection -lid1 -lid2 -lmedline -lncbi_xdbapi_ftds -lncbi_xloader_blastdb -lncbi_xloader_blastdb_rmt -lncbi_xloader_genbank -lncbi_xreader -lncbi_xreader_cache -lncbi_xreader_id1 -lncbi_xreader_id2 -lpub -lpubmed -lQuickBLASTcpp -lscoremat -lseq -lseqcode -lseqdb -lseqedit -lseqmasks_io -lseqset -lseqsplit -lsequtil -lsqlitewrapp -lsubmit -ltables -ltaxon1 -ltaxon3 -ltds_ftds14 -luilist -lutrtprof -lvalid -lwritedb -lxalgoalignutil -lxalgoblastdbindex -lxalgodustmask -lxalgoseq -lxalgowinmask -lxalnmgr -lxblast -lxcgi -lxcleanup -lxcompress -lxconnect -lxflatfile -lxhtml -lxlogging -lxncbi -lxnetblast -lxnetblastcli -lxobjedit -lxobjmgr -lxobjread -lxobjsimple -lxobjutil -lxqueryparse -lxregexp -lxser -lxutil -lzcf -Wl,--end-group
-
-#-llz4
-#-lbrotlicommon -lbrotlienc -lbrotlidec
-#-O3
-#-fdiagnostics-color=always 
-#-fsanitize=address -fno-omit-frame-pointer 
-#-fsanitize=undefined -fsanitize=address -fno-omit-frame-pointer
-
-# `$(R_HOME)/bin/Rscript -e "cat(Rcpp:::RcppCxxFlags())"` `$(R_HOME)/bin/Rscript -e "cat(Rcpp:::LdFlags())"`
-
-#-fsanitize=undefined -fno-omit-frame-pointer -g -O1
+# Evaluate external libraries safely via the OS shell using backticks instead of GNU $(shell)
+PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) `ld -lstdc++fs --verbose > /dev/null 2>&1 && echo "-lstdc++fs"` `ld -lboost_system --verbose > /dev/null 2>&1 && echo "-lboost_system"` $(TOOLKIT_CPPFLAGS) -Wl,-rpath,\$$ORIGIN -Wl,-rpath,@loader_path/ -L../BUILD/arrow/cpp/BUILD/release/ -L../BUILD/arrow/cpp/BUILD/lib/ -L../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ -L/usr/local/lib/ -L/usr/lib/ -Wl,--start-group -larrow -lparquet -lthrift -larrow_bundled_dependencies -lz -llmdb -lrt -lalign_format -lbiblio -lblast -lblastdb -lblastdb_format -lblastinput -lblast_services -lcomposition_adjustment -lconnect -lct_ftds14 -ldbapi_driver -lefetch -legquery -lehistory -leinfo -lelink -lepost -lesearch -lespell -lesummary -leutils -lgeneral -lgenome_collection -lid1 -lid2 -lmedline -lncbi_xdbapi_ftds -lncbi_xloader_blastdb -lncbi_xloader_blastdb_rmt -lncbi_xloader_genbank -lncbi_xreader -lncbi_xreader_cache -lncbi_xreader_id1 -lncbi_xreader_id2 -lpub -lpubmed -lQuickBLASTcpp -lscoremat -lseq -lseqcode -lseqdb -lseqedit -lseqmasks_io -lseqset -lseqsplit -lsequtil -lsqlitewrapp -lsubmit -ltables -ltaxon1 -ltaxon3 -ltds_ftds14 -luilist -lutrtprof -lvalid -lwritedb -lxalgoalignutil -lxalgoblastdbindex -lxalgodustmask -lxalgoseq -lxalgowinmask -lxalnmgr -lxblast -lxcgi -lxcleanup -lxcompress -lxconnect -lxflatfile -lxhtml -lxlogging -lxncbi -lxnetblast -lxnetblastcli -lxobjedit -lxobjmgr -lxobjread -lxobjsimple -lxobjutil -lxqueryparse -lxregexp -lxser -lxutil -lzcf -Wl,--end-group
 
 PKG_CXXFLAGS = -include include/rcpp_workaround.hpp -O3 -Ilibsrc $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) -pthread -I/usr/local/src/ -I/usr/include/ -Isrc/include/ -I../BUILD/arrow/cpp/src/ -I../BUILD/arrow/cpp/BUILD/src/ -I../BUILD/ncbi-cxx-toolkit-public/include/ -I../BUILD/ncbi-cxx-toolkit-public/src/ -I../BUILD/ncbi-cxx-toolkit-public/BUILD/inc/
 
-#-O3 -fPIC -Wextra -shared
-#`$(R_HOME)/bin/Rscript -e "cat(Rcpp:::RcppCxxFlags())"`
-
-#-D_GLIBCXX_DEBUG -fsanitize=undefined -fno-omit-frame-pointer -g -O1
-
-#-O2 $(SHLIB_OPENMP_CXXFLAGS) #-fopenmp
-
-#-I/usr/local/include/ncbi-tools++/ -I/usr/include/arrow/ -I/usr/include/parquet/ 
-
-#build_patchelf #fix-rpath 
 all: builddeps $(SHLIB) copy_lib post_build_cleanup
 $(SHLIB): install_libs 
-#install_libs
 
-#cd ../ ; \
-#Rscript -e "Rcpp::compileAttributes(verbose=T)" ; 
-
+# Resolve R package dependencies within the recipe context using standard POSIX shell backticks
 builddeps:
 	(rm -f *.o *.so ; \
-	mkdir ../BUILD; \
+	mkdir -p ../BUILD; \
 	cd ../BUILD; \
 	CC="$(CC)" CFLAGS="$(CFLAGS)" \
 	CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)" RTOOLS_DIR="" \
@@ -68,23 +34,15 @@ builddeps:
 	-DCMAKE_POSITION_INDEPENDENT_CODE:bool=ON \
 	-DR_SHELL=1 \
 	-DRTOOLS_DIR="" \
-	-DTOOLKIT_CPPFLAGS=$(TOOLKIT_CPPFLAGS) \
-	-DRCPP_FOLDER="$(RCPP_FOLDER)" \
-	-DRCPPPROG_FOLDER="$(RCPPPROG_FOLDER)" \
-	-DRCPPTHREAD_FOLDER="$(RCPPTHREAD_FOLDER)" \
+	-DTOOLKIT_CPPFLAGS="$(TOOLKIT_CPPFLAGS)" \
+	-DRCPP_FOLDER="`"$(R_HOME)/bin/Rscript" -e "cat(system.file(package='Rcpp'))"`" \
+	-DRCPPPROG_FOLDER="`"$(R_HOME)/bin/Rscript" -e "cat(system.file(package='RcppProgress'))"`" \
+	-DRCPPTHREAD_FOLDER="`"$(R_HOME)/bin/Rscript" -e "cat(system.file(package='RcppThread'))"`" \
 	-DR_INCLUDE_DIR="$(R_INCLUDE_DIR)" \
 	-DCMAKE_EXPORT_NO_PACKAGE_REGISTRY=ON \
 	-DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF \
 	-DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF ; \
 	$(MAKE))
-	
-#build_patchelf:
-#	(cd ../BUILD/patchelf ; \
-#	./bootstrap.sh ; \
-#	./configure ; \
-#	$(MAKE) ; \
-#	#$(MAKE) check ; \
-#	)
 	
 install_libs:
 	(mkdir -p ../inst/libs/$(R_ARCH) ; \
@@ -94,35 +52,8 @@ install_libs:
 	echo $(R_ARCH) ; \
 	)
 
-#	cd ../../../../../src; \
-#	cd ../../../arrow/cpp/BUILD/release/ ; \
-#	cp -uf *.so* ../../../../../inst/libs/$(R_ARCH)/ ; \
-#	cp -uf *.so ../../../../inst/libs/$(R_ARCH)/ ; 
-
 copy_lib:
-		strip -S *.so && cp -uf *.so ../inst/libs/$(R_ARCH) ; 
+	strip -S *.so && cp -uf *.so ../inst/libs/$(R_ARCH) ; 
 	
 post_build_cleanup:
-		rm -rf ../BUILD;
-	
-#fix-rpath:
-#	@cd ../ ; \
-#	find "inst/libs" -type f -iname '*.so*' -or -type f -iname "makeblastdb" | \
-#		while IFS= read -r -d $$'\n' f; do \
-#			echo "patching $$f"; \
-#			$(PATCHELF) --set-rpath '$$ORIGIN' "$$f"; \
-#			strip -S "$$f"; \
-#		done
-#		
-##	TARGET="QuickBLAST.so"; \
-##	UNUSED_LIBS=$(ldd -u -r "$$TARGET" | grep 'Unused direct dependencies' -A 1000 | tail -n +2 | awk '{print $$1}' | sed '/^\s*$$/d'); \
-##	for lib in $$UNUSED_LIBS; do \
-##   	echo "Stripping overlinked dependency from ELF: $$lib"; \
-##   	$(PATCHELF) --remove-needed "$$lib" "$$TARGET" ; \
-##  done ; \
-##  echo "Done. $$TARGET is now perfectly lean."
-
-
-#find "inst/libs" -type f -name '*.so*' -print0 		
-#Rscript install.libs.R; \
-#cp -uf libct_ftds100.so libefetch.so liblmdb.so libncbi_algo.so libncbi_align_format.so libncbi_core.so libncbi_dbapi_driver.so libncbi_eutils.so libncbi_general.so libncbi_misc.so libncbi_pub.so libncbi_seq.so libncbi_seqext.so libncbi_trackmgr.so libncbi_web.so libncbi_xdbapi_ftds.so libncbi_xloader_blastdb.so libncbi_xloader_blastdb_rmt.so libncbi_xloader_genbank.so libncbi_xobjsimple.so libncbi_xreader.so libncbi_xreader_cache.so libncbi_xreader_id1.so libncbi_xreader_id2.so libpsg_client.so libsqlitewrapp.so libutrtprof.so libxflatfile.so libxxconnect2.so libncbi_blastinput.so libQuickBLASTcpp.so ../../../../inst/libs/$(R_ARCH)/ ; \
+	rm -rf ../BUILD;

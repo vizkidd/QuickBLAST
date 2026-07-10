@@ -25,6 +25,7 @@
 ^\.gitignore$
 ^\.Rinstignore$
 ^\.token$
+^\.Rproj\.user$
 ^Meta$
 ^old$
 ^doc$

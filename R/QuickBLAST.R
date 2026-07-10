@@ -211,21 +211,21 @@ LoadBLASTHits <- function(infile, sep = "\t", header = F, format = 'parquet') {
 #' @examples
 #' \dontrun{
 #' QuickBLAST::one2one(
-#'  first_list=fs::path_package("QuickBLAST", "extdata", "protein_query.fasta")
+#'  first_list=fs::path_package("QuickBLAST", "extdata", "protein_query.fasta"),
 #'  second_list=fs::path_package("QuickBLAST", "extdata", "protein_subject.fasta"), 
-#'  blast_fun=QuickBLAST::BLAST2Files
+#'  blast_fun=QuickBLAST::BLAST2Files,
 #'  seq_type = 0, 
 #'  strand=0,
 #'  output_dir = "./",
 #'  n_threads = 8,
 #'  blast_program = "tblastx",
-#'  save_sequences=F,
-#'  save_hsp_sequences=F,
-#'  return_values=F,
+#'  save_sequences=FALSE,
+#'  save_hsp_sequences=FALSE,
+#'  return_values=FALSE,
 #'  min_batch_size=256,
 #'  out_format="parquet",
 #'  blast_options="",
-#'  verbose = T
+#'  verbose = TRUE
 #' )
 #' }
 #'
@@ -235,22 +235,23 @@ LoadBLASTHits <- function(infile, sep = "\t", header = F, format = 'parquet') {
 #' @param blast_fun One of QuickBLAST::BLAST2Seqs, QuickBLAST::BLAST2Files, QuickBLAST::BLAST2Folders, QuickBLAST::BLAST2DBs
 #' @param seq_type (int) Sequence Type. Check QuickBLAST::GetQuickBLASTEnums()$ESeqType for available enums.
 #' @param strand (int) Strand. Check QuickBLAST::GetQuickBLASTEnums()$EStrand for available enums.
+#' @param blast_program Give the name of the BLAST program to use (if in $PATH) or give the absolute path to the BLAST program.
 #' @param file_ext File extension of input files. eg- ".cds" or ".fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString
-#' @param blast_program Give the name of the BLAST program to use (if in $PATH) or give the absolute path to the BLAST program. Default is tempdir(). Can also be NULL
-#' @param output_dir Path to BLAST output
-#' @param n_threads Number of threads. Default - 8
-#' @param blast_program BLAST Program to use.
-#' @param save_sequences (bool) Save full sequences to result?
-#' @param save_hsp_sequences (bool) Save HSP sequences to result?
-#' @param return_values (bool) Return values back to R? (Only valid for QuickBLAST::BLAST2Seqs(),QuickBLAST::BLAST2Files() and QuickBLAST::BLAST2DBs())
-#' @param min_batch_size Minimum batch size. (Default:256)
-#' @param out_format Output format. ipc/csv/parquet (Default: "parquet")
-#' @param extension File extension. (Only for QuickBLAST::BLAST2Folders())
-#' @param reciprocal_hits (bool) Reciprocal (Bi-directional) Hits? (Only valid for QuickBLAST::BLAST2Folders())
-#' @param blast_options BLAST Options to use - QuickBLAST::GetAvailableBLASTOptions()
 #' @param input_prefix_path If input lists/vectors are filenames, then provide input folder to prefix path
-#' @param verbose Print DEBUG Messages?
-#' @param ... Extended options blast_options, save_sequences, save_hsp_sequences, return_values, min_batch_size, n_threads, out_format, extension, reciprocal_hits, verbose
+#' @param output_dir Path to BLAST output
+#' @param ... Extended options passed to internal functions, including:
+#'   \itemize{
+#'     \item \code{blast_options}: BLAST Options to use - QuickBLAST::GetAvailableBLASTOptions()
+#'     \item \code{save_sequences}: (bool) Save full sequences to result?
+#'     \item \code{save_hsp_sequences}: (bool) Save HSP sequences to result?
+#'     \item \code{return_values}: (bool) Return values back to R? 
+#'     \item \code{min_batch_size}: Minimum batch size. (Default: 256)
+#'     \item \code{n_threads}: Number of threads. (Default: 8)
+#'     \item \code{out_format}: Output format. ipc/csv/parquet (Default: "parquet")
+#'     \item \code{extension}: File extension. (Only for QuickBLAST::BLAST2Folders())
+#'     \item \code{reciprocal_hits}: (bool) Reciprocal (Bi-directional) Hits? 
+#'     \item \code{verbose}: (bool) Print DEBUG Messages?
+#'   }
 #' @md
 #' @export
 one2one <- function(first_list, second_list, blast_fun, seq_type, strand, blast_program, file_ext = ".fa", input_prefix_path = NULL, output_dir = "./", ...) {
@@ -362,19 +363,19 @@ one2one <- function(first_list, second_list, blast_fun, seq_type, strand, blast_
 #' QuickBLAST::all2all(
 #'   first_list=fs::path_package("QuickBLAST", "extdata", "protein_query.fasta"),
 #'   second_list=fs::path_package("QuickBLAST", "extdata", "protein_subject.fasta"), 
-#'   blast_fun=QuickBLAST::BLAST2Files
+#'   blast_fun=QuickBLAST::BLAST2Files,
 #'   seq_type = 0, 
 #'   strand=0,
 #'   output_dir = "./",
 #'   n_threads = 8,
 #'   blast_program = "tblastx",
-#'   save_sequences=F,
-#'   save_hsp_sequences=F,
-#'   return_values=T,
+#'   save_sequences=FALSE,
+#'   save_hsp_sequences=FALSE,
+#'   return_values=TRUE,
 #'   min_batch_size=256,
 #'   out_format="parquet",
 #'   blast_options="",
-#'   verbose = T
+#'   verbose = TRUE
 #'  )
 #' }
 #'
@@ -384,22 +385,23 @@ one2one <- function(first_list, second_list, blast_fun, seq_type, strand, blast_
 #' @param blast_fun One of QuickBLAST::BLAST2Seqs, QuickBLAST::BLAST2Files, QuickBLAST::BLAST2Folders, QuickBLAST::BLAST2DBs
 #' @param seq_type (int) Sequence Type. Check QuickBLAST::GetQuickBLASTEnums()$ESeqType for available enums.
 #' @param strand (int) Strand. Check QuickBLAST::GetQuickBLASTEnums()$EStrand for available enums.
+#' @param blast_program Give the name of the BLAST program to use (if in $PATH) or give the absolute path to the BLAST program.
 #' @param file_ext File extension of input files. eg- ".cds" or ".fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString
-#' @param blast_program Give the name of the BLAST program to use (if in $PATH) or give the absolute path to the BLAST program. Default is tempdir(). Can also be NULL
-#' @param output_dir Path to BLAST output
-#' @param n_threads Number of threads. Default - 8
-#' @param blast_program BLAST Program to use.
-#' @param save_sequences (bool) Save full sequences to result?
-#' @param save_hsp_sequences (bool) Save HSP sequences to result?
-#' @param return_values (bool) Return values back to R? (Only valid for QuickBLAST::BLAST2Seqs(),QuickBLAST::BLAST2Files() and QuickBLAST::BLAST2DBs())
-#' @param min_batch_size Minimum batch size. (Default:256)
-#' @param out_format Output format. ipc/csv/parquet (Default: "parquet")
-#' @param extension File extension. (Only for QuickBLAST::BLAST2Folders())
-#' @param reciprocal_hits (bool) Reciprocal (Bi-directional) Hits? (Only valid for QuickBLAST::BLAST2Folders())
-#' @param blast_options BLAST Options to use - QuickBLAST::GetAvailableBLASTOptions()
 #' @param input_prefix_path If input lists/vectors are filenames, then provide input folder to prefix path
-#' @param verbose Print DEBUG Messages?
-#' @param ... Extended options blast_options, save_sequences, save_hsp_sequences, return_values, min_batch_size, n_threads, out_format, extension, reciprocal_hits, verbose
+#' @param output_dir Path to BLAST output
+#' @param ... Extended options passed to internal functions, including:
+#'   \itemize{
+#'     \item \code{blast_options}: BLAST Options to use - QuickBLAST::GetAvailableBLASTOptions()
+#'     \item \code{save_sequences}: (bool) Save full sequences to result?
+#'     \item \code{save_hsp_sequences}: (bool) Save HSP sequences to result?
+#'     \item \code{return_values}: (bool) Return values back to R? 
+#'     \item \code{min_batch_size}: Minimum batch size. (Default: 256)
+#'     \item \code{n_threads}: Number of threads. (Default: 8)
+#'     \item \code{out_format}: Output format. ipc/csv/parquet (Default: "parquet")
+#'     \item \code{extension}: File extension. (Only for QuickBLAST::BLAST2Folders())
+#'     \item \code{reciprocal_hits}: (bool) Reciprocal (Bi-directional) Hits? 
+#'     \item \code{verbose}: (bool) Print DEBUG Messages?
+#'   }
 #' @md
 #' @export
 all2all <- function(first_list, second_list, blast_fun, seq_type, strand, blast_program, file_ext = ".fa", input_prefix_path = NULL, output_dir = "./", ...) {
