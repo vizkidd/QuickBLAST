@@ -10,6 +10,16 @@
   return(system.file(libs_path, package = "QuickBLAST", mustWork = T))
 }
 
+#' Get file path of file inside "bin" folder of package
+#'
+#' @param file_name file_name inside "bin" folder
+#' @return File path inside QuickBLAST package
+#' @md
+.GetBinPath <- function(file_name = ""){
+  bin_path <- file.path("bin", Sys.getenv("R_ARCH"), file_name)
+  return(system.file(bin_path, package = "QuickBLAST", mustWork = T))
+}
+
 # # arrow_lfs <- arrow::LocalFileSystem$create()
 # ## internal single-file-system getter for the package
 # .arrow_fs_singleton <- local({
@@ -194,11 +204,11 @@ LoadBLASTHits <- function(infile, sep = "\t", header = F, format = 'parquet') {
         return(ret_tib)
       }
     }
-      else if (format == "parquet") {
-        return(arrow::read_parquet(infile))
-      }else{
-        stop(paste("Format: Should be one of 'table'/'ipc'/'parquet' "))
-      }
+    else if (format == "parquet") {
+      return(arrow::read_parquet(infile))
+    }else{
+      stop(paste("Format: Should be one of 'table'/'ipc'/'parquet' "))
+    }
   } else {
     stop(paste("File", infile, "does not exist or size 0"))
   }
@@ -305,9 +315,9 @@ one2one <- function(first_list, second_list, blast_fun, seq_type, strand, blast_
     first_list <- paste(first_list, file_ext, sep = "")
     second_list <- paste(second_list, file_ext, sep = "")
   }
-
+  
   list_combos <- unique(tidyr::crossing(first_list[order(first_list)], second_list[order(second_list)]))
-
+  
   # return_data <- furrr::future_map2(.x=first_list[order(first_list)], .y=second_list[order(second_list)], .f=function(x,y){
   # parallel::mclapply(seq_along(1:nrow(list_combos)), function(idx) {
   future.apply::future_lapply(seq_along(1:nrow(list_combos)), function(idx) {
@@ -323,7 +333,7 @@ one2one <- function(first_list, second_list, blast_fun, seq_type, strand, blast_
       print(x)
       print(y)
     }
-
+    
     blast_ptr <- QuickBLAST::CreateQuickBLASTInstance(seq_type = seq_type, strand = strand, program = blast_program, save_sequences = save_sequences, save_hsp_sequences=save_hsp_sequences, options = blast_options)
     
     # switch(input_type,
@@ -349,7 +359,7 @@ one2one <- function(first_list, second_list, blast_fun, seq_type, strand, blast_
     }
   })
   # }, mc.cores = n_threads, mc.silent = !verbose)
-
+  
   # return(return_data)
 }
 
@@ -453,27 +463,27 @@ all2all <- function(first_list, second_list, blast_fun, seq_type, strand, blast_
   }
   future::plan(future.callr::callr, workers = n_threads)
   dir.create(path = output_dir, recursive = T, showWarnings = F)
-
+  
   list_combinations <- unique(tidyr::crossing(first_list, second_list))
   # furrr::future_map2(.x=list_combinations$first_list, .y=list_combinations$second_list, .f=function(first_set,second_set){
   parallel::mclapply(seq_along(1:nrow(list_combinations)), function(idx) {
-  # future.apply::future_lapply(seq_along(1:nrow(list_combinations)), function(idx) {
+    # future.apply::future_lapply(seq_along(1:nrow(list_combinations)), function(idx) {
     first_set <- list_combinations[idx, 1]
     second_set <- list_combinations[idx, 2]
-
+    
     tryCatch(QuickBLAST::one2one(first_list = first_set, second_list = second_set, blast_fun=blast_fun, seq_type = seq_type, strand=strand, file_ext = file_ext, input_prefix_path = input_prefix_path, reciprocal_hits=reciprocal_hits, n_threads = 1, blast_program = blast_program, output_dir = output_dir,   blast_options=blast_options, save_sequences=save_sequences, save_hsp_sequences=save_hsp_sequences, return_values=return_values, min_batch_size=min_batch_size, out_format=out_format, extension=extension, verbose=verbose),
-      error = function(cond) {
-        if (verbose) {
-          message(cond)
-        }
-      }
+             error = function(cond) {
+               if (verbose) {
+                 message(cond)
+               }
+             }
     )
     tryCatch(QuickBLAST::one2one(first_list = first_set, second_list = second_set, blast_fun=blast_fun, seq_type = seq_type, strand=strand, file_ext = file_ext, input_prefix_path = input_prefix_path, reciprocal_hits=reciprocal_hits, n_threads = 1, blast_program = blast_program, output_dir = output_dir,   blast_options=blast_options, save_sequences=save_sequences, save_hsp_sequences=save_hsp_sequences, return_values=return_values, min_batch_size=min_batch_size, out_format=out_format, extension=extension, verbose=verbose),
-      error = function(cond) {
-        if (verbose) {
-          message(cond)
-        }
-      }
+             error = function(cond) {
+               if (verbose) {
+                 message(cond)
+               }
+             }
     )
   }, mc.cores = n_threads, mc.preschedule = T)
 }
@@ -553,7 +563,7 @@ dll_obj_list <-  list()
   # # Unload the DLLs when the package is unloaded
   #msys_dll_paths
   packageStartupMessage("Unloading QuickBLAST...")
-
+  
   # loaded_dlls <- getLoadedDLLs()
   # loaded_dlls <- loaded_dlls[na.omit(match(dlls,names(loaded_dlls)))]
   # 

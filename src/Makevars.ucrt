@@ -1,46 +1,53 @@
-# 1. Explicitly define Rtools directory so PATH doesn't break
-RTOOLS_DIR_RAW = $(shell $(R_HOME)/bin/Rscript -e "cat( Sys.getenv(paste('RTOOLS',version[['major']],unlist(strsplit(x=version[['minor']],fixed = T, split = '.'))[1], '_HOME', sep='')) )")
-RTOOLS_DIR = $(subst \,/,$(RTOOLS_DIR_RAW))
+CXX_STD = CXX20
 
-NPROC ?= $(shell nproc)
-GCC_VER ?= $(shell gcc -dumpversion | tr -d '[:space:]')
-
-# 2. Disable R's internal compilation of your C++ files
+# 1. Clear out default compilation lists to prevent R's internal builder from taking over
 SOURCES = 
 OBJECTS = run_cmake_superbuild.o
 
-export PATH := $(CURDIR)/../BUILD/ncbi-cxx-toolkit-public/BUILD/bin:$(PATH)
-
+# Standard definitions (No GNU extensions allowed here)
 PKG_CPPFLAGS = -DARROW_STATIC -DPARQUET_STATIC -DLIBICONV_STATIC 
 PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -include include/rcpp_workaround.hpp
 PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS)
 
-CXX_STD = CXX20
-
-# 3. The Superbuild trigger
+# 2. The Superbuild engine
 run_cmake_superbuild.o:
-	mkdir -p ../BUILD && cd ../BUILD && \
-	export PATH="$(RTOOLS_DIR)/x86_64-w64-mingw32.static.posix/bin:$(RTOOLS_DIR)/usr/bin:$$PATH" && \
+	@mkdir -p ../BUILD
+	@cd ../BUILD && \
+	# FIX 1: Use [['']] subsetting to avoid bash interpreting the $ symbol as a shell variable \
+	RTOOLS_DIR_RAW=`"$(R_HOME)/bin/Rscript" -e "cat(Sys.getenv(paste0('RTOOLS', R.version[['major']], unlist(strsplit(R.version[['minor']], '.', fixed=TRUE))[1], '_HOME')))"` && \
+	RTOOLS_DIR=`echo "$$RTOOLS_DIR_RAW" | tr '\\\\' '/'` && \
+	GCC_VER=`gcc -dumpversion | tr -d '[:space:]'` && \
+	CUR_DIR=`pwd` && \
+	export PATH="$$RTOOLS_DIR/x86_64-w64-mingw32.static.posix/bin:$$RTOOLS_DIR/usr/bin:$$CUR_DIR/../BUILD/ncbi-cxx-toolkit-public/BUILD/bin:$$PATH" && \
 	unset CC && unset CXX && \
-	cmake .. -G "MSYS Makefiles" \
+	cmake ../tools -G "MSYS Makefiles" \
 		-DCMAKE_BUILD_TYPE=Release \
 		-DR_ARCH="$(R_ARCH)" \
 		-DCMAKE_C_COMPILER=gcc.exe \
 		-DCMAKE_CXX_COMPILER=g++.exe \
 		-DR_SHELL=1 \
 		-DWIN32=1 \
-		-DGCC_VER=$(GCC_VER) \
-		-DRTOOLS_DIR="$(RTOOLS_DIR)" \
+		-DGCC_VER="$$GCC_VER" \
+		-DRTOOLS_DIR="$$RTOOLS_DIR" \
 		-DR_INCLUDE_DIR="$(R_INCLUDE_DIR)" \
 		-DSHLIB_OPENMP_CXXFLAGS="$(SHLIB_OPENMP_CXXFLAGS)" \
-		-DPKG_CPPFLAGS="$(DPKG_CPPFLAGS)" \
-    -DPKG_CXXFLAGS="$(PKG_CXXFLAGS)" \
-    -DPKG_LIBS="$(PKG_LIBS)" \
+		-DPKG_CPPFLAGS="$(PKG_CPPFLAGS)" \
+		-DPKG_CXXFLAGS="$(PKG_CXXFLAGS)" \
+		-DPKG_LIBS="$(PKG_LIBS)" \
+		-DCOMPILER_SUPPORTS_SSE42=OFF \
+		-DCOMPILER_SUPPORTS_AVX2=OFF \
 		-DCMAKE_EXPORT_NO_PACKAGE_REGISTRY=ON \
 		-DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF \
-		-DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF && \
-	$(MAKE) -j $(NPROC)
-	touch $@
+		-DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF > cmake_config.log 2>&1 || (cat cmake_config.log && exit 1); \
+	N_CORES=`nproc 2>/dev/null || echo 2` && \
+	$(MAKE) -j $$N_CORES -s > cmake_build.log 2>&1 || (cat cmake_build.log && exit 1)
+	@touch $@
 
-# 4. Copy the compiled DLL to where R expects it
-SHLIB_LINK = if [ -f ../BUILD/libQuickBLAST.dll ]; then $(STRIP) -S ../BUILD/libQuickBLAST.dll && cp ../BUILD/libQuickBLAST.dll $@; elif [ -f ../BUILD/QuickBLAST.dll ]; then $(STRIP) -S ../BUILD/QuickBLAST.dll && cp ../BUILD/QuickBLAST.dll $@; fi; echo "Linked via CMake";
+# 3. Integrate built shared libraries into R's expected target location
+# FIX 2: Hijack R's default SHLIB_LINK to copy the file, and use 'echo' to safely absorb R's trailing arguments
+SHLIB_LINK = true; \
+	if [ -f ../BUILD/libQuickBLAST.dll ]; then cp ../BUILD/libQuickBLAST.dll $@; \
+	elif [ -f ../BUILD/QuickBLAST.dll ]; then cp ../BUILD/QuickBLAST.dll $@; fi; \
+	$(STRIP) -S $@; \
+	echo "Custom CMake build successful. Ignoring default R linkage args: "
+	

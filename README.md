@@ -1,6 +1,6 @@
 ![QuickBLAST Logo](man/figures/logo.png)
 
-# QuickBLAST v1.7.4
+# QuickBLAST v1.7.5
 
 R is widely used for data analysis, but running NCBI's standard BLAST tools within R has traditionally been slow. Because the NCBI C++ toolkit is massive and inflexible, existing R packages are forced to run BLAST as an external subprocess, which creates major read/write bottlenecks.
 

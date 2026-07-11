@@ -7,6 +7,20 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+# Version 1.7.5 - 2026-07-11
+
+## Updated:
+- Reduced warnings entirely
+- Moved CMakeLists.txt to tools/
+- Moved compiled makeblastdb executable to bin/
+- pragma to compile cloudflare-zlib and suppress warnings
+
+## Removed:
+- install.libs.R - libs are copied in respective Makevars
+- O3 optimization
+
+---
+
 # Version 1.7.4 - 2026-07-08
 
 ## Fixed:

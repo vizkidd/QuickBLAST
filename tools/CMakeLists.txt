@@ -14,6 +14,10 @@ set(CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY OFF)
 
 project(QuickBLAST)
 
+#Assuming CMakeLists.txt is in tools/ and project root is in ../
+set(PRJ_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/..")
+
+
 if(NOT R_SHELL)
     message(FATAL_ERROR "Install through R. Use devtools package. Does not support generic CMAKE compilation")
 endif(NOT R_SHELL)
@@ -251,31 +255,37 @@ if(NOT WIN32)
     #    COMMAND_ERROR_IS_FATAL ANY
     #)
     
-    message("Copying " ${CMAKE_SOURCE_DIR}/src " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
+    message("Copying " ${PRJ_ROOT_DIR}/src " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
 
-    file(COPY ${CMAKE_SOURCE_DIR}/src/dependencies/QuickBLAST.prj 
+    file(COPY ${PRJ_ROOT_DIR}/src/dependencies/QuickBLAST.prj 
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
-    file(COPY ${CMAKE_SOURCE_DIR}/src/dependencies/ncbi_crosscomp_inject_pre.sh 
+    file(COPY ${PRJ_ROOT_DIR}/src/dependencies/ncbi_crosscomp_inject_pre.sh 
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
-    file(COPY ${CMAKE_SOURCE_DIR}/src/dependencies/ncbi_crosscomp_inject_post.sh 
+    file(COPY ${PRJ_ROOT_DIR}/src/dependencies/ncbi_crosscomp_inject_post.sh 
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
-    file(COPY ${CMAKE_SOURCE_DIR}/src/dependencies/ncbi_components.cmake 
+    file(COPY ${PRJ_ROOT_DIR}/src/dependencies/ncbi_components.cmake 
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
-    file(COPY ${CMAKE_SOURCE_DIR}/src/ 
-    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/src/
-    )
+    file(GLOB SRC_CONTENTS "${PRJ_ROOT_DIR}/src/*")
+    foreach(ITEM IN LISTS SRC_CONTENTS)
+        get_filename_component(FILENAME "${ITEM}" NAME)
+        
+        # Skip ONLY the root CMakeLists.txt so we don't overwrite NCBI's
+        if(NOT FILENAME STREQUAL "CMakeLists.txt")
+            file(COPY "${ITEM}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/src/")
+        endif()
+    endforeach()
 
-    message("Copying " ${CMAKE_SOURCE_DIR}/src/include " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
+    message("Copying " ${PRJ_ROOT_DIR}/src/include " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
 
-    file(COPY ${CMAKE_SOURCE_DIR}/src/include
+    file(COPY ${PRJ_ROOT_DIR}/src/include
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
@@ -383,15 +393,25 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
 #-DARROW_ZSTD_USE_SHARED=OFF -DARROW_JEMALLOC_USE_SHARED=OFF # -DARROW_CUDA=ON -DARROW_DEPENDENCY_SOURCE=BUNDLED  # -DARROW_BUILD_INTEGRATION=ON
 
     execute_process(
-    COMMAND make -j ${N_PROC} 
+    COMMAND ${CMAKE_MAKE_PROGRAM} -s -j ${N_PROC}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/arrow/cpp/BUILD
     COMMAND_ERROR_IS_FATAL ANY
+    RESULT_VARIABLE ARROW_BUILD_STATUS
     )
 
+    #if(NOT ARROW_BUILD_STATUS EQUAL 0)
+    #    message(STATUS "Parallel Arrow build failed or interrupted. Retrying with standard single-thread build...")
+    #    execute_process(
+    #        COMMAND ${CMAKE_MAKE_PROGRAM}
+    #        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/arrow/cpp/BUILD"
+    #        COMMAND_ERROR_IS_FATAL ANY
+    #    )
+    #endif()
+    
     # ==============================================================================
     # SYNCHRONOUS SQLITE PRE-BUILD (Forces SQLite to exist before NCBI configures)
     # ==============================================================================
-    set(SQLITE_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/sqlite")
+    set(SQLITE_ROOT_DIR "${PRJ_ROOT_DIR}/BUILD/sqlite")
     set(SQLITE_TARGET_LIB "${SQLITE_ROOT_DIR}/libsqlite3.a")
     
     if(NOT EXISTS "${SQLITE_TARGET_LIB}")
@@ -449,8 +469,8 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
 
 if(APPLE OR CMAKE_SYSTEM_NAME MATCHES "Darwin" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
 set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
-    -DCMAKE_C_FLAGS=' -w -Wno-stringop-overflow -Wno-array-bounds -pedantic -Wformat -Werror=format-security -flto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} ' \
-    -DCMAKE_CXX_FLAGS=' -w -Wno-odr -Wno-stringop-overflow -Wno-catch-value -Wno-array-bounds -pedantic -Wformat -Werror=format-security -flto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} ' \
+    -DCMAKE_C_FLAGS=' -w -pedantic -Wformat -Werror=format-security -flto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} ' \
+    -DCMAKE_CXX_FLAGS=' -w -pedantic -Wformat -Werror=format-security -flto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} ' \
     -DRCPPPROG_FOLDER=${RCPPPROG_FOLDER} \
     -DRCPPTHREAD_FOLDER=${RCPPTHREAD_FOLDER} \
     -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}' \
@@ -461,8 +481,8 @@ set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
     -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF")
 else()
     set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
-    -DCMAKE_C_FLAGS=' -w -Wno-stringop-overflow -Wno-array-bounds -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  ' \
-    -DCMAKE_CXX_FLAGS=' -w -Wno-odr -Wno-stringop-overflow -Wno-catch-value -Wno-array-bounds -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} ' \
+    -DCMAKE_C_FLAGS=' -w -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  ' \
+    -DCMAKE_CXX_FLAGS=' -w -pedantic -Wformat -Werror=format-security -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} ' \
     -DRCPPPROG_FOLDER=${RCPPPROG_FOLDER} \
     -DRCPPTHREAD_FOLDER=${RCPPTHREAD_FOLDER} \
     -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}' \
@@ -528,13 +548,26 @@ endif()
           "-DNCBI_COMPONENT_PSGLoader_DISABLED=YES"
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
             COMMAND_ERROR_IS_FATAL ANY
+            OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/ncbi_cmake_configure.log"
+            ERROR_FILE "${CMAKE_CURRENT_BINARY_DIR}/ncbi_cmake_configure.log"
+            ERROR_QUIET
         )
     #endif()
     execute_process(
-          COMMAND make -j ${N_PROC} datatool QuickBLASTcpp makeblastdb
+          COMMAND ${CMAKE_MAKE_PROGRAM} -s -j ${N_PROC} datatool QuickBLASTcpp makeblastdb 
           WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/build
           COMMAND_ERROR_IS_FATAL ANY
+          RESULT_VARIABLE NCBI_BUILD_STATUS
         )
+      
+    #if(NOT NCBI_BUILD_STATUS EQUAL 0)
+    #    message(STATUS "NCBI build failed or interrupted. Retrying with standard single-thread build...")
+    #    execute_process(
+    #        COMMAND ${CMAKE_MAKE_PROGRAM} datatool QuickBLASTcpp makeblastdb 
+    #        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/build"
+    #        COMMAND_ERROR_IS_FATAL ANY
+    #    )
+    #endif()
 
 #    set(TOOLCHAIN_FILE "${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/build/ncbi_toolchain.cmake")
 
@@ -581,7 +614,7 @@ elseif(WIN32)
         COMMAND_ERROR_IS_FATAL ANY
     )
 
-    set(ROOT_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/")
+    set(ROOT_SRC_DIR "${PRJ_ROOT_DIR}/BUILD/")
     message(STATUS "ROOT_SRC_DIR: ${ROOT_SRC_DIR}")	
     #if (NOT EXISTS "${ROOT_SRC_DIR}/R_src/")
     #    message(STATUS "Downloading R-src...")	
@@ -686,31 +719,37 @@ elseif(WIN32)
         COMMAND_ERROR_IS_FATAL ANY
     )
 
-    message("Copying " ${CMAKE_SOURCE_DIR}/src/ " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
+    message("Copying " ${PRJ_ROOT_DIR}/src/ " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
 
-    file(COPY ${CMAKE_SOURCE_DIR}/src/dependencies/QuickBLAST.prj 
+    file(COPY ${PRJ_ROOT_DIR}/src/dependencies/QuickBLAST.prj 
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
-    file(COPY ${CMAKE_SOURCE_DIR}/src/dependencies/ncbi_crosscomp_inject_pre.sh 
+    file(COPY ${PRJ_ROOT_DIR}/src/dependencies/ncbi_crosscomp_inject_pre.sh 
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
-    file(COPY ${CMAKE_SOURCE_DIR}/src/dependencies/ncbi_crosscomp_inject_post.sh 
+    file(COPY ${PRJ_ROOT_DIR}/src/dependencies/ncbi_crosscomp_inject_post.sh 
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
-    file(COPY ${CMAKE_SOURCE_DIR}/src/dependencies/ncbi_components.cmake 
+    file(COPY ${PRJ_ROOT_DIR}/src/dependencies/ncbi_components.cmake 
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
-    file(COPY ${CMAKE_SOURCE_DIR}/src/ 
-    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/src/
-    )
+    file(GLOB SRC_CONTENTS "${PRJ_ROOT_DIR}/src/*")
+    foreach(ITEM IN LISTS SRC_CONTENTS)
+        get_filename_component(FILENAME "${ITEM}" NAME)
+        
+        # Skip ONLY the root CMakeLists.txt so we don't overwrite NCBI's
+        if(NOT FILENAME STREQUAL "CMakeLists.txt")
+            file(COPY "${ITEM}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/src/")
+        endif()
+    endforeach()
 
-    message("Copying " ${CMAKE_SOURCE_DIR}/src/include " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
+    message("Copying " ${PRJ_ROOT_DIR}/src/include " into " ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/)
 
-    file(COPY ${CMAKE_SOURCE_DIR}/src/include
+    file(COPY ${PRJ_ROOT_DIR}/src/include
     DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/
     )
 
@@ -782,12 +821,27 @@ elseif(WIN32)
     file(WRITE "${ARROW_FILE}" "${POLYFILL}\n${FILE_CONTENT}")
     ]=])
 
+     #file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_arrow_fallback.cmake" "
+     #    execute_process(
+     #        COMMAND \"${CMAKE_MAKE_PROGRAM}\" -s -j ${N_PROC}
+     #        RESULT_VARIABLE ARROW_BUILD_STATUS
+     #    )
+     #    
+     #    if(NOT ARROW_BUILD_STATUS EQUAL 0)
+     #        message(STATUS \"Parallel Arrow build failed (likely Out-Of-Memory). Retrying single-threaded...\")
+     #       execute_process(
+     #            COMMAND \"${CMAKE_MAKE_PROGRAM}\"
+     #            COMMAND_ERROR_IS_FATAL ANY
+     #        )
+     #    endif()
+     #")
+
      ExternalProject_Add(build_arrow
         PREFIX "${CMAKE_CURRENT_BINARY_DIR}/arrow_ep"
-        SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp"
-        BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/BUILD_MSYS2"
+        SOURCE_DIR "${PRJ_ROOT_DIR}/BUILD/arrow/cpp"
+        BINARY_DIR "${PRJ_ROOT_DIR}/BUILD/arrow/cpp/BUILD_MSYS2"
         
-        PATCH_COMMAND ${CMAKE_COMMAND} -DARROW_FILE=${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/src/arrow/compute/kernels/scalar_temporal_unary.cc -P "${CMAKE_CURRENT_BINARY_DIR}/patch_arrow.cmake"
+        PATCH_COMMAND ${CMAKE_COMMAND} -DARROW_FILE=${PRJ_ROOT_DIR}/BUILD/arrow/cpp/src/arrow/compute/kernels/scalar_temporal_unary.cc -P "${CMAKE_CURRENT_BINARY_DIR}/patch_arrow.cmake"
         
         CMAKE_GENERATOR "MSYS Makefiles"
         
@@ -853,16 +907,17 @@ elseif(WIN32)
             "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,--demangle -Wl,--pic-executable -Wl,--subsystem,console -Wl,-shared -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,--dll -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--no-whole-archive -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -lsqlite3 -liconv -lintl -lbcrypt -Wl,--end-group "
 
         # Map the Makevars build command
-        BUILD_COMMAND $(MAKE) -j ${N_PROC} 
+        BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} -s -j ${N_PROC} 
+#        BUILD_COMMAND ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_BINARY_DIR}/build_arrow_fallback.cmake"
         #arrow parquet
         
         # Map the Makevars copy/install command
         INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow.a"
-            "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.a"
+            "${PRJ_ROOT_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow.a"
+            "${PRJ_ROOT_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.a"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/release/libparquet.a"
-            "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/release/libparquet_msys2.a"
+            "${PRJ_ROOT_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/release/libparquet.a"
+            "${PRJ_ROOT_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/release/libparquet_msys2.a"
     )
 
     # =========================================================================
@@ -894,10 +949,10 @@ elseif(WIN32)
     message(STATUS "Automated CURL Include: ${AUTO_CURL_INC}")
     message(STATUS "Automated CURL Deps: ${AUTO_CURL_DEPS}")
 
-    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/sqlite/libsqlite3.a")    
+    if(NOT EXISTS "${PRJ_ROOT_DIR}/BUILD/sqlite/libsqlite3.a")    
         file(DOWNLOAD
             "https://sqlite.org/download.html"
-            "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/download.html"
+            "${PRJ_ROOT_DIR}/BUILD/download.html"
             SHOW_PROGRESS
             STATUS download_status
             TIMEOUT 10
@@ -907,7 +962,7 @@ elseif(WIN32)
             message(FATAL_ERROR "SQLite version check failed: ${download_status}")
         endif()
         execute_process(
-            COMMAND bash -c "grep -Eo '[0-9]{4}/sqlite-amalgamation-[0-9]+\\\\.zip' ${CMAKE_CURRENT_SOURCE_DIR}/BUILD/download.html | head -n 1"
+            COMMAND bash -c "grep -Eo '[0-9]{4}/sqlite-amalgamation-[0-9]+\\\\.zip' ${PRJ_ROOT_DIR}/BUILD/download.html | head -n 1"
             OUTPUT_VARIABLE SQLITE_LINK
             OUTPUT_STRIP_TRAILING_WHITESPACE
         )
@@ -917,11 +972,11 @@ elseif(WIN32)
             message(FATAL_ERROR "SQLite version link not found")
         endif()
         execute_process(
-            COMMAND bash -c "mkdir -p ${CMAKE_CURRENT_SOURCE_DIR}/BUILD/sqlite/"
+            COMMAND bash -c "mkdir -p ${PRJ_ROOT_DIR}/BUILD/sqlite/"
             )
         file(DOWNLOAD
             "https://sqlite.org/${SQLITE_LINK}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/sqlite/sqlite.zip"
+            "${PRJ_ROOT_DIR}/BUILD/sqlite/sqlite.zip"
             SHOW_PROGRESS
             STATUS download_status
             TIMEOUT 10
@@ -950,9 +1005,9 @@ elseif(WIN32)
         -DCMAKE_CXX_COMPILER_VERSION=${GCC_VER} \
         -DSHLIB_OPENMP_CXXFLAGS='${SHLIB_OPENMP_CXXFLAGS}' \
         -DTOOLKIT_CPPFLAGS='${TOOLKIT_CPPFLAGS}' \
-        -DROOT_SRC_DIR=${CMAKE_CURRENT_SOURCE_DIR} \
+        -DROOT_SRC_DIR=${PRJ_ROOT_DIR} \
         -DR_INCLUDE_DIR='${R_INCLUDE_DIR}' \
-        -DNCBITK_ROOT_DIR=${CMAKE_CURRENT_SOURCE_DIR}/BUILD/ncbi-cxx-toolkit-public \
+        -DNCBITK_ROOT_DIR=${PRJ_ROOT_DIR}/BUILD/ncbi-cxx-toolkit-public \
         -DR_HOME='$ENV{R_HOME}' \
         -DR_ARCH='$ENV{R_ARCH}' \
         -DRCPP_FOLDER='${RCPP_FOLDER}' \
@@ -968,8 +1023,8 @@ elseif(WIN32)
         -DNCBI_COMPONENT_CURL_INCLUDE='${AUTO_CURL_INC}' \
         -DCMAKE_C_STANDARD_LIBRARIES='${AUTO_CURL_DEPS}' \
         -DCMAKE_CXX_STANDARD_LIBRARIES='${AUTO_CURL_DEPS}' \
-        -DCMAKE_C_FLAGS='${CMAKE_C_FLAGS} -pedantic -Wformat -Werror=format-security -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  -mtune=generic  -pthread  -w -Wno-stringop-overflow -Wno-array-bounds ' \
-        -DCMAKE_CXX_FLAGS='${CMAKE_CXX_FLAGS} -DLIBICONV_STATIC -pedantic -Wformat -Werror=format-security -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  -mtune=generic   -pthread  -w -Wno-odr -Wno-stringop-overflow -Wno-catch-value -Wno-array-bounds ' \
+        -DCMAKE_C_FLAGS='${CMAKE_C_FLAGS} -pedantic -Wformat -Werror=format-security -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  -mtune=generic  -pthread  -w ' \
+        -DCMAKE_CXX_FLAGS='${CMAKE_CXX_FLAGS} -DLIBICONV_STATIC -pedantic -Wformat -Werror=format-security -Wa,-mbig-obj -D_FORTIFY_SOURCE=2 -ffat-lto-objects -flto=auto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}  -mtune=generic   -pthread  -w ' \
         -DCMAKE_SHARED_LINKER_FLAGS=' -Wl,--allow-multiple-definition -Wl,--demangle -Wl,--pic-executable -Wl,--subsystem,console -Wl,-shared -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,--dll -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--no-whole-archive -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -lsqlite3 -liconv -lintl -lbcrypt -Wl,--end-group ' \
         -DCMAKE_EXE_LINKER_FLAGS=' -Wl,--allow-multiple-definition -Wl,--demangle -Wl,--pic-executable -Wl,--subsystem,console -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -lsqlite3 -liconv -lintl -lbcrypt -Wl,--end-group ' \
         -DCMAKE_USE_WIN32_THREADS_INIT=1 \
@@ -982,20 +1037,41 @@ elseif(WIN32)
     #-std=gnu++20
     #-O3 -fPIC
 
+    #file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_ncbi_fallback.cmake" "
+    #    execute_process(
+    #        COMMAND \"${CMAKE_MAKE_PROGRAM}\" -s -C BUILD/build -j \"${N_PROC}\" datatool all makeblastdb QuickBLASTcpp 
+    #        RESULT_VARIABLE NCBI_BUILD_STATUS
+    #    )
+    #    
+    #    if(NOT NCBI_BUILD_STATUS EQUAL 0)
+    #        message(STATUS \"NCBI build failed. Retrying single-threaded...\")
+    #        execute_process(
+    #            COMMAND \"${CMAKE_MAKE_PROGRAM}\" -C BUILD/build
+    #            COMMAND_ERROR_IS_FATAL ANY
+    #        )
+    #    endif()
+    #")
+
     ExternalProject_Add(ncbi_toolkit
         PREFIX "${CMAKE_CURRENT_BINARY_DIR}/ncbi_ep"
-        SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/ncbi-cxx-toolkit-public"
+        SOURCE_DIR "${PRJ_ROOT_DIR}/BUILD/ncbi-cxx-toolkit-public"
         BUILD_IN_SOURCE TRUE
         
         # STEP 1: Run pre-inject and cmake-configure
         CONFIGURE_COMMAND bash -c "SHLIB_OPENMP_CXXFLAGS='${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}' RTOOLS_DIR='${RTOOLS_DIR}' R_INCLUDE_DIR='${R_INCLUDE_DIR}' ./ncbi_crosscomp_inject_pre.sh && export CMAKE_ARGS=\"${NCBI_CMAKE_ARGS}\" && export CMAKE='${RTOOLS_DIR}/ucrt64/bin/cmake.exe' && ./cmake-configure GCC ${GCC_VER} --with-projects=QuickBLAST.prj --without-dll --with-composite --without-debug --with-build-root=BUILD"
         #--with-dll
         # STEP 2: Use double quotes, escape inner quotes, and use $$ to pass command substitution safely to Bash
-        BUILD_COMMAND $(MAKE) -C BUILD/build -j ${N_PROC} datatool all makeblastdb QuickBLASTcpp
+        BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} -s -C ${PRJ_ROOT_DIR}/BUILD/build -j ${N_PROC} datatool all makeblastdb QuickBLASTcpp
+#        BUILD_COMMAND ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_BINARY_DIR}/build_ncbi_fallback.cmake"
         
         # STEP 3: Run the post-injection script
         INSTALL_COMMAND bash -c "echo ncbi-cxx-toolkit build complete!"
         #INSTALL_COMMAND bash -c "RTOOLS_DIR='${RTOOLS_DIR}' ./ncbi_crosscomp_inject_post.sh"
+        
+        OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/ncbi_cmake_configure.log"
+        ERROR_FILE "${CMAKE_CURRENT_BINARY_DIR}/ncbi_cmake_configure.log"
+        LOG_CONFIGURE ON
+        LOG_MERGED_STDOUTERR ON
     )
 
     execute_process(COMMAND Rscript -e "cat(Sys.getenv('R_HOME'))" OUTPUT_VARIABLE R_USR_HOME OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -1031,7 +1107,7 @@ elseif(WIN32)
     # =========================================================================
 
     # Gather your main Rcpp / C++ source files
-    file(GLOB QUICKBLAST_SOURCES "src/*.cpp" "src/*.c")
+    file(GLOB QUICKBLAST_SOURCES "${PRJ_ROOT_DIR}/src/*.cpp" "${PRJ_ROOT_DIR}/src/*.c")
     
     execute_process(COMMAND Rscript -e "cat(system.file(package = 'Rcpp'))" OUTPUT_VARIABLE RCPP_FOLDER OUTPUT_STRIP_TRAILING_WHITESPACE)
     execute_process(COMMAND Rscript -e "cat(system.file(package = 'RcppProgress'))" OUTPUT_VARIABLE RCPPPROG_FOLDER OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -1052,7 +1128,7 @@ elseif(WIN32)
     # Create a "fake" target for Arrow so CMake knows how to link it
     add_library(Arrow::msys2 STATIC IMPORTED GLOBAL)
     set_target_properties(Arrow::msys2 PROPERTIES
-        IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.a"
+        IMPORTED_LOCATION "${PRJ_ROOT_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.a"
     )
     # Tell CMake: "Do not try to link Arrow until build_arrow is 100% finished"
     add_dependencies(Arrow::msys2 build_arrow)
@@ -1064,7 +1140,7 @@ elseif(WIN32)
     # Example: Linking the core NCBI static libraries (update names based on what NCBI outputs)
     add_library(NCBI::core STATIC IMPORTED GLOBAL)
     set_target_properties(NCBI::core PROPERTIES
-        IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/ncbi-cxx-toolkit-public/BUILD/lib/libncbi_core.a"
+        IMPORTED_LOCATION "${PRJ_ROOT_DIR}/BUILD/ncbi-cxx-toolkit-public/BUILD/lib/libncbi_core.a"
     )
     # Tell CMake: "Do not try to link NCBI until setup_ncbi is 100% finished"
     add_dependencies(NCBI::core setup_ncbi)
@@ -1154,13 +1230,13 @@ elseif(WIN32)
         "${R_INC}"
         "${R_INC}/R_ext/"
         "${R_INCLUDE_DIR}"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/include/"
+        "${PRJ_ROOT_DIR}/src/include/"
         "${RCPP_FOLDER}/include"
         "${RCPPPROG_FOLDER}/include"
         "${RCPPTHREAD_FOLDER}/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/src"
-        "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/src"
-        "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/ncbi-cxx-toolkit-public/include" # To find QuickBLAST/commons.hpp
+        "${PRJ_ROOT_DIR}/BUILD/arrow/cpp/src"
+        "${PRJ_ROOT_DIR}/BUILD/arrow/cpp/BUILD_MSYS2/src"
+        "${PRJ_ROOT_DIR}/BUILD/ncbi-cxx-toolkit-public/include" # To find QuickBLAST/commons.hpp
     )
     
     target_compile_options(QuickBLAST PRIVATE
@@ -1173,8 +1249,8 @@ elseif(WIN32)
         "${CMAKE_CURRENT_BINARY_DIR}/sqlite"
         "${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/bin"
         "${CMAKE_CURRENT_BINARY_DIR}/ncbi-cxx-toolkit-public/BUILD/lib"
-        "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/lib"
-        "${CMAKE_CURRENT_SOURCE_DIR}/BUILD/bin"
+        "${PRJ_ROOT_DIR}/BUILD/lib"
+        "${PRJ_ROOT_DIR}/BUILD/bin"
         "${CMAKE_CURRENT_BINARY_DIR}/arrow/cpp/BUILD_MSYS2/release"
         "${CMAKE_CURRENT_BINARY_DIR}/arrow/cpp/BUILD_MSYS2/lib"
         "${R_BIN}"
@@ -1284,23 +1360,25 @@ elseif(WIN32)
     endif()
     
     # Destination inside your R package source
-    set(DEV_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/libs${R_ARCH}")
+    set(DEV_LIB_DEST "${PRJ_ROOT_DIR}/libs${R_ARCH}")
     
     # ---------------------------------------------------------------------
     # Dynamically target R's temporary staging folder during installation
     # ---------------------------------------------------------------------
     if(DEFINED ENV{R_PACKAGE_DIR})
-        # R CMD INSTALL is running
+        # R CMD INSTALL is running - Staged installation
         file(TO_CMAKE_PATH "$ENV{R_PACKAGE_DIR}" R_PKG_DIR)
         set(INST_LIB_DEST "${R_PKG_DIR}/libs${R_ARCH}")
+        set(INST_BIN_DEST "${R_PKG_DIR}/bin${R_ARCH}")
     else()
-        # Fallback for local development outside of R's build system
-        set(INST_LIB_DEST "${CMAKE_CURRENT_SOURCE_DIR}/inst/libs${R_ARCH}")
+        # Fallback for local development (devtools::load_all)
+        set(INST_LIB_DEST "${PRJ_ROOT_DIR}/inst/libs${R_ARCH}")
+        set(INST_BIN_DEST "${PRJ_ROOT_DIR}/inst/bin${R_ARCH}")
     endif()
 
     add_custom_command(TARGET QuickBLAST POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${DEV_LIB_DEST}"
         COMMAND ${CMAKE_COMMAND} -E make_directory "${INST_LIB_DEST}"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${INST_BIN_DEST}"
         COMMENT "Syncing QuickBLAST and NCBI libraries to R package directories..."
     )
 
@@ -1310,42 +1388,61 @@ elseif(WIN32)
 
     ## 2. List of specific NCBI files to strip and copy
     set(NCBI_FILES
-    #    "libncbi_algo.dll"
-    #    "libncbi_align_format.dll"
-    #    "libncbi_blastinput.dll"
-    #    "libncbi_core.dll"
-    #    "libncbi_dbapi_driver.dll"
-    #    "libncbi_eutils.dll"
-    #    "libncbi_general.dll"
-    #    "libncbi_misc.dll"
-    #    "libncbi_pub.dll"
-    #    "libncbi_seq.dll"
-    #    "libncbi_seqext.dll"
-    #    "libncbi_trackmgr.dll"
-    #    "libncbi_web.dll"
-    #    "libncbi_xdbapi_ftds.dll"
-    #    "libncbi_xloader_blastdb.dll"
-    #    "libncbi_xloader_genbank.dll"
-    #    "libncbi_xobjsimple.dll"
-    #    "libncbi_xreader.dll"
-    #    "libncbi_xreader_cache.dll"
-    #    "libncbi_xreader_id1.dll"
-    #    "libncbi_xreader_id2.dll"
-    #    "libxxconnect2.dll"
         "makeblastdb.exe"
+        #    "libncbi_algo.dll"
+        #    "libncbi_align_format.dll"
+        #    "libncbi_blastinput.dll"
+        #    "libncbi_core.dll"
+        #    "libncbi_dbapi_driver.dll"
+        #    "libncbi_eutils.dll"
+        #    "libncbi_general.dll"
+        #    "libncbi_misc.dll"
+        #    "libncbi_pub.dll"
+        #    "libncbi_seq.dll"
+        #    "libncbi_seqext.dll"
+        #    "libncbi_trackmgr.dll"
+        #    "libncbi_web.dll"
+        #    "libncbi_xdbapi_ftds.dll"
+        #    "libncbi_xloader_blastdb.dll"
+        #    "libncbi_xloader_genbank.dll"
+        #    "libncbi_xobjsimple.dll"
+        #    "libncbi_xreader.dll"
+        #    "libncbi_xreader_cache.dll"
+        #    "libncbi_xreader_id1.dll"
+        #    "libncbi_xreader_id2.dll"
+        #    "libxxconnect2.dll"
     )
 
-    # --- 3. Process NCBI files ---
     foreach(FILENAME ${NCBI_FILES})
-        add_custom_command(TARGET QuickBLAST POST_BUILD
-            # Copy to the root libs/ folder for devtools::load_all()
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different 
-                    "${NCBI_BIN_DIR}/${FILENAME}" "${DEV_LIB_DEST}/${FILENAME}"
-                    
-            # Copy to inst/libs/ for the final package installation
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different 
-                    "${NCBI_BIN_DIR}/${FILENAME}" "${INST_LIB_DEST}/${FILENAME}"
-        )
+        
+        # Dynamically route Executables to bin/ and DLLs to libs/
+        if(FILENAME MATCHES "\\.exe$" OR FILENAME MATCHES "makeblastdb")
+            set(FINAL_DEST "${INST_BIN_DEST}")
+            set(DEV_DEST "${PRJ_ROOT_DIR}/inst/bin${R_ARCH}")
+        else()
+            set(FINAL_DEST "${INST_LIB_DEST}")
+            set(DEV_DEST "${DEV_LIB_DEST}") # Assuming this maps to src/ or inst/libs for devtools
+        endif()
+
+        if(DEFINED ENV{R_PACKAGE_DIR})
+            # STRICT CRAN MODE: Only copy to the staging directory to prevent source pollution
+            add_custom_command(TARGET QuickBLAST POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+                        "${NCBI_BIN_DIR}/${FILENAME}" "${FINAL_DEST}/${FILENAME}"
+            )
+        else()
+            # LOCAL DEV MODE: Copy to devtools directories as well
+            add_custom_command(TARGET QuickBLAST POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E make_directory "${DEV_DEST}"
+                
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+                        "${NCBI_BIN_DIR}/${FILENAME}" "${DEV_DEST}/${FILENAME}"
+                        
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+                        "${NCBI_BIN_DIR}/${FILENAME}" "${FINAL_DEST}/${FILENAME}"
+            )
+        endif()
+
     endforeach()
 
     ## Process Arrow DLLs

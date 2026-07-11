@@ -1,7 +1,7 @@
 Package: QuickBLAST
 Type: Package
 Title: High-Performance Sequence Alignment using BLAST and Apache Arrow
-Version: 1.7.4
+Version: 1.7.5
 Date: 2026-07-08
 Author: Vishvesh Karthik <vishveshkarthik@gmail.com>
 Authors@R: person(given = "Vishvesh Karthik",
