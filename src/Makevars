@@ -6,21 +6,25 @@ MAIN_LIB = src/QuickBLAST.so
 PKG_CPPFLAGS = -DARROW_STATIC -DPARQUET_STATIC -DLIBICONV_STATIC 
 TOOLKIT_CPPFLAGS = $(CLINK_CPPFLAGS) $(PKG_CPPFLAGS)
 
-PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) `ld -lstdc++fs --verbose > /dev/null 2>&1 && echo "-lstdc++fs"` `ld -lboost_system --verbose > /dev/null 2>&1 && echo "-lboost_system"` $(TOOLKIT_CPPFLAGS) -Wl,-rpath,\$$ORIGIN -Wl,-rpath,@loader_path/ -L../BUILD/arrow/cpp/BUILD/release/ -L../BUILD/arrow/cpp/BUILD/lib/ -L../BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ -L/usr/local/lib/ -L/usr/lib/ -Wl,--start-group -larrow -lparquet -lthrift -larrow_bundled_dependencies -lz -llmdb -lrt -lalign_format -lbiblio -lblast -lblastdb -lblastdb_format -lblastinput -lblast_services -lcomposition_adjustment -lconnect -lct_ftds14 -ldbapi_driver -lefetch -legquery -lehistory -leinfo -lelink -lepost -lesearch -lespell -lesummary -leutils -lgeneral -lgenome_collection -lid1 -lid2 -lmedline -lncbi_xdbapi_ftds -lncbi_xloader_blastdb -lncbi_xloader_blastdb_rmt -lncbi_xloader_genbank -lncbi_xreader -lncbi_xreader_cache -lncbi_xreader_id1 -lncbi_xreader_id2 -lpub -lpubmed -lQuickBLASTcpp -lscoremat -lseq -lseqcode -lseqdb -lseqedit -lseqmasks_io -lseqset -lseqsplit -lsequtil -lsqlitewrapp -lsubmit -ltables -ltaxon1 -ltaxon3 -ltds_ftds14 -luilist -lutrtprof -lvalid -lwritedb -lxalgoalignutil -lxalgoblastdbindex -lxalgodustmask -lxalgoseq -lxalgowinmask -lxalnmgr -lxblast -lxcgi -lxcleanup -lxcompress -lxconnect -lxflatfile -lxhtml -lxlogging -lxncbi -lxnetblast -lxnetblastcli -lxobjedit -lxobjmgr -lxobjread -lxobjsimple -lxobjutil -lxqueryparse -lxregexp -lxser -lxutil -lzcf -Wl,--end-group
+PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) `ld -lstdc++fs --verbose > /dev/null 2>&1 && echo "-lstdc++fs"` `ld -lboost_system --verbose > /dev/null 2>&1 && echo "-lboost_system"` $(TOOLKIT_CPPFLAGS) -Wl,-rpath,\$$ORIGIN -Wl,-rpath,@loader_path/ -L./BUILD/arrow/cpp/BUILD/release/ -L./BUILD/arrow/cpp/BUILD/lib/ -L./BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ -L/usr/local/lib/ -L/usr/lib/ -Wl,--start-group -larrow -lparquet -lthrift -larrow_bundled_dependencies -lz -llmdb -lrt -lalign_format -lbiblio -lblast -lblastdb -lblastdb_format -lblastinput -lblast_services -lcomposition_adjustment -lconnect -lct_ftds14 -ldbapi_driver -lefetch -legquery -lehistory -leinfo -lelink -lepost -lesearch -lespell -lesummary -leutils -lgeneral -lgenome_collection -lid1 -lid2 -lmedline -lncbi_xdbapi_ftds -lncbi_xloader_blastdb -lncbi_xloader_blastdb_rmt -lncbi_xloader_genbank -lncbi_xreader -lncbi_xreader_cache -lncbi_xreader_id1 -lncbi_xreader_id2 -lpub -lpubmed -lQuickBLASTcpp -lscoremat -lseq -lseqcode -lseqdb -lseqedit -lseqmasks_io -lseqset -lseqsplit -lsequtil -lsqlitewrapp -lsubmit -ltables -ltaxon1 -ltaxon3 -ltds_ftds14 -luilist -lutrtprof -lvalid -lwritedb -lxalgoalignutil -lxalgoblastdbindex -lxalgodustmask -lxalgoseq -lxalgowinmask -lxalnmgr -lxblast -lxcgi -lxcleanup -lxcompress -lxconnect -lxflatfile -lxhtml -lxlogging -lxncbi -lxnetblast -lxnetblastcli -lxobjedit -lxobjmgr -lxobjread -lxobjsimple -lxobjutil -lxqueryparse -lxregexp -lxser -lxutil -lzcf -Wl,--end-group
 
-PKG_CXXFLAGS = -include include/rcpp_workaround.hpp -Ilibsrc $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) -pthread -I/usr/local/src/ -I/usr/include/ -Isrc/include/ -isystem../BUILD/arrow/cpp/src/ -isystem../BUILD/arrow/cpp/BUILD/src/ -isystem../BUILD/ncbi-cxx-toolkit-public/include/ -isystem../BUILD/ncbi-cxx-toolkit-public/src/ -isystem../BUILD/ncbi-cxx-toolkit-public/BUILD/inc/
+PKG_CXXFLAGS = -include include/rcpp_workaround.hpp -Ilibsrc $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) -pthread -I/usr/local/src/ -I/usr/include/ -Isrc/include/ -I./BUILD/arrow/cpp/src/ -I./BUILD/arrow/cpp/BUILD/src/ -I./BUILD/ncbi-cxx-toolkit-public/include/ -I./BUILD/ncbi-cxx-toolkit-public/src/ -I./BUILD/ncbi-cxx-toolkit-public/BUILD/inc/
 
 all: builddeps $(SHLIB) install_bins post_build_cleanup
-$(SHLIB): 
+#$(SHLIB): 
+
+$(SHLIB): builddeps
+install_bins: builddeps
+post_build_cleanup: $(SHLIB) install_bins
 
 builddeps:
 	@echo "Configuring and building external dependencies (this may take a while)..."
 	@(rm -f *.o *.so ; \
-	mkdir -p ../BUILD; \
-	cd ../BUILD; \
+	mkdir -p ./BUILD; \
+	cd ./BUILD; \
 	CC="$(CC)" CFLAGS="$(CFLAGS)" \
 	CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)" RTOOLS_DIR="" \
-	cmake ../tools \
+	cmake ../../tools \
 	-DCMAKE_BUILD_TYPE=Release \
 	-DR_ARCH="$(R_ARCH)" \
 	-DBUILD_SHARED_LIBS:bool=OFF \
@@ -34,6 +38,8 @@ builddeps:
 	-DR_INCLUDE_DIR="$(R_INCLUDE_DIR)" \
 	-DCMAKE_EXPORT_NO_PACKAGE_REGISTRY=ON \
 	-DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF \
+	-DCMAKE_SKIP_RPATH=TRUE \
+	-DCMAKE_SKIP_INSTALL_RPATH=TRUE \
 	-DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF > cmake_config.log 2>&1 || (cat cmake_config.log && exit 1); \
 	$(MAKE) -j `nproc 2>/dev/null || echo 2` -s > cmake_build.log 2>&1 || (cat cmake_build.log && exit 1))
 
@@ -44,11 +50,11 @@ install_bins:
 	@echo "Installing auxiliary binaries..."
 	@if [ -d "$(R_PACKAGE_DIR)" ]; then \
 		mkdir -p "$(R_PACKAGE_DIR)/bin$(R_ARCH)"; \
-		cp -uf ../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/makeblastdb "$(R_PACKAGE_DIR)/bin$(R_ARCH)/" 2>/dev/null || true; \
+		cp -uf ./BUILD/ncbi-cxx-toolkit-public/BUILD/bin/makeblastdb "$(R_PACKAGE_DIR)/bin$(R_ARCH)/" 2>/dev/null || true; \
 	else \
 		mkdir -p ../inst/bin$(R_ARCH); \
-		cp -uf ../BUILD/ncbi-cxx-toolkit-public/BUILD/bin/makeblastdb ../inst/bin$(R_ARCH)/ 2>/dev/null || true; \
+		cp -uf ./BUILD/ncbi-cxx-toolkit-public/BUILD/bin/makeblastdb ../inst/bin$(R_ARCH)/ 2>/dev/null || true; \
 	fi
 
 post_build_cleanup:
-	@rm -rf ../BUILD
+	@rm -rf ./BUILD

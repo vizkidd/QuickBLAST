@@ -11,16 +11,15 @@ PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS)
 
 # 2. The Superbuild engine
 run_cmake_superbuild.o:
-	@mkdir -p ../BUILD
-	@cd ../BUILD && \
-	# FIX 1: Use [['']] subsetting to avoid bash interpreting the $ symbol as a shell variable \
+	@mkdir -p ./BUILD
+	@cd ./BUILD && \
 	RTOOLS_DIR_RAW=`"$(R_HOME)/bin/Rscript" -e "cat(Sys.getenv(paste0('RTOOLS', R.version[['major']], unlist(strsplit(R.version[['minor']], '.', fixed=TRUE))[1], '_HOME')))"` && \
 	RTOOLS_DIR=`echo "$$RTOOLS_DIR_RAW" | tr '\\\\' '/'` && \
 	GCC_VER=`gcc -dumpversion | tr -d '[:space:]'` && \
 	CUR_DIR=`pwd` && \
-	export PATH="$$RTOOLS_DIR/x86_64-w64-mingw32.static.posix/bin:$$RTOOLS_DIR/usr/bin:$$CUR_DIR/../BUILD/ncbi-cxx-toolkit-public/BUILD/bin:$$PATH" && \
+	export PATH="$$RTOOLS_DIR/x86_64-w64-mingw32.static.posix/bin:$$RTOOLS_DIR/usr/bin:$$CUR_DIR/./BUILD/ncbi-cxx-toolkit-public/BUILD/bin:$$PATH" && \
 	unset CC && unset CXX && \
-	cmake ../tools -G "MSYS Makefiles" \
+	cmake ../../tools -G "MSYS Makefiles" \
 		-DCMAKE_BUILD_TYPE=Release \
 		-DR_ARCH="$(R_ARCH)" \
 		-DCMAKE_C_COMPILER=gcc.exe \
@@ -34,20 +33,19 @@ run_cmake_superbuild.o:
 		-DPKG_CPPFLAGS="$(PKG_CPPFLAGS)" \
 		-DPKG_CXXFLAGS="$(PKG_CXXFLAGS)" \
 		-DPKG_LIBS="$(PKG_LIBS)" \
-		-DCOMPILER_SUPPORTS_SSE42=OFF \
-		-DCOMPILER_SUPPORTS_AVX2=OFF \
 		-DCMAKE_EXPORT_NO_PACKAGE_REGISTRY=ON \
 		-DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF \
+		-DCMAKE_SKIP_RPATH=TRUE \
+  	-DCMAKE_SKIP_INSTALL_RPATH=TRUE \
 		-DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF > cmake_config.log 2>&1 || (cat cmake_config.log && exit 1); \
 	N_CORES=`nproc 2>/dev/null || echo 2` && \
 	$(MAKE) -j $$N_CORES -s > cmake_build.log 2>&1 || (cat cmake_build.log && exit 1)
+	@# FIX: Safely move and rename the DLL immediately where R expects it using reliable file rules
+	@if [ -f ./BUILD/libQuickBLAST.dll ]; then cp ./BUILD/libQuickBLAST.dll QuickBLAST.dll; fi
+	@if [ -f ./BUILD/QuickBLAST.dll ]; then cp ./BUILD/QuickBLAST.dll QuickBLAST.dll; fi
+	@$(STRIP) -S QuickBLAST.dll
 	@touch $@
+	@rm -rf ./BUILD
 
-# 3. Integrate built shared libraries into R's expected target location
-# FIX 2: Hijack R's default SHLIB_LINK to copy the file, and use 'echo' to safely absorb R's trailing arguments
-SHLIB_LINK = true; \
-	if [ -f ../BUILD/libQuickBLAST.dll ]; then cp ../BUILD/libQuickBLAST.dll $@; \
-	elif [ -f ../BUILD/QuickBLAST.dll ]; then cp ../BUILD/QuickBLAST.dll $@; fi; \
-	$(STRIP) -S $@; \
-	echo "Custom CMake build successful. Ignoring default R linkage args: "
-	
+
+SHLIB_LINK = echo "Custom CMake build complete"
