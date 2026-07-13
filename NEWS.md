@@ -7,6 +7,16 @@ and this project follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+# Version 1.99.5 - 2026-07-13
+
+## Updated:
+- Preparing for Bioconductor submission
+
+## Added:
+- biocViews
+
+---
+
 # Version 1.7.5 - 2026-07-11
 
 ## Updated:
