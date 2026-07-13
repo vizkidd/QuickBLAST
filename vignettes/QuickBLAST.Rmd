@@ -1,5 +1,5 @@
 ---
-title: "QuickBLAST"
+title: "Exploring QuickBLAST"
 author: "Vishvesh Karthik"
 date: "`r Sys.Date()`"
 urlcolor: blue
@@ -13,7 +13,7 @@ output:
     toc_depth: 4
     number_sections: true
 vignette: >
-  %\VignetteIndexEntry{QuickBLAST}
+  %\VignetteIndexEntry{Exploring QuickBLAST}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

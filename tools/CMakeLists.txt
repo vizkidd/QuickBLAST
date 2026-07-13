@@ -323,8 +323,6 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
     "-DCMAKE_C_FLAGS=${ARROW_C_FLAGS}"
     "-DCMAKE_EXE_LINKER_FLAGS=${ARROW_EXE_FLAGS}"
     "-DCMAKE_SHARED_LINKER_FLAGS=${ARROW_LINKER_FLAGS}"
-  	-DCMAKE_SKIP_RPATH=TRUE 
-  	-DCMAKE_SKIP_INSTALL_RPATH=TRUE 
     -DARROW_SIMD_LEVEL=NONE 
   	-DARROW_RUNTIME_SIMD_LEVEL=NONE 
   	-DARROW_JEMALLOC=OFF 
@@ -391,7 +389,7 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
 #-DARROW_ZSTD_USE_SHARED=OFF -DARROW_JEMALLOC_USE_SHARED=OFF # -DARROW_CUDA=ON -DARROW_DEPENDENCY_SOURCE=BUNDLED  # -DARROW_BUILD_INTEGRATION=ON
 
     execute_process(
-    COMMAND ${CMAKE_MAKE_PROGRAM} -s -j ${N_PROC}
+    COMMAND ${CMAKE_MAKE_PROGRAM} -s -j ${N_PROC} arrow_bundled_dependencies_merge parquet_static arrow
     WORKING_DIRECTORY ${PRJ_ROOT_DIR}/src/BUILD/arrow/cpp/BUILD
     COMMAND_ERROR_IS_FATAL ANY
     RESULT_VARIABLE ARROW_BUILD_STATUS
@@ -476,8 +474,6 @@ set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
     -DCMAKE_BUILD_RPATH='-Wl,-rpath,@loader_path' \
     -DCMAKE_INSTALL_RPATH='-Wl,-rpath,@loader_path' \
     -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
-  	-DCMAKE_SKIP_RPATH=TRUE \
-  	-DCMAKE_SKIP_INSTALL_RPATH=TRUE \
     -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF")
 else()
     set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
@@ -490,8 +486,6 @@ else()
     -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
     -DCMAKE_BUILD_RPATH='\$$ORIGIN' \
     -DCMAKE_INSTALL_RPATH='\$$ORIGIN' \
-  	-DCMAKE_SKIP_RPATH=TRUE \
-  	-DCMAKE_SKIP_INSTALL_RPATH=TRUE \
     -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF")
 endif()
     #-static-libstdc++   -static-libgcc
@@ -830,8 +824,6 @@ elseif(WIN32)
             -DCMAKE_EXPORT_NO_PACKAGE_REGISTRY=ON
             -DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF
             -DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF
-          	-DCMAKE_SKIP_RPATH=TRUE 
-          	-DCMAKE_SKIP_INSTALL_RPATH=TRUE 
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON
             -DARROW_BUILD_INTEGRATION=OFF
             -DARROW_SIMD_LEVEL=NONE 
@@ -889,7 +881,7 @@ elseif(WIN32)
             "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,--demangle -Wl,--pic-executable -Wl,--subsystem,console -Wl,-shared -Wl,-ffat-lto-objects -Wl,-flto=auto -Wl,--dll -Wl,-fstack-protector-strong -Wl,--enable-auto-import -Wl,--support-old-code -Wl,--as-needed -Wl,--no-whole-archive -Wl,--start-group -lws2_32 -ldbghelp -ladvapi32 -lpsapi -liphlpapi -lcrypt32 -lsqlite3 -liconv -lintl -lbcrypt -Wl,--end-group "
 
         # Map the Makevars build command
-        BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} -s -j ${N_PROC} arrow parquet
+        BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} -s -j ${N_PROC} arrow_bundled_dependencies_merge parquet_static arrow
         
         # Map the Makevars copy/install command
         INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -975,8 +967,6 @@ elseif(WIN32)
         -G 'MSYS Makefiles' \
         -DCMAKE_MAKE_PROGRAM=make \
         -DCMAKE_SYSTEM_NAME=Windows \
-      	-DCMAKE_SKIP_RPATH=TRUE \
-      	-DCMAKE_SKIP_INSTALL_RPATH=TRUE \
         -DMINGW=1 \
         -DWIN32=1 \
         -DUNIX=0 \
