@@ -1,0 +1,113 @@
+name: R CMD Check on Major Release of Apache Arrow and NCBI C++ Toolkit
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Polls daily at midnight UTC
+  workflow_dispatch: # Allows you to manually trigger the workflow for testing
+
+jobs:
+  check-versions:
+    name: Check for New Major Releases
+    runs-on: ubuntu-latest
+    outputs:
+      run_r_check: ${{ steps.compare.outputs.run_r_check }}
+      arrow_new: ${{ steps.get_versions.outputs.arrow_major }}
+      ncbi_new: ${{ steps.get_versions.outputs.ncbi_major }}
+    steps:
+      - name: Fetch Latest Major Versions
+        id: get_versions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Fetch latest release tags (fallback to v0.0.0 if api fails)
+          ARROW_TAG=$(gh release view --repo apache/arrow --json tagName -q .tagName || echo "v0.0.0")
+          NCBI_TAG=$(gh release view --repo ncbi/ncbi-cxx-toolkit-public --json tagName -q .tagName || echo "v0.0.0")
+
+          # Extract major version numbers (e.g., "v15.2.1" -> "15")
+          ARROW_MAJOR=$(echo "$ARROW_TAG" | sed -E 's/^v?([0-9]+).*/\1/')
+          NCBI_MAJOR=$(echo "$NCBI_TAG" | sed -E 's/^v?([0-9]+).*/\1/')
+
+          echo "arrow_major=$ARROW_MAJOR" >> $GITHUB_OUTPUT
+          echo "ncbi_major=$NCBI_MAJOR" >> $GITHUB_OUTPUT
+
+      - name: Compare with Stored Versions
+        id: compare
+        env:
+          # Reads from Repository Variables (Defaults to '0' on very first run)
+          STORED_ARROW: ${{ vars.ARROW_MAJOR_VERSION || '0' }}
+          STORED_NCBI: ${{ vars.NCBI_MAJOR_VERSION || '0' }}
+        run: |
+          RUN_CHECK="false"
+          CURRENT_ARROW="${{ steps.get_versions.outputs.arrow_major }}"
+          CURRENT_NCBI="${{ steps.get_versions.outputs.ncbi_major }}"
+
+          if [ "$CURRENT_ARROW" -gt "$STORED_ARROW" ]; then
+            echo "New Apache Arrow major version detected: $STORED_ARROW -> $CURRENT_ARROW"
+            RUN_CHECK="true"
+          fi
+
+          if [ "$CURRENT_NCBI" -gt "$STORED_NCBI" ]; then
+            echo "New NCBI CXX Toolkit major version detected: $STORED_NCBI -> $CURRENT_NCBI"
+            RUN_CHECK="true"
+          fi
+
+          echo "run_r_check=$RUN_CHECK" >> $GITHUB_OUTPUT
+
+  r-cmd-check:
+    name: R CMD Build & Check
+    needs: check-versions
+    # Run if a new version was found, OR if manually triggered via UI
+    if: needs.check-versions.outputs.run_r_check == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - name: Setup R Dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - name: Run R CMD build and check
+        uses: r-lib/actions/check-r-package@v2
+        with:
+          args: 'c("--no-manual", "--as-cran")'
+          error-on: '"warning"'
+          check-dir: '"check"'
+
+  update-state:
+    name: Update Stored Versions
+    needs: [check-versions, r-cmd-check]
+    # Only update the state variables if the R check was successful
+    if: needs.check-versions.outputs.run_r_check == 'true' && success()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update Repository Variables via API
+        env:
+          # A standard GITHUB_TOKEN cannot edit repo variables; you must provide a PAT.
+          GH_TOKEN: ${{ secrets.PAT_REPO_SCOPE }}
+          REPO: ${{ github.repository }}
+          NEW_ARROW: ${{ needs.check-versions.outputs.arrow_new }}
+          NEW_NCBI: ${{ needs.check-versions.outputs.ncbi_new }}
+        run: |
+          # Update or create Arrow Variable
+          gh api --method PATCH -H "Accept: application/vnd.github+json" \
+            /repos/$REPO/actions/variables/ARROW_MAJOR_VERSION \
+            -f name='ARROW_MAJOR_VERSION' -f value="$NEW_ARROW" || \
+          gh api --method POST -H "Accept: application/vnd.github+json" \
+            /repos/$REPO/actions/variables \
+            -f name='ARROW_MAJOR_VERSION' -f value="$NEW_ARROW"
+
+          # Update or create NCBI Variable
+          gh api --method PATCH -H "Accept: application/vnd.github+json" \
+            /repos/$REPO/actions/variables/NCBI_MAJOR_VERSION \
+            -f name='NCBI_MAJOR_VERSION' -f value="$NEW_NCBI" || \
+          gh api --method POST -H "Accept: application/vnd.github+json" \
+            /repos/$REPO/actions/variables \
+            -f name='NCBI_MAJOR_VERSION' -f value="$NEW_NCBI"

@@ -105,6 +105,7 @@ QuickBLAST::BLAST2Seqs(blastn_inst, "ATGGAGGAGCCGCAGTCAGATCCTAGCGTCGAGCCCCCTCTGA
 
 If you do not want to compile databases locally, QuickBLAST can interface directly with NCBI's remote servers.
 
+````markdown
 ```{r remoteblast, error = 0, eval = FALSE}
 # Safely check if the machine has internet access before running
 if (requireNamespace("curl", quietly = TRUE) && curl::has_internet()) {
@@ -118,6 +119,7 @@ QuickBLAST::RemoteBLAST(blastp_inst, query_input="MQILLVEDDNTLFQELKKELEQWDFNVAGI
   message("No internet connection available. Skipping remote BLAST examples.")
 }
 ```
+````
 
 ## File-to-File Comparisons
 

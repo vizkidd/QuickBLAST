@@ -2249,7 +2249,7 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_dbs(const std:
     Progress progress_bar(q_seq_count, verbose);
     int chunk_counter = 0;
     int batch_counter = 0;
-    
+
 #if defined(_OPENMP)    
 #pragma omp parallel
 #endif
@@ -2260,154 +2260,147 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_dbs(const std:
     // Thread-local storage for hits (Safe to append without locks!)
     std::shared_ptr<arrow::RecordBatchVector> local_ret = std::make_shared<arrow::RecordBatchVector>();
     
+    CRef<CSeqDB> lcl_q_seqdb;
+    CRef<CSearchDatabase> lcl_s_serdb;
+    
+#pragma omp critical(db_init)
+{
+  lcl_q_seqdb.Reset(new CSeqDB(queryFile, seqdbType));
+  lcl_q_seqdb->SetNumberOfThreads(1, /*force_mt*/ false);
+  lcl_s_serdb.Reset(new CSearchDatabase(subjectFile, seqType));
+}
+
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic)
 #endif
-    for (int i = 0; i < num_queries; i += batch_size) {
-      if(!quickblast_running.load()) continue;
+for (int i = 0; i < num_queries; i += batch_size) {
+  if(!quickblast_running.load()) continue;
+  
+  // Keeping CScope batch-local is fine to prevent memory caching leaks
+  CRef<CScope> batch_scope(new CScope(*objMgr));
+  batch_scope->AddDataLoader(loader_name);
+  
+  int current_batch_end = std::min<int>(i + batch_size, num_queries);
+  
+  try {
+    for (int j = i; j < current_batch_end; ++j) {
       
-      // 1. FRESH SCOPE PER BATCH: Prevents memory caching leaks
-      CRef<CScope> batch_scope(new CScope(*objMgr));
-      batch_scope->AddDataLoader(loader_name);
+      RcppThread::checkUserInterrupt();
       
-      // 2. FRESH QUERY DB PER BATCH
-      CRef<CSeqDB> lcl_q_seqdb(new CSeqDB(queryFile, seqdbType));
-      lcl_q_seqdb->SetNumberOfThreads(1, false);
+      CRef<CSeq_id> id = lcl_q_seqdb->GetSeqIDs(j).front();
+      TSeqPos seq_len = lcl_q_seqdb->GetSeqLength(j);
       
-      // 3. FRESH SUBJECT DB PER BATCH: Stops the Double-Free SIGSEGV!
-      // Make sure to replace `subjectFile` and `seqdbType` with your actual variables
-      CRef<CSearchDatabase> lcl_s_serdb(new CSearchDatabase(subjectFile, seqType)); 
-      
-      int current_batch_end = std::min<int>(i + batch_size, num_queries);
-      
-      try {
-        for (int j = i; j < current_batch_end; ++j) {
+      if (enable_chunking && seq_len > chunk_size) {
+        
+        for (TSeqPos start = 0; start < seq_len; start += step_size) { 
+          TSeqPos end = std::min(start + chunk_size, seq_len) - 1;
           
-          RcppThread::checkUserInterrupt();
+          CRef<CSeq_interval> seq_int(new CSeq_interval());
+          seq_int->SetId().Assign(*id);
+          seq_int->SetFrom(start);
+          seq_int->SetTo(end);
           
-          CRef<CSeq_id> id = lcl_q_seqdb->GetSeqIDs(j).front();
-          TSeqPos seq_len = lcl_q_seqdb->GetSeqLength(j);
+          CRef<CSeq_loc> chunk_loc(new CSeq_loc());
+          chunk_loc->SetInt(*seq_int);
           
-          if (enable_chunking && seq_len > chunk_size) {
-            
-            for (TSeqPos start = 0; start < seq_len; start += step_size) { //(chunk_size - overlap)
-              TSeqPos end = std::min(start + chunk_size, seq_len) - 1;
-              
-              CRef<CSeq_interval> seq_int(new CSeq_interval());
-              seq_int->SetId().Assign(*id);
-              seq_int->SetFrom(start);
-              seq_int->SetTo(end);
-              
-              CRef<CSeq_loc> chunk_loc(new CSeq_loc());
-              chunk_loc->SetInt(*seq_int);
-              
-              // Bind query to our fresh batch scope
-              CRef<CBlastQueryVector> single_chunk_query(new CBlastQueryVector());
-              single_chunk_query->AddQuery(CRef<CBlastSearchQuery>(new CBlastSearchQuery(*chunk_loc, *batch_scope)));
-              
-              CRef<IQueryFactory> chunk_factory(new CObjMgr_QueryFactory(*single_chunk_query));
-              
-              // Use the perfectly safe, thread-local Subject DB
-              CRef<CLocalDbAdapter> s_db_adapter(new CLocalDbAdapter(*lcl_s_serdb));
-              CRef<CBlastOptionsHandle> lcl_blast_opts = MakeQuickBLASTOptions(program, blast_options, CBlastOptions::eLocal, false);
-              
-              CLocalBlast lcl_blaster(chunk_factory, lcl_blast_opts, s_db_adapter);
-              lcl_blaster.SetInterruptCallback(&BlastInterruptFn, static_cast<void*>(blast_interrupt_ctx.get()));
-              CRef<CSearchResultSet> results = lcl_blaster.Run();
-              // Pass batch_scope to ExtractHitsDB
-              std::shared_ptr<arrow::RecordBatch> arb = ExtractHitsDB(results, arrow_builders, batch_scope);
-              
-              if(arb && arb->ValidateFull().ok()) {
-                // NO CRITICAL SECTION NEEDED HERE! local_ret is already thread-local.
-                local_ret->emplace_back(arb);
-                
-#if defined(_OPENMP)
-#pragma omp atomic update
-#endif
-                chunk_counter++;
-              }
-            }
-            arrow_builders.Reset();
-          } else { //without chunking
-            CRef<CSeq_loc> loc(new CSeq_loc());
-            loc->SetWhole(*id);
-            CRef<CBlastQueryVector> queries(new CBlastQueryVector());
-            queries->AddQuery(CRef<CBlastSearchQuery>(new CBlastSearchQuery(*loc, *batch_scope)));
-            CRef<CLocalDbAdapter> s_db_adapter(new CLocalDbAdapter(*lcl_s_serdb));
-            CRef<IQueryFactory> query_factory(new CObjMgr_QueryFactory(*queries));
-            CRef<CBlastOptionsHandle> lcl_blast_opts = MakeQuickBLASTOptions(program, blast_options, CBlastOptions::eLocal, /*verbose*/ false);
-            // 5. RUN ENGINE
-            CLocalBlast lcl_blaster(query_factory, lcl_blast_opts, s_db_adapter);
-            lcl_blaster.SetBatchNumber(i);
-            lcl_blaster.SetInterruptCallback(&BlastInterruptFn, static_cast<void*>(blast_interrupt_ctx.get()));
-            CRef<CSearchResultSet> results;
-            results = lcl_blaster.Run();
-            if(verbose)
-              Rcpp::Rcout << "Batch Hits: " << ((results.NotEmpty() && results->GetNumResults() > 0 && (*results)[0].HasAlignments()) ? (*results)[0].GetSeqAlign()->Get().size() : 0) << std::endl;
-            std::shared_ptr<arrow::RecordBatch> arb = ExtractHitsDB(results, arrow_builders, batch_scope);
-            if(arb && arb->ValidateFull().ok()){
-              local_ret->emplace_back(arb);
-            }
+          CRef<CBlastQueryVector> single_chunk_query(new CBlastQueryVector());
+          single_chunk_query->AddQuery(CRef<CBlastSearchQuery>(new CBlastSearchQuery(*chunk_loc, *batch_scope)));
+          
+          CRef<IQueryFactory> chunk_factory(new CObjMgr_QueryFactory(*single_chunk_query));
+          
+          // Use the perfectly safe, thread-local Subject DB
+          CRef<CLocalDbAdapter> s_db_adapter(new CLocalDbAdapter(*lcl_s_serdb));
+          CRef<CBlastOptionsHandle> lcl_blast_opts = MakeQuickBLASTOptions(program, blast_options, CBlastOptions::eLocal, false);
+          
+          CLocalBlast lcl_blaster(chunk_factory, lcl_blast_opts, s_db_adapter);
+          lcl_blaster.SetInterruptCallback(&BlastInterruptFn, static_cast<void*>(blast_interrupt_ctx.get()));
+          CRef<CSearchResultSet> results = lcl_blaster.Run();
+          
+          std::shared_ptr<arrow::RecordBatch> arb = ExtractHitsDB(results, arrow_builders, batch_scope);
+          
+          if(arb && arb->ValidateFull().ok()) {
+            local_ret->emplace_back(arb);
             
 #if defined(_OPENMP)
 #pragma omp atomic update
 #endif
-            batch_counter++;
+            chunk_counter++;
           }
-          arrow_wrapper->AddProcRecordCount();
-        }       
-      } catch (const ncbi::CException& e) {
-        quickblast_running.store(false);
-        Rcpp::Rcerr << "[BLAST_dbs()] 1. Execution error: " << e.GetMsg() << std::endl << std::flush;
-        continue;
-      }catch (const std::exception& e) {
-        quickblast_running.store(false);
-        Rcpp::Rcerr << "[BLAST_dbs()] 1. C++ Exception: " << e.what() << std::endl << std::flush;
-        continue;
+        }
+        arrow_builders.Reset();
+      } else { //without chunking
+        CRef<CSeq_loc> loc(new CSeq_loc());
+        loc->SetWhole(*id);
+        CRef<CBlastQueryVector> queries(new CBlastQueryVector());
+        queries->AddQuery(CRef<CBlastSearchQuery>(new CBlastSearchQuery(*loc, *batch_scope)));
+        CRef<CLocalDbAdapter> s_db_adapter(new CLocalDbAdapter(*lcl_s_serdb));
+        CRef<IQueryFactory> query_factory(new CObjMgr_QueryFactory(*queries));
+        CRef<CBlastOptionsHandle> lcl_blast_opts = MakeQuickBLASTOptions(program, blast_options, CBlastOptions::eLocal, /*verbose*/ false);
+        
+        CLocalBlast lcl_blaster(query_factory, lcl_blast_opts, s_db_adapter);
+        lcl_blaster.SetBatchNumber(i);
+        lcl_blaster.SetInterruptCallback(&BlastInterruptFn, static_cast<void*>(blast_interrupt_ctx.get()));
+        CRef<CSearchResultSet> results = lcl_blaster.Run();
+        if(verbose) {
+          Rcpp::Rcout << "Batch Hits: " << ((results.NotEmpty() && results->GetNumResults() > 0 && (*results)[0].HasAlignments()) ? (*results)[0].GetSeqAlign()->Get().size() : 0) << std::endl;
+        }
+        std::shared_ptr<arrow::RecordBatch> arb = ExtractHitsDB(results, arrow_builders, batch_scope);
+        if(arb && arb->ValidateFull().ok()){
+          local_ret->emplace_back(arb);
+        }
+        
+#if defined(_OPENMP)
+#pragma omp atomic update
+#endif
+        batch_counter++;
       }
-      
-      for (int pbi = 0; pbi < current_batch_end; pbi++) {  
+      arrow_wrapper->AddProcRecordCount();
+    }       
+  } catch (const ncbi::CException& e) {
+    quickblast_running.store(false);
+    Rcpp::Rcerr << "[BLAST_dbs()] 1. Execution error: " << e.GetMsg() << std::endl << std::flush;
+    continue;
+  } catch (const std::exception& e) {
+    quickblast_running.store(false);
+    Rcpp::Rcerr << "[BLAST_dbs()] 1. C++ Exception: " << e.what() << std::endl << std::flush;
+    continue;
+  }
+  
+  for (int pbi = i; pbi < current_batch_end; pbi++) {  
 #if defined(_OPENMP)    
 #pragma omp critical (pgbr_incr)
 #endif
 {
   progress_bar.increment();
 }
-      }
-      
-      // batch_scope gracefully dies here, freeing all cached sequences!
-      batch_scope->ResetHistory(CScope::EActionIfLocked::eRemoveIfLocked);
-    } // end of batch loop
-    
-    arrow_builders.Reset();
-    // Aggregate local batches safely into the global return vector
-    if (!local_ret->empty()) {
+  }
+  
+  batch_scope->ResetHistory(CScope::EActionIfLocked::eRemoveIfLocked);
+} // end of batch loop
+
+arrow_builders.Reset();
+
+if (!local_ret->empty()) {
 #pragma omp critical(final_ret_insert)
 {
-  final_ret->insert(final_ret->end(), std::make_move_iterator(local_ret->begin()), std::make_move_iterator(local_ret->end()));
+  final_ret->insert(final_ret->end(), local_ret->begin(), local_ret->end());
 }
-    }
-  }catch (const ncbi::CException& e) {
-    Rcpp::Rcerr << "[BLAST_dbs()] 2. NCBI CException: " << e.GetFunction() << std::endl << e.GetErrCodeString() << std::endl << e.GetErrCode() << std::endl << e.GetModule() << std::endl << e.GetPredecessor() << std::endl << e.GetFile() << std::endl << e.GetLine() << std::endl << e.GetMsg() << std::endl << e.GetStackTrace() << std::endl << e.GetStackTraceLevel() << std::endl << e.GetClass() << std::endl << e.what() << std::endl << std::flush;
-  }catch (const std::runtime_error& e) {
-    Rcpp::Rcerr << "[BLAST_dbs()] 2. C++ Runtime error: " << e.what() << std::endl << std::flush;
-  }catch (const std::exception& e) {
+}
+  } catch (const ncbi::CException& e) {
+    Rcpp::Rcerr << "[BLAST_dbs()] 2. NCBI CException: " << e.what() << std::endl << std::flush;
+  } catch (const std::exception& e) {
     Rcpp::Rcerr << "[BLAST_dbs()] 2. C++ Exception: " << e.what() << std::endl << std::flush;
-  }catch (...) {
-    Rcpp::Rcerr << "[BLAST_dbs()] 2. Unknown error" << std::endl << std::flush;
   }
 } //end of omp parallel
-
+        
 // #if defined(_OPENMP)    
 // #pragma omp parallel
 // #endif
 // {
-//   try{
-//     
-//     CRef<CScope> thread_scope(new CScope(*objMgr));
-//     thread_scope->AddDataLoader(loader_name);
+//   try {
 //     BlastArrowBuilders arrow_builders;
 //     
+//     // Thread-local storage for hits (Safe to append without locks!)
 //     std::shared_ptr<arrow::RecordBatchVector> local_ret = std::make_shared<arrow::RecordBatchVector>();
 //     
 // #if defined(_OPENMP)
@@ -2415,23 +2408,32 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_dbs(const std:
 // #endif
 //     for (int i = 0; i < num_queries; i += batch_size) {
 //       if(!quickblast_running.load()) continue;
-//       // CRef<CScope> scope(new CScope(*objMgr));
-//       // scope->AddDataLoader(loader_name);
-//       // // scope->AddDefaults();
 //       
+//       // 1. FRESH SCOPE PER BATCH: Prevents memory caching leaks
+//       CRef<CScope> batch_scope(new CScope(*objMgr));
+//       batch_scope->AddDataLoader(loader_name);
+//       
+//       // 2. FRESH QUERY DB PER BATCH
 //       CRef<CSeqDB> lcl_q_seqdb(new CSeqDB(queryFile, seqdbType));
-//       lcl_q_seqdb->SetNumberOfThreads(1,false);
+//       lcl_q_seqdb->SetNumberOfThreads(1, false);
+//       
+//       // 3. FRESH SUBJECT DB PER BATCH: Stops the Double-Free SIGSEGV!
+//       // Make sure to replace `subjectFile` and `seqdbType` with your actual variables
+//       CRef<CSearchDatabase> lcl_s_serdb(new CSearchDatabase(subjectFile, seqType)); 
+//       
 //       int current_batch_end = std::min<int>(i + batch_size, num_queries);
 //       
 //       try {
 //         for (int j = i; j < current_batch_end; ++j) {
-//           RcppThread::checkUserInterrupt();
-//           CRef<CSeq_id> id = lcl_q_seqdb->GetSeqIDs(j).front();
 //           
-//           if (enable_chunking) {
-//             Rcpp::Rcout << "HERE1" << std::endl << std::flush; //DEBUG
-//             TSeqPos seq_len = lcl_q_seqdb->GetSeqLength(j);
-//             for (TSeqPos start = 0; start < seq_len; start += (chunk_size - overlap)) {
+//           RcppThread::checkUserInterrupt();
+//           
+//           CRef<CSeq_id> id = lcl_q_seqdb->GetSeqIDs(j).front();
+//           TSeqPos seq_len = lcl_q_seqdb->GetSeqLength(j);
+//           
+//           if (enable_chunking && seq_len > chunk_size) {
+//             
+//             for (TSeqPos start = 0; start < seq_len; start += step_size) { //(chunk_size - overlap)
 //               TSeqPos end = std::min(start + chunk_size, seq_len) - 1;
 //               
 //               CRef<CSeq_interval> seq_int(new CSeq_interval());
@@ -2442,48 +2444,39 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_dbs(const std:
 //               CRef<CSeq_loc> chunk_loc(new CSeq_loc());
 //               chunk_loc->SetInt(*seq_int);
 //               
-//               // 1. FRESH QUERY VECTOR (Holds ONLY this 50kb chunk)
+//               // Bind query to our fresh batch scope
 //               CRef<CBlastQueryVector> single_chunk_query(new CBlastQueryVector());
-//               single_chunk_query->AddQuery(CRef<CBlastSearchQuery>(new CBlastSearchQuery(*chunk_loc, *thread_scope)));
+//               single_chunk_query->AddQuery(CRef<CBlastSearchQuery>(new CBlastSearchQuery(*chunk_loc, *batch_scope)));
 //               
-//               // 2. FRESH ENGINE PIPELINE for this chunk
 //               CRef<IQueryFactory> chunk_factory(new CObjMgr_QueryFactory(*single_chunk_query));
 //               
-//               CRef<CLocalDbAdapter> s_db_adapter(new CLocalDbAdapter(*s_serdb_));
+//               // Use the perfectly safe, thread-local Subject DB
+//               CRef<CLocalDbAdapter> s_db_adapter(new CLocalDbAdapter(*lcl_s_serdb));
 //               CRef<CBlastOptionsHandle> lcl_blast_opts = MakeQuickBLASTOptions(program, blast_options, CBlastOptions::eLocal, false);
+//               
 //               CLocalBlast lcl_blaster(chunk_factory, lcl_blast_opts, s_db_adapter);
 //               lcl_blaster.SetInterruptCallback(&BlastInterruptFn, static_cast<void*>(blast_interrupt_ctx.get()));
-//               CRef<CSearchResultSet> results;
-//               Rcpp::Rcout << "HERE1.2" << std::endl << std::flush; //DEBUG  
-//               // RUN THE SEARCH (Now it only processes 50kb, perfectly safe!)
-//               results = lcl_blaster.Run();
-//               if(verbose)
-//                 Rcpp::Rcout << "Chunk Hits: " << ((results.NotEmpty() && results->GetNumResults() > 0 && (*results)[0].HasAlignments()) ? (*results)[0].GetSeqAlign()->Get().size() : 0) << std::endl;
-//               std::shared_ptr<arrow::RecordBatch> arb = ExtractHitsDB(results, arrow_builders, thread_scope);
-// if(arb && arb->ValidateFull().ok()){
-// #if defined(_OPENMP)    
-// #pragma omp critical (ret_append)
-// #endif
-// {
-//   local_ret->emplace_back(arb);
-// }
+//               CRef<CSearchResultSet> results = lcl_blaster.Run();
+//               // Pass batch_scope to ExtractHitsDB
+//               std::shared_ptr<arrow::RecordBatch> arb = ExtractHitsDB(results, arrow_builders, batch_scope);
+//               
+//               if(arb && arb->ValidateFull().ok()) {
+//                 // NO CRITICAL SECTION NEEDED HERE! local_ret is already thread-local.
+//                 local_ret->emplace_back(arb);
+//                 
 // #if defined(_OPENMP)
 // #pragma omp atomic update
-//   chunk_counter++;
-// #else
-//   chunk_counter++;
 // #endif
-//   Rcpp::Rcout << "HERE3" << chunk_counter << std::endl << std::flush; //DEBUG
-// }
+//                 chunk_counter++;
+//               }
 //             }
-//             // Reset Builders for the next batch (retains memory capacity for speed)
 //             arrow_builders.Reset();
-//           }else{
+//           } else { //without chunking
 //             CRef<CSeq_loc> loc(new CSeq_loc());
 //             loc->SetWhole(*id);
 //             CRef<CBlastQueryVector> queries(new CBlastQueryVector());
-//             queries->AddQuery(CRef<CBlastSearchQuery>(new CBlastSearchQuery(*loc, *thread_scope)));
-//             CRef<CLocalDbAdapter> s_db_adapter(new CLocalDbAdapter(*s_serdb_));
+//             queries->AddQuery(CRef<CBlastSearchQuery>(new CBlastSearchQuery(*loc, *batch_scope)));
+//             CRef<CLocalDbAdapter> s_db_adapter(new CLocalDbAdapter(*lcl_s_serdb));
 //             CRef<IQueryFactory> query_factory(new CObjMgr_QueryFactory(*queries));
 //             CRef<CBlastOptionsHandle> lcl_blast_opts = MakeQuickBLASTOptions(program, blast_options, CBlastOptions::eLocal, /*verbose*/ false);
 //             // 5. RUN ENGINE
@@ -2491,76 +2484,32 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_dbs(const std:
 //             lcl_blaster.SetBatchNumber(i);
 //             lcl_blaster.SetInterruptCallback(&BlastInterruptFn, static_cast<void*>(blast_interrupt_ctx.get()));
 //             CRef<CSearchResultSet> results;
-//             Rcpp::Rcout << "HERE3" << std::endl << std::flush; //DEBUG
 //             results = lcl_blaster.Run();
 //             if(verbose)
 //               Rcpp::Rcout << "Batch Hits: " << ((results.NotEmpty() && results->GetNumResults() > 0 && (*results)[0].HasAlignments()) ? (*results)[0].GetSeqAlign()->Get().size() : 0) << std::endl;
-// Rcpp::Rcout << "HERE4" << std::endl << std::flush; //DEBUG
-// std::shared_ptr<arrow::RecordBatch> arb = ExtractHitsDB(results, arrow_builders, thread_scope);
-// if(arb && arb->ValidateFull().ok()){
-// #if defined(_OPENMP)    
-// #pragma omp critical (ret_append)
+//             std::shared_ptr<arrow::RecordBatch> arb = ExtractHitsDB(results, arrow_builders, batch_scope);
+//             if(arb && arb->ValidateFull().ok()){
+//               local_ret->emplace_back(arb);
+//             }
+//             
+// #if defined(_OPENMP)
+// #pragma omp atomic update
 // #endif
-// {
-//   local_ret->emplace_back(arb);
-// }
-// }
+//             batch_counter++;
 //           }
 //           arrow_wrapper->AddProcRecordCount();
 //         }       
-//         
-//         // CRef<CSeq_loc> loc(new CSeq_loc());
-//         // loc->SetWhole(*id);
-//         // CRef<CBlastQueryVector> queries(new CBlastQueryVector());
-//         // queries->AddQuery(CRef<CBlastSearchQuery>(new CBlastSearchQuery(*loc, *scope)));
-//         // // Per-thread OPTIONS
-//         // CRef<CBlastOptionsHandle> lcl_blast_opts = MakeQuickBLASTOptions(program, blast_options, CBlastOptions::eLocal, false);
-//         // // Per-thread SUBJECT DATABASE
-//         // CRef<CSearchDatabase> lcl_s_serdb(new CSearchDatabase(subjectFile, seqType));
-//         // CRef<CLocalDbAdapter> s_db_adapter(new CLocalDbAdapter(*lcl_s_serdb));
-//         // 
-//         // CRef<IQueryFactory> query_factory(new CObjMgr_QueryFactory(*queries));
-//         
-//         //     if(!enable_chunking){          
-//         //         CRef<CSeq_loc> loc(new CSeq_loc());
-//         //         loc->SetWhole(*id);
-//         //         queries->AddQuery(CRef<CBlastSearchQuery>(new CBlastSearchQuery(*loc, *scope)));
-//         //         arrow_wrapper->AddProcRecordCount();
-//         //         
-//         //         CRef<CSearchDatabase> lcl_s_serdb(new CSearchDatabase(subjectFile, seqType));
-//         //         CRef<CLocalDbAdapter> s_db_adapter(new CLocalDbAdapter(*lcl_s_serdb));
-//         //         CRef<IQueryFactory> query_factory(new CObjMgr_QueryFactory(*queries));
-//         //         CRef<CBlastOptionsHandle> lcl_blast_opts = MakeQuickBLASTOptions(program, blast_options, CBlastOptions::eLocal, /*verbose*/ false);
-//         //         // 5. RUN ENGINE
-//         //         CLocalBlast lcl_blaster(query_factory, lcl_blast_opts, s_db_adapter);
-//         //         lcl_blaster.SetBatchNumber(i);
-//         //         lcl_blaster.SetInterruptCallback(&BlastInterruptFn, static_cast<void*>(blast_interrupt_ctx.get()));
-//         //         Rcpp::Rcout << "HERE3" << std::endl << std::flush; //DEBUG
-//         //         CRef<CSearchResultSet> results = lcl_blaster.Run();
-//         //         Rcpp::Rcout << "HERE4" << std::endl << std::flush; //DEBUG
-//         //         std::shared_ptr<arrow::RecordBatch> arb = ExtractHitsDB(results, arrow_builders, scope);
-//         //         if(arb && arb->ValidateFull().ok()){
-//         // #if defined(_OPENMP)    
-//         // #pragma omp critical (ret_append)
-//         // #endif
-//         // {
-//         //   local_ret->emplace_back(arb);
-//         // }
-//         //         }
-//         //     } //if(!enable_chunking)
-//         
-//       }catch (const ncbi::CException& e) {
+//       } catch (const ncbi::CException& e) {
 //         quickblast_running.store(false);
-//         Rcpp::Rcerr << "[BLAST_dbs()] Execution error: " << e.GetMsg() << std::endl << std::flush;
+//         Rcpp::Rcerr << "[BLAST_dbs()] 1. Execution error: " << e.GetMsg() << std::endl << std::flush;
 //         continue;
 //       }catch (const std::exception& e) {
 //         quickblast_running.store(false);
-//         Rcpp::Rcerr << "[BLAST_dbs()] C++ Exception: " << e.what() << std::endl << std::flush;
+//         Rcpp::Rcerr << "[BLAST_dbs()] 1. C++ Exception: " << e.what() << std::endl << std::flush;
 //         continue;
 //       }
 //       
-//       Rcpp::Rcout << "HERE2" << std::endl << std::flush; //DEBUG
-//       for (int pbi = 0; pbi < current_batch_end; pbi++) {  
+//       for (int pbi = i; pbi < current_batch_end; pbi++) {  
 // #if defined(_OPENMP)    
 // #pragma omp critical (pgbr_incr)
 // #endif
@@ -2569,40 +2518,12 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_dbs(const std:
 // }
 //       }
 //       
-//       // CRef<CSearchDatabase> lcl_q_serdb(new CSearchDatabase(queryFile, seqType));
-//       // CRef<CBlastQueryVector> queries(new CBlastQueryVector());
-//       // int current_batch_end = std::min<int>(i + batch_size, num_queries);
-//       // 
-//       // for (int j = i; j < current_batch_end; ++j) {
-//       //   RcppThread::checkUserInterrupt();
-//       //   CRef<CSeq_id> id = lcl_q_serdb->GetSeqIDs(j).front();
-//       //   
-//       //   CRef<CSeq_loc> loc(new CSeq_loc());
-//       //   loc->SetWhole(*id);
-//       //   queries->AddQuery(CRef<CBlastSearchQuery>(new CBlastSearchQuery(*loc, *scope)));
-//       //   arrow_wrapper->AddProcRecordCount();
-//       // }
-//       // CRef<CSearchDatabase> lcl_s_serdb(new CSearchDatabase(subjectFile, seqType));
-//       // CRef<CLocalDbAdapter> s_db_adapter(new CLocalDbAdapter(*lcl_s_serdb));
-//       // CRef<IQueryFactory> query_factory(new CObjMgr_QueryFactory(*queries));
-//       // CRef<CSearchResultSet> results;
-//       // try {
-//       //   CRef<CBlastOptionsHandle> lcl_blast_opts = MakeQuickBLASTOptions(program, blast_options, CBlastOptions::eLocal, /*verbose*/ false);
-//       //   CLocalBlast lcl_blaster(query_factory, lcl_blast_opts, s_db_adapter);
-//       //   lcl_blaster.SetBatchNumber(i);
-//       //   lcl_blaster.SetInterruptCallback(&BlastInterruptFn, static_cast<void*>(blast_interrupt_ctx.get()));
-//       //   results = lcl_blaster.Run();
-//       // } catch (const ncbi::CException& e) {
-//       //   Rcpp::Rcerr << "[BLAST_dbs()] Execution error: " << e.GetFunction() << std::endl << e.GetErrCodeString() << std::endl << e.GetErrCode() << std::endl << e.GetModule() << std::endl << e.GetPredecessor() << std::endl << e.GetFile() << std::endl << e.GetLine() << std::endl << e.GetMsg() << std::endl << e.GetStackTrace() << std::endl << e.GetStackTraceLevel() << std::endl << e.GetClass() << std::endl << e.what() << std::endl << std::flush;
-//       //   quickblast_running.store(false);
-//       //   continue;
-//       // }
-//       
-//       // scope->ResetHistory(CScope::EActionIfLocked::eRemoveIfLocked);
+//       // batch_scope gracefully dies here, freeing all cached sequences!
+//       batch_scope->ResetHistory(CScope::EActionIfLocked::eRemoveIfLocked);
 //     } // end of batch loop
-//     // Reset Builders for the next batch (retains memory capacity for speed)
+//     
 //     arrow_builders.Reset();
-//     // Aggregate local batches safely
+//     // Aggregate local batches safely into the global return vector
 //     if (!local_ret->empty()) {
 // #pragma omp critical(final_ret_insert)
 // {
@@ -2610,13 +2531,13 @@ std::shared_ptr<arrow::RecordBatchVector> QuickBLAST::Impl::BLAST_dbs(const std:
 // }
 //     }
 //   }catch (const ncbi::CException& e) {
-//     Rcpp::Rcerr << "[BLAST_dbs()] 1. NCBI CException: " << e.GetFunction() << std::endl << e.GetErrCodeString() << std::endl << e.GetErrCode() << std::endl << e.GetModule() << std::endl << e.GetPredecessor() << std::endl << e.GetFile() << std::endl << e.GetLine() << std::endl << e.GetMsg() << std::endl << e.GetStackTrace() << std::endl << e.GetStackTraceLevel() << std::endl << e.GetClass() << std::endl << e.what() << std::endl << std::flush;
+//     Rcpp::Rcerr << "[BLAST_dbs()] 2. NCBI CException: " << e.GetFunction() << std::endl << e.GetErrCodeString() << std::endl << e.GetErrCode() << std::endl << e.GetModule() << std::endl << e.GetPredecessor() << std::endl << e.GetFile() << std::endl << e.GetLine() << std::endl << e.GetMsg() << std::endl << e.GetStackTrace() << std::endl << e.GetStackTraceLevel() << std::endl << e.GetClass() << std::endl << e.what() << std::endl << std::flush;
 //   }catch (const std::runtime_error& e) {
-//     Rcpp::Rcerr << "[BLAST_dbs()] 1. C++ Runtime error: " << e.what() << std::endl << std::flush;
+//     Rcpp::Rcerr << "[BLAST_dbs()] 2. C++ Runtime error: " << e.what() << std::endl << std::flush;
 //   }catch (const std::exception& e) {
-//     Rcpp::Rcerr << "[BLAST_dbs()] 1. C++ Exception: " << e.what() << std::endl << std::flush;
+//     Rcpp::Rcerr << "[BLAST_dbs()] 2. C++ Exception: " << e.what() << std::endl << std::flush;
 //   }catch (...) {
-//     Rcpp::Rcerr << "[BLAST_dbs()] 1. Unknown error" << std::endl << std::flush;
+//     Rcpp::Rcerr << "[BLAST_dbs()] 2. Unknown error" << std::endl << std::flush;
 //   }
 // } //end of omp parallel
 
