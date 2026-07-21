@@ -171,17 +171,23 @@ if(NOT WIN32)
     
     # 1. Check for libuv
     pkg_check_modules(UV QUIET libuv)
-    if(NOT UV_FOUND)
-        message(FATAL_ERROR 
-            "----------------------------------------------------------\n"
-            "Configuration failed: libuv headers were not found!\n\n"
-            "Please install the libuv development package for your OS:\n"
-            "  Debian/Ubuntu:  sudo apt-get install libuv1-dev\n"
-            "  Fedora/RHEL:    sudo dnf install libuv-devel\n"
-            "  Alpine:         sudo apk add libuv-dev\n"
-            "  macOS:          brew install libuv\n"
-            "----------------------------------------------------------"
-        )
+
+    if(UV_FOUND)
+        message(STATUS "Found system libuv: ${UV_INCLUDE_DIRS}")
+    else()
+        message(STATUS "System libuv not found via pkg-config. Falling back to downloaded libuv at ${UV_INC}...")
+        
+        # Verify the clone actually succeeded and the include directory exists
+        if(EXISTS "${UV_INC}")
+            set(UV_FOUND TRUE)
+            set(UV_INCLUDE_DIRS "${UV_INC}")
+        else()
+            message(FATAL_ERROR 
+                "----------------------------------------------------------\n"
+                "Configuration failed: System libuv not found and downloaded fallback is missing!\n"
+                "----------------------------------------------------------"
+            )
+        endif()
     endif()
     
     # 2. Check for nghttp2

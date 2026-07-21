@@ -42,7 +42,7 @@ QuickBLAST solves this by building a direct bridge between R and the NCBI C++ to
 
 QuickBLAST operates using "instances". An instance is an active C++ object pointer (QuickBLAST_XPtr) that holds your BLAST configuration open in memory.
 
-```{r setup, echo=TRUE,include=T, tidy=TRUE}
+```{r setup, echo=TRUE,include=TRUE, tidy=TRUE}
 library(QuickBLAST)
 
 QuickBLAST::isQuickBLASTLoaded()
@@ -63,20 +63,20 @@ blastn_inst
 
 Because QuickBLAST creates objects in C++, we provide convenience functions to track, verify, and clean up instances to prevent memory leaks.
 
-```{r inst_man, error = 0, echo=TRUE,include=T, tidy=TRUE}
+```{r inst_man, error = 0, echo=TRUE,include=TRUE, tidy=TRUE}
 QuickBLAST::GetInstanceCount()
 
 QuickBLAST::GetInstanceID(blastp_inst)
 
 # Clean up memory by deleting specific instances
-QuickBLAST::DeleteQuickBLASTInstance(QuickBLAST::GetQuickBLASTInstance(1)) 
+QuickBLAST::DeleteQuickBLASTInstance(QuickBLAST::GetQuickBLASTInstance(1))
 
-QuickBLAST::DeleteQuickBLASTInstance(2) 
+QuickBLAST::DeleteQuickBLASTInstance(2)
 
 QuickBLAST::GetInstanceCount()
 
 # Attempting to fetch a deleted instance securely throws a C++ map error
-# try(identical(try(QuickBLAST::GetQuickBLASTInstance(1), silent = TRUE, outFile = stdout()), blastn_inst), silent = T, outFile = stdout())
+# try(identical(try(QuickBLAST::GetQuickBLASTInstance(1), silent = TRUE, outFile = stdout()), blastn_inst), silent = TRUE, outFile = stdout())
 
 # Recreate the blastn instance for later steps
 blastn_inst <- QuickBLAST::CreateQuickBLASTInstance(seq_type = 0, strand = 0, program = "blastn")
@@ -88,17 +88,16 @@ You can pass raw character strings directly to QuickBLAST. The engine evaluates 
 
 ```{r blast2seqs, error = 0}
 # (~)Successful TBLASTX execution : Garbage low information nucleotide sequences
-try(QuickBLAST::BLAST2Seqs(tblastx_inst, "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG"), silent = T, outFile = stdout())
+try(QuickBLAST::BLAST2Seqs(tblastx_inst, "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG"), silent = TRUE, outFile = stdout())
 
-# Expected empty results due to mismatched pointer type (Nucleotide vs Nucleotide with a blastp pointer) 
-try(QuickBLAST::BLAST2Seqs(blastp_inst, "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG"), silent = T, outFile = stdout())
+# Expected empty results due to mismatched pointer type (Nucleotide vs Nucleotide with a blastp pointer)
+try(QuickBLAST::BLAST2Seqs(blastp_inst, "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", "TTTTTTTTTTTGGGGGGGGGGGG"), silent = TRUE, outFile = stdout())
 
 # (~)Successful Protein-Protein search : Same protein
 QuickBLAST::BLAST2Seqs(blastp_inst, "MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", "MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE")
 
 # Successful NT-NT search
 QuickBLAST::BLAST2Seqs(blastn_inst, "ATGGAGGAGCCGCAGTCAGATCCTAGCGTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA", "ATGGAGGAGCCGCAGTCAGATCCTAGCCTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA")
-
 ```
 
 ## Remote NCBI Searching
@@ -109,13 +108,12 @@ If you do not want to compile databases locally, QuickBLAST can interface direct
 ```{r remoteblast, error = 0, eval = FALSE}
 # Safely check if the machine has internet access before running
 if (requireNamespace("curl", quietly = TRUE) && curl::has_internet()) {
-# Example of a remote timeout handling
-try(QuickBLAST::RemoteBLAST(blastn_inst, query_input="AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", database= "nr", input_type=1, return_values=TRUE), silent = T, outFile = stdout())
+  # Example of a remote timeout handling
+  try(QuickBLAST::RemoteBLAST(blastn_inst, query_input = "AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC", database = "nr", input_type = 1, return_values = TRUE), silent = TRUE, outFile = stdout())
 
-# Successful Remote Protein Query against the PDB database
-QuickBLAST::RemoteBLAST(blastp_inst, query_input="MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", database= "pdb", input_type=1, return_values=TRUE)
-  
-}else {
+  # Successful Remote Protein Query against the PDB database
+  QuickBLAST::RemoteBLAST(blastp_inst, query_input = "MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE", database = "pdb", input_type = 1, return_values = TRUE)
+} else {
   message("No internet connection available. Skipping remote BLAST examples.")
 }
 ```
@@ -126,12 +124,11 @@ QuickBLAST::RemoteBLAST(blastp_inst, query_input="MQILLVEDDNTLFQELKKELEQWDFNVAGI
 For large-scale genomics, sequences are often stored in FASTA files. QuickBLAST can compare two files directly via multi-threaded reading, without loading everything into the R global environment first.
 
 ```{r blast2files, error = 0}
-
-safe_temp_dir <- normalizePath(tempdir(check = T), mustWork = FALSE)
+safe_temp_dir <- normalizePath(tempdir(check = TRUE), mustWork = FALSE)
 
 # Create temporary FASTA files
-query_fasta <- normalizePath(tempfile(fileext = ".fasta", tmpdir = safe_temp_dir), mustWork = F)
-subject_fasta <- normalizePath(tempfile(fileext = ".fasta", tmpdir = safe_temp_dir), mustWork = F)
+query_fasta <- normalizePath(tempfile(fileext = ".fasta", tmpdir = safe_temp_dir), mustWork = FALSE)
+subject_fasta <- normalizePath(tempfile(fileext = ".fasta", tmpdir = safe_temp_dir), mustWork = FALSE)
 
 # Human TP53 gene fragment (Query)
 writeLines(c(
@@ -145,15 +142,14 @@ writeLines(c(
 
 # Efficiently compare the files using the BLASTN instance
 file_results <- QuickBLAST::BLAST2Files(
-  blastn_inst, 
-  query = query_fasta, 
+  blastn_inst,
+  query = query_fasta,
   subject = subject_fasta,
   return_values = TRUE,
   num_threads = 1
 )
 
 print(file_results)
-
 ```
 
 ## Local Database Creation and Searching
@@ -162,8 +158,7 @@ For high-throughput homology searches against a fixed reference, compiling the s
 
 
 ```{r blastfile2db, error = 0}
-
-safe_temp_dir <- normalizePath(tempdir(check = T), mustWork = FALSE)
+safe_temp_dir <- normalizePath(tempdir(check = TRUE), mustWork = FALSE)
 query_fasta <- normalizePath(tempfile(fileext = ".fasta", tmpdir = safe_temp_dir), mustWork = FALSE)
 subject_fasta <- normalizePath(tempfile(fileext = ".fasta", tmpdir = safe_temp_dir), mustWork = FALSE)
 
@@ -199,15 +194,14 @@ try(QuickBLAST::MakeBLASTDB(
 
 # 2. Search a query file or query database against the custom local database
 db_results <- try(QuickBLAST::BLAST2DBs(
- blastn_inst,
- query = query_fasta,
- subject = db_path,
- return_values = TRUE,
- num_threads = 2
+  blastn_inst,
+  query = query_fasta,
+  subject = db_path,
+  return_values = TRUE,
+  num_threads = 2
 ), silent = TRUE, outFile = stdout())
 
 print(db_results)
-
 ```
 
 ## High-Performance Output with Apache Arrow
@@ -218,8 +212,7 @@ To solve this, QuickBLAST writes results asynchronously using Apache Arrow forma
 
 
 ```{r outputformats, error = 0}
-
-safe_temp_dir <- normalizePath(tempdir(check = T), mustWork = FALSE)
+safe_temp_dir <- normalizePath(tempdir(check = TRUE), mustWork = FALSE)
 query_fasta <- normalizePath(tempfile(fileext = ".fasta", tmpdir = safe_temp_dir), mustWork = FALSE)
 subject_fasta <- normalizePath(tempfile(fileext = ".fasta", tmpdir = safe_temp_dir), mustWork = FALSE)
 
@@ -240,18 +233,18 @@ out_csv <- normalizePath(tempfile(fileext = ".csv"), mustWork = FALSE)
 # Perform the search and write straight to an Arrow Parquet/IPC/CSV file
 # We don't need it in RAM, we are writing to disk
 QuickBLAST::BLAST2Files(
-  blastn_inst, 
-  query = query_fasta, 
+  blastn_inst,
+  query = query_fasta,
   subject = subject_fasta,
   out_file = out_parquet,
   out_format = "parquet",
   return_values = FALSE,
-  verbose = T
+  verbose = TRUE
 )
 
 QuickBLAST::BLAST2Files(
-  blastn_inst, 
-  query = query_fasta, 
+  blastn_inst,
+  query = query_fasta,
   subject = subject_fasta,
   out_file = out_ipc,
   out_format = "ipc",
@@ -259,8 +252,8 @@ QuickBLAST::BLAST2Files(
 )
 
 QuickBLAST::BLAST2Files(
-  blastn_inst, 
-  query = query_fasta, 
+  blastn_inst,
+  query = query_fasta,
   subject = subject_fasta,
   out_file = out_csv,
   out_format = "csv",
@@ -274,11 +267,14 @@ head(hits_df)
 hits_df <- QuickBLAST::LoadBLASTHits(out_ipc, format = "ipc")
 head(hits_df)
 
-hits_df <- QuickBLAST::LoadBLASTHits(out_csv, format = "csv", sep = "\t", header = T)
+hits_df <- QuickBLAST::LoadBLASTHits(out_csv, format = "csv", sep = "\t", header = TRUE)
 head(hits_df)
-
 ```
 
 ## Conclusion
 
 QuickBLAST modernizes sequence alignment in R. By managing your instances appropriately, keeping data in native C++ structures, and offloading massive search results to Apache Arrow formats, you can run high-throughput bioinformatic pipelines natively without relying on slow Sys.Call() bash wrappers.
+
+```{r sessionInfo}
+sessionInfo()
+```

@@ -43,7 +43,7 @@ run_cmake_superbuild.o:
 	@# FIX: Safely move and rename the DLL immediately where R expects it using reliable file rules
 	@if [ -f ./BUILD/libQuickBLAST.dll ]; then cp ./BUILD/libQuickBLAST.dll QuickBLAST.dll; fi
 	@if [ -f ./BUILD/QuickBLAST.dll ]; then cp ./BUILD/QuickBLAST.dll QuickBLAST.dll; fi
-	@$(STRIP) -S QuickBLAST.dll
+	@$(BINPREF)strip --strip-debug QuickBLAST.dll 2>/dev/null || strip --strip-debug QuickBLAST.dll 2>/dev/null || true
 	@touch $@
 	@rm -rf ./BUILD
 

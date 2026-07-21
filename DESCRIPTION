@@ -1,12 +1,13 @@
 Package: QuickBLAST
 Type: Package
 Title: High-Performance Sequence Alignment using BLAST and Apache Arrow
-Version: 1.99.7
-Date: 2026-07-17
+Version: 1.99.8
+Date: 2026-07-21
 Authors@R: person(given = "Vishvesh Karthik",
                     family = "",
                     role = c("aut", "cre", "cph"),
-                    email = "vishveshkarthik@gmail.com")
+                    email = "vishveshkarthik@gmail.com",
+                    comment=c(ORCID="0009-0008-0725-4253"))
 Maintainer: Vishvesh Karthik <vishveshkarthik@gmail.com>
 Description: A BLAST Wrapper to call BLAST directly from R (interoperable and without Sys.call()) coupled with Apache Arrow's columnar format with parquet, IPC and csv file support.
 License: GPL (>= 2)
