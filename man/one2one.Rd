@@ -50,27 +50,30 @@ one2one(
 \item \code{verbose}: (bool) Print DEBUG Messages?
 }}
 }
+\value{
+If \code{return_values = TRUE}, returns a list of data frames corresponding to each alignment query. Otherwise, returns \code{invisible(NULL)} or outputs directly to files.
+}
 \description{
 Executes One-to-One QuickBLAST between two lists of organisms/genes/clusters. The BLAST Hits are stored in Arrow::Feather/Parquet format.
 }
 \examples{
-\dontrun{
+\donttest{
 QuickBLAST::one2one(
- first_list=fs::path_package("QuickBLAST", "extdata", "protein_query.fasta"),
- second_list=fs::path_package("QuickBLAST", "extdata", "protein_subject.fasta"), 
- blast_fun=QuickBLAST::BLAST2Files,
- seq_type = 0, 
- strand=0,
- output_dir = "./",
- n_threads = 8,
- blast_program = "tblastx",
- save_sequences=FALSE,
- save_hsp_sequences=FALSE,
- return_values=FALSE,
- min_batch_size=256,
- out_format="parquet",
- blast_options="",
- verbose = TRUE
+  first_list = fs::path_package("QuickBLAST", "extdata", "protein_query.fasta"),
+  second_list = fs::path_package("QuickBLAST", "extdata", "protein_subject.fasta"),
+  blast_fun = QuickBLAST::BLAST2Files,
+  seq_type = 0,
+  strand = 0,
+  output_dir = "./",
+  n_threads = 8,
+  blast_program = "tblastx",
+  save_sequences = FALSE,
+  save_hsp_sequences = FALSE,
+  return_values = FALSE,
+  min_batch_size = 256,
+  out_format = "parquet",
+  blast_options = "",
+  verbose = TRUE
 )
 }
 

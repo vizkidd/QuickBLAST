@@ -21,3 +21,9 @@ Data Frame with BLAST Results
 \description{
 Give the path to a BLAST Hits file (table/ipc/parquet) to load it into a tibble (BLAST HITs Table).
 }
+\examples{
+\donttest{
+# Assuming 'blast_results.parquet' exists in your working directory
+# results <- QuickBLAST::LoadBLASTHits("blast_results.parquet", format = "parquet")
+}
+}

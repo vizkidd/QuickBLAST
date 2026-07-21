@@ -16,7 +16,7 @@ GetInstanceID(ptr)
 This function fetches the ID/Index of a QuickBLAST instance of a \code{Rcpp::XPtr<QuickBLAST>} stored in C++ side.
 }
 \examples{
-\dontrun{
+\donttest{
 blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
   seq_type = 1,
   strand = 0,

@@ -19,7 +19,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Vishvesh Karthik \email{vishveshkarthik@gmail.com} [copyright holder]
+\strong{Maintainer}: Vishvesh Karthik \email{vishveshkarthik@gmail.com} (\href{https://orcid.org/0009-0008-0725-4253}{ORCID}) [copyright holder]
 
 }
 \keyword{internal}

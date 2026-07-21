@@ -471,7 +471,7 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
 
 if(APPLE OR CMAKE_SYSTEM_NAME MATCHES "Darwin" OR CMAKE_C_COMPILER_ID MATCHES "AppleClang" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
 set(ENV{CMAKE_ARGS} "-DRCPP_FOLDER=${RCPP_FOLDER} \
-    -DCMAKE_C_FLAGS=' -w -pedantic -Wformat -Werror=format-security -flto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} ' \
+    -DCMAKE_C_FLAGS=' -DPCRE2POSIX_EXP_DEFN= -w -pedantic -Wformat -Werror=format-security -flto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} ' \
     -DCMAKE_CXX_FLAGS=' -w -pedantic -Wformat -Werror=format-security -flto -fstack-protector-strong ${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS} ' \
     -DRCPPPROG_FOLDER=${RCPPPROG_FOLDER} \
     -DRCPPTHREAD_FOLDER=${RCPPTHREAD_FOLDER} \

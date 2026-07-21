@@ -12,3 +12,8 @@ A List of Enums used by QuickBLAST
 \description{
 Get a list of Enums used by QuickBLAST
 }
+\examples{
+enums <- QuickBLAST::GetQuickBLASTEnums()
+print(names(enums))
+print(enums$ESeqType$eNucleotide)
+}

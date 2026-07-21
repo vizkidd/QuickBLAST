@@ -12,3 +12,6 @@ String that successfully confirms when the package is loaded properly
 \description{
 This function does nothing than check the connection between the R package and C++ libraries
 }
+\examples{
+QuickBLAST::isQuickBLASTLoaded()
+}

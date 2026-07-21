@@ -15,3 +15,7 @@ Use this function in blast_options to set BLAST defaults for the chosen BLAST pr
 \note{
 CREATE a NEW LIST with ONLY the OPTIONS THAT YOU NEED
 }
+\examples{
+opts <- QuickBLAST::GetAvailableBLASTOptions()
+print(opts)
+}

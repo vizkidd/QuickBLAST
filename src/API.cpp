@@ -20,7 +20,8 @@ using namespace Rcpp;
 //' @title Check R <-> C++ (FFI) connection
 //'
 //' @description This function does nothing than check the connection between the R package and C++ libraries
-//'
+//' @examples
+//' QuickBLAST::isQuickBLASTLoaded()
 //' @return String that successfully confirms when the package is loaded properly
 //' @export
 // [[Rcpp::export]]
@@ -986,7 +987,7 @@ std::string ConvertBLASTOptions2String(SEXP options)
 //' @note Set save_sequences AND/OR save_hsp_sequences when using Genomes
 //' 
 //' @examples
-//' \dontrun{
+//' \donttest{
 //' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
 //'   seq_type = 1,
 //'   strand = 0,
@@ -1038,17 +1039,21 @@ SEXP CreateQuickBLASTInstance(const int seq_type, const int strand, SEXP program
 }
 
 //' @name GetInstanceCount
- //' @title Get count of QuickBLAST instances stored in C++ side
- //'
- //' @description This function gives the size of the list of QuickBLAST C++ object list
- //'
- //' @return Count of QuickBLAST instances
- //' @export
- // [[Rcpp::export]]
- unsigned int GetInstanceCount()
- {
-   return (unsigned int)cppObj_list.size();
- }
+//' @title Get count of QuickBLAST instances stored in C++ side
+//'
+//' @description This function gives the size of the list of QuickBLAST C++ object list
+//'
+//' @return Count of QuickBLAST instances
+//' @examples
+//' \donttest{
+//' QuickBLAST::GetInstanceCount()
+//' }
+//' @export
+// [[Rcpp::export]]
+unsigned int GetInstanceCount()
+{
+ return (unsigned int)cppObj_list.size();
+}
 
 Rcpp::XPtr<QuickBLAST> ResolveQuickBLASTInstance(SEXP inst)
 {
@@ -1121,7 +1126,7 @@ Rcpp::XPtr<QuickBLAST> ResolveQuickBLASTInstance(SEXP inst)
 //'
 //' @return (unsigned int) ID/Index of the QuickBLAST instance pointer, FALSE otherwise
 //' @examples
-//' \dontrun{
+//' \donttest{
 //' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
 //'   seq_type = 1,
 //'   strand = 0,
@@ -1169,7 +1174,10 @@ SEXP GetInstanceID(SEXP ptr)
 //' @description This function fetches the QuickBLAST instance of a \code{Rcpp::XPtr<QuickBLAST>} at ID/Index stored in C++ side.
 //'
 //' @param ptr_id (unsigned int) ID/Index of Pointer to a QuickBLAST instance (in C++ side).
-//'
+//' @examples
+//' \donttest{
+//' # QuickBLAST::GetQuickBLASTInstance(0)
+//' }
 //' @return (\code{Rcpp::XPtr<QuickBLAST>}) Pointer to a QuickBLAST instance, FALSE otherwise
 //' @export
 // [[Rcpp::export]]

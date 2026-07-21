@@ -73,7 +73,7 @@
 #'
 #' @return A List of Enums used by QuickBLAST
 #' @examples
-#' enums <- GetQuickBLASTEnums()
+#' enums <- QuickBLAST::GetQuickBLASTEnums()
 #' print(names(enums))
 #' print(enums$ESeqType$eNucleotide)
 #' @importFrom Rcpp evalCpp
@@ -97,8 +97,8 @@ GetQuickBLASTEnums <- function() {
 #'
 #' @note CREATE a NEW LIST with ONLY the OPTIONS THAT YOU NEED
 #' @examples
-#' opts <- GetAvailableBLASTOptions()
-#' print(length(opts))
+#' opts <- QuickBLAST::GetAvailableBLASTOptions()
+#' print(opts)
 #' @return A List of Available BLAST options
 #' @export
 GetAvailableBLASTOptions <- function() {
@@ -134,7 +134,7 @@ GetAvailableBLASTOptions <- function() {
 #' @examples
 #' \donttest{
 #' # Assuming 'blast_results.parquet' exists in your working directory
-#' # results <- LoadBLASTHits("blast_results.parquet", format = "parquet")
+#' # results <- QuickBLAST::LoadBLASTHits("blast_results.parquet", format = "parquet")
 #' }
 #' @return Data Frame with BLAST Results
 #' @export

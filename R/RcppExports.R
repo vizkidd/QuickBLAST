@@ -36,7 +36,8 @@ NULL
 #' @title Check R <-> C++ (FFI) connection
 #'
 #' @description This function does nothing than check the connection between the R package and C++ libraries
-#'
+#' @examples
+#' QuickBLAST::isQuickBLASTLoaded()
 #' @return String that successfully confirms when the package is loaded properly
 #' @export
 isQuickBLASTLoaded <- function() {
@@ -65,7 +66,7 @@ RecordBatchVectorToFlattenedDFList <- function(rbv_sexp) {
 #' @note Set save_sequences AND/OR save_hsp_sequences when using Genomes
 #' 
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
 #'   seq_type = 1,
 #'   strand = 0,
@@ -85,6 +86,10 @@ CreateQuickBLASTInstance <- function(seq_type, strand, program, options = NULL, 
 #' @description This function gives the size of the list of QuickBLAST C++ object list
 #'
 #' @return Count of QuickBLAST instances
+#' @examples
+#' \donttest{
+#' QuickBLAST::GetInstanceCount()
+#' }
 #' @export
 GetInstanceCount <- function() {
     .Call(`_QuickBLAST_GetInstanceCount`)
@@ -99,7 +104,7 @@ GetInstanceCount <- function() {
 #'
 #' @return (unsigned int) ID/Index of the QuickBLAST instance pointer, FALSE otherwise
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
 #'   seq_type = 1,
 #'   strand = 0,
@@ -123,7 +128,10 @@ GetInstanceID <- function(ptr) {
 #' @description This function fetches the QuickBLAST instance of a \code{Rcpp::XPtr<QuickBLAST>} at ID/Index stored in C++ side.
 #'
 #' @param ptr_id (unsigned int) ID/Index of Pointer to a QuickBLAST instance (in C++ side).
-#'
+#' @examples
+#' \donttest{
+#' # QuickBLAST::GetQuickBLASTInstance(0)
+#' }
 #' @return (\code{Rcpp::XPtr<QuickBLAST>}) Pointer to a QuickBLAST instance, FALSE otherwise
 #' @export
 GetQuickBLASTInstance <- function(ptr_id) {

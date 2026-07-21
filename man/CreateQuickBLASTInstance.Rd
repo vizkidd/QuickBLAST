@@ -36,7 +36,7 @@ Create a new QuickBLAST C++ object with seq_type, strand, program and BLAST opti
 Set save_sequences AND/OR save_hsp_sequences when using Genomes
 }
 \examples{
-\dontrun{
+\donttest{
 blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
   seq_type = 1,
   strand = 0,

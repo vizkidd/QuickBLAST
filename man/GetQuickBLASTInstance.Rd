@@ -15,3 +15,8 @@ GetQuickBLASTInstance(ptr_id)
 \description{
 This function fetches the QuickBLAST instance of a \code{Rcpp::XPtr<QuickBLAST>} at ID/Index stored in C++ side.
 }
+\examples{
+\donttest{
+# QuickBLAST::GetQuickBLASTInstance(0)
+}
+}

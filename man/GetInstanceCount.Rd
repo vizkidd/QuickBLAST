@@ -12,3 +12,8 @@ Count of QuickBLAST instances
 \description{
 This function gives the size of the list of QuickBLAST C++ object list
 }
+\examples{
+\donttest{
+QuickBLAST::GetInstanceCount()
+}
+}

@@ -55,6 +55,6 @@ Collate:
     'QuickBLAST-package.R'
     'RcppExports.R'
     'QuickBLAST.R'
-SystemRequirements: cmake (>= 3.25), sqlite3 (deb: libsqlite3-dev, rpm: sqlite-devel), eigen (deb: libeigen3-dev, rpm: eigen3-devel), boost (deb: libboost-dev, rpm: boost-devel), fontconfig, libcurl, harfbuzz, fribidi, freetype2, libpng, libtiff, libjpeg, libuv, nghttp2, libunwind-dev (deb), libcurl4-openssl-dev (deb)
+SystemRequirements: cmake (>= 3.25), sqlite3 (deb: libsqlite3-dev, rpm: sqlite-devel), eigen (deb: libeigen3-dev, rpm: eigen3-devel), boost (deb: libboost-dev, rpm: boost-devel), fontconfig, libcurl, harfbuzz, fribidi, freetype2, libpng, libtiff, libjpeg, libuv (brew: libuv, deb: libuv1-dev, rpm: libuv-devel), nghttp2 (brew: nghttp2, deb: libnghttp2-dev, rpm: libnghttp2-devel), libunwind-dev (deb), libcurl4-openssl-dev (deb), pkg-config
 URL: https://github.com/vizkidd/QuickBLAST
 BugReports: https://github.com/vizkidd/QuickBLAST/issues
