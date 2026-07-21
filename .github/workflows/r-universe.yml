@@ -11,3 +11,4 @@ jobs:
     with:
       universe: bioc
       organization: bioconductor # for BiocCheck checks
+      timeout: 100
