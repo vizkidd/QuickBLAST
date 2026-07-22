@@ -992,8 +992,8 @@ std::string ConvertBLASTOptions2String(SEXP options)
 //'   seq_type = 1,
 //'   strand = 0,
 //'   program = "blastp",
-//'   save_sequences = F,
-//'   save_hsp_sequences = F
+//'   save_sequences = FALSE,
+//'   save_hsp_sequences = FALSE
 //' )
 //' }
 //' @export

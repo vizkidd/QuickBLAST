@@ -1022,12 +1022,21 @@ std::shared_ptr<std::tuple<FILE *, std::shared_ptr<char>, long, char *>> ArrowWr
     return nullptr;
   }
 #else
-  // --- POSIX File Mapping ---
-#if defined(linux) || defined(MINGW32)
-  char *fileData_ptr = static_cast<char *>(mmap(nullptr, fileSize, PROT_READ, MAP_PRIVATE, fileno(file_ptr), 0)); 
+//   // --- POSIX File Mapping ---
+// #if defined(linux) || defined(MINGW32)
+//   char *fileData_ptr = static_cast<char *>(mmap(nullptr, fileSize, PROT_READ, MAP_PRIVATE, fileno(file_ptr), 0)); 
+// #else
+//   char *fileData_ptr = static_cast<char *>(mmap(nullptr, fileSize, PROT_READ, MAP_PRIVATE, _fileno(file_ptr), 0)); 
+// #endif
+// --- POSIX File Mapping ---
+#if defined(_MSC_VER) || (defined(_WIN32) && !defined(__MINGW32__) && !defined(MINGW32))
+// Microsoft Visual C++ / Strict Windows
+char *fileData_ptr = static_cast<char *>(mmap(nullptr, fileSize, PROT_READ, MAP_PRIVATE, _fileno(file_ptr), 0)); 
 #else
-  char *fileData_ptr = static_cast<char *>(mmap(nullptr, fileSize, PROT_READ, MAP_PRIVATE, _fileno(file_ptr), 0)); 
-#endif 
+// POSIX: macOS, Linux, MinGW, Unix
+char *fileData_ptr = static_cast<char *>(mmap(nullptr, fileSize, PROT_READ, MAP_PRIVATE, fileno(file_ptr), 0)); 
+#endif
+ 
   
   if (fileData_ptr == MAP_FAILED)
   {

@@ -192,17 +192,46 @@ if(NOT WIN32)
     
     # 2. Check for nghttp2
     pkg_check_modules(NGHTTP2 QUIET libnghttp2)
-    if(NOT NGHTTP2_FOUND)
-        message(FATAL_ERROR 
-            "----------------------------------------------------------\n"
-            "Configuration failed: nghttp2 headers were not found!\n\n"
-            "Please install the nghttp2 development package for your OS:\n"
-            "  Debian/Ubuntu:  sudo apt-get install libnghttp2-dev\n"
-            "  Fedora/RHEL:    sudo dnf install libnghttp2-devel\n"
-            "  Alpine:         sudo apk add nghttp2-dev\n"
-            "  macOS:          brew install nghttp2\n"
-            "----------------------------------------------------------"
+    
+    if(NGHTTP2_FOUND)
+        message(STATUS "Found system nghttp2 via pkg-config: ${NGHTTP2_INCLUDE_DIRS}")
+    else()
+        message(STATUS "nghttp2 not found via pkg-config. Attempting manual search for macOS...")
+        
+        # Manual fallback for macOS Homebrew / CRAN toolchain paths
+        find_path(NGHTTP2_INCLUDE_DIRS 
+            NAMES nghttp2/nghttp2.h
+            HINTS 
+            /opt/homebrew/include     # macOS Apple Silicon (Homebrew)
+            /usr/local/include        # macOS Intel (Homebrew)
+            /opt/R/arm64/include      # CRAN macOS arm64 toolchain
+            /opt/R/x86_64/include     # CRAN macOS x86_64 toolchain
         )
+        
+        find_library(NGHTTP2_LIBRARIES 
+            NAMES nghttp2
+            HINTS
+            /opt/homebrew/lib
+            /usr/local/lib
+            /opt/R/arm64/lib
+            /opt/R/x86_64/lib
+        )
+        
+        if(NGHTTP2_INCLUDE_DIRS AND NGHTTP2_LIBRARIES)
+            set(NGHTTP2_FOUND TRUE)
+            message(STATUS "Found nghttp2 manually. Headers: ${NGHTTP2_INCLUDE_DIRS}, Libs: ${NGHTTP2_LIBRARIES}")
+        else()
+            message(FATAL_ERROR 
+                "----------------------------------------------------------\n"
+                "Configuration failed: nghttp2 headers or libs were not found!\n\n"
+                "Please install the nghttp2 development package for your OS:\n"
+                "  Debian/Ubuntu:  sudo apt-get install libnghttp2-dev\n"
+                "  Fedora/RHEL:    sudo dnf install libnghttp2-devel\n"
+                "  Alpine:         sudo apk add nghttp2-dev\n"
+                "  macOS:          brew install nghttp2\n"
+                "----------------------------------------------------------"
+            )
+        endif()
     endif()
     
     # Map the pkg-config outputs to your existing CMake variables so 
