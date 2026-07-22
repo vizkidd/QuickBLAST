@@ -107,8 +107,7 @@ GetInstanceCount <- function() {
 #'   strand = 0,
 #'   program = "blastp",
 #'   save_sequences = FALSE,
-#'   save_hsp_sequences = FALSE,
-#'   num_threads=24
+#'   save_hsp_sequences = FALSE
 #' )
 #' QuickBLAST::GetInstanceID(
 #'   blastp_inst
@@ -361,8 +360,7 @@ BLAST1Folder <- function(ptr, input_folder, extension, out_folder, out_format = 
 #'   ),
 #'   out_file = "test.arrow",
 #'   return_values = TRUE,
-#'   min_batch_size = 0,
-#'   seq_limit = 0
+#'   min_batch_size = 0
 #' )
 #' 
 #' @export
@@ -391,6 +389,7 @@ BLAST2Files <- function(ptr, query, subject, out_file = NULL, out_format = NULL,
 #' @param verbose (bool) Verbosity (Default: TRUE).
 #' @return (SEXP) Rcpp::List - if return_values == TRUE, outFile - Otherwise.
 #' @examples
+#' \dontrun{
 #' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
 #'   seq_type = 1,
 #'   strand = 0,
@@ -410,6 +409,7 @@ BLAST2Files <- function(ptr, query, subject, out_file = NULL, out_format = NULL,
 #'   input_type=1,
 #'   return_values=TRUE
 #' )
+#' }
 #'
 #' @export
 RemoteBLAST <- function(ptr, database, query_input, input_type, outFile = NULL, outFormat = NULL, return_values = TRUE, max_poll_seconds = 360L, poll_interval_ms = 4000L, verbose = TRUE) {
@@ -667,6 +667,10 @@ GetFASTAHeaders <- function(path, keep_gt = FALSE) {
 #'   out_file="test.db.arrow",
 #'   return_values = TRUE
 #' )
+#' unlink("protein_query.db.*")
+#' unlink("protein_subject.db.*")
+#' unlink("test.arrow")
+#' unlink("test.db.arrow")
 #' 
 #' @export
 BLASTFile2DB <- function(ptr, query, subject, out_file = NULL, out_format = NULL, num_threads = 0L, return_values = TRUE, min_batch_size = 0L) {

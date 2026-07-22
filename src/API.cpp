@@ -1129,8 +1129,7 @@ Rcpp::XPtr<QuickBLAST> ResolveQuickBLASTInstance(SEXP inst)
 //'   strand = 0,
 //'   program = "blastp",
 //'   save_sequences = FALSE,
-//'   save_hsp_sequences = FALSE,
-//'   num_threads=24
+//'   save_hsp_sequences = FALSE
 //' )
 //' QuickBLAST::GetInstanceID(
 //'   blastp_inst
@@ -1797,8 +1796,7 @@ bool BLAST1Folder(SEXP ptr, SEXP input_folder, SEXP extension, SEXP out_folder, 
 //'   ),
 //'   out_file = "test.arrow",
 //'   return_values = TRUE,
-//'   min_batch_size = 0,
-//'   seq_limit = 0
+//'   min_batch_size = 0
 //' )
 //' 
 //' @export
@@ -1911,6 +1909,7 @@ SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = R_NilValue,
 //' @param verbose (bool) Verbosity (Default: TRUE).
 //' @return (SEXP) Rcpp::List - if return_values == TRUE, outFile - Otherwise.
 //' @examples
+//' \dontrun{
 //' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
 //'   seq_type = 1,
 //'   strand = 0,
@@ -1930,6 +1929,7 @@ SEXP BLAST2Files(SEXP ptr, SEXP query, SEXP subject, SEXP out_file = R_NilValue,
 //'   input_type=1,
 //'   return_values=TRUE
 //' )
+//' }
 //'
 //' @export
 // [[Rcpp::export]]
@@ -3039,6 +3039,10 @@ SEXP GetFASTAHeaders(const std::string &path, bool keep_gt = false) {
 //'   out_file="test.db.arrow",
 //'   return_values = TRUE
 //' )
+//' unlink("protein_query.db.*")
+//' unlink("protein_subject.db.*")
+//' unlink("test.arrow")
+//' unlink("test.db.arrow")
 //' 
 //' @export
 // [[Rcpp::export]]

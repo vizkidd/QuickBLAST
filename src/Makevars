@@ -6,7 +6,41 @@ MAIN_LIB = src/QuickBLAST.so
 PKG_CPPFLAGS = -DARROW_STATIC -DPARQUET_STATIC -DLIBICONV_STATIC 
 TOOLKIT_CPPFLAGS = $(CLINK_CPPFLAGS) $(PKG_CPPFLAGS)
 
-PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) `ld -lstdc++fs --verbose > /dev/null 2>&1 && echo "-lstdc++fs"` `ld -lboost_system --verbose > /dev/null 2>&1 && echo "-lboost_system"` $(TOOLKIT_CPPFLAGS) -Wl,-rpath,\$$ORIGIN -Wl,-rpath,@loader_path/ -L./BUILD/arrow/cpp/BUILD/release/ -L./BUILD/arrow/cpp/BUILD/lib/ -L./BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ -L/usr/local/lib/ -L/usr/lib/ -Wl,--start-group -larrow -lparquet -lthrift -larrow_bundled_dependencies -lz -llmdb -lrt -lalign_format -lbiblio -lblast -lblastdb -lblastdb_format -lblastinput -lblast_services -lcomposition_adjustment -lconnect -lct_ftds14 -ldbapi_driver -lefetch -legquery -lehistory -leinfo -lelink -lepost -lesearch -lespell -lesummary -leutils -lgeneral -lgenome_collection -lid1 -lid2 -lmedline -lncbi_xdbapi_ftds -lncbi_xloader_blastdb -lncbi_xloader_blastdb_rmt -lncbi_xloader_genbank -lncbi_xreader -lncbi_xreader_cache -lncbi_xreader_id1 -lncbi_xreader_id2 -lpub -lpubmed -lQuickBLASTcpp -lscoremat -lseq -lseqcode -lseqdb -lseqedit -lseqmasks_io -lseqset -lseqsplit -lsequtil -lsqlitewrapp -lsubmit -ltables -ltaxon1 -ltaxon3 -ltds_ftds14 -luilist -lutrtprof -lvalid -lwritedb -lxalgoalignutil -lxalgoblastdbindex -lxalgodustmask -lxalgoseq -lxalgowinmask -lxalnmgr -lxblast -lxcgi -lxcleanup -lxcompress -lxconnect -lxflatfile -lxhtml -lxlogging -lxncbi -lxnetblast -lxnetblastcli -lxobjedit -lxobjmgr -lxobjread -lxobjsimple -lxobjutil -lxqueryparse -lxregexp -lxser -lxutil -lzcf -Wl,--end-group -lz -lunwind
+#PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) `ld -lstdc++fs --verbose > /dev/null 2>&1 && echo "-lstdc++fs"` `ld -lboost_system --verbose > /dev/null 2>&1 && echo "-lboost_system"` $(TOOLKIT_CPPFLAGS) -Wl,-rpath,\$$ORIGIN -Wl,-rpath,@loader_path/ -L./BUILD/arrow/cpp/BUILD/release/ -L./BUILD/arrow/cpp/BUILD/lib/ -L./BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ -L/usr/local/lib/ -L/usr/lib/ -Wl,--start-group -larrow -lparquet -lthrift -larrow_bundled_dependencies -lz -llmdb -lrt -lalign_format -lbiblio -lblast -lblastdb -lblastdb_format -lblastinput -lblast_services -lcomposition_adjustment -lconnect -lct_ftds14 -ldbapi_driver -lefetch -legquery -lehistory -leinfo -lelink -lepost -lesearch -lespell -lesummary -leutils -lgeneral -lgenome_collection -lid1 -lid2 -lmedline -lncbi_xdbapi_ftds -lncbi_xloader_blastdb -lncbi_xloader_blastdb_rmt -lncbi_xloader_genbank -lncbi_xreader -lncbi_xreader_cache -lncbi_xreader_id1 -lncbi_xreader_id2 -lpub -lpubmed -lQuickBLASTcpp -lscoremat -lseq -lseqcode -lseqdb -lseqedit -lseqmasks_io -lseqset -lseqsplit -lsequtil -lsqlitewrapp -lsubmit -ltables -ltaxon1 -ltaxon3 -ltds_ftds14 -luilist -lutrtprof -lvalid -lwritedb -lxalgoalignutil -lxalgoblastdbindex -lxalgodustmask -lxalgoseq -lxalgowinmask -lxalnmgr -lxblast -lxcgi -lxcleanup -lxcompress -lxconnect -lxflatfile -lxhtml -lxlogging -lxncbi -lxnetblast -lxnetblastcli -lxobjedit -lxobjmgr -lxobjread -lxobjsimple -lxobjutil -lxqueryparse -lxregexp -lxser -lxutil -lzcf -Wl,--end-group -lz -lunwind
+
+# Library search paths
+LIB_PATHS = -L./BUILD/arrow/cpp/BUILD/release/ \
+            -L./BUILD/arrow/cpp/BUILD/lib/ \
+            -L./BUILD/ncbi-cxx-toolkit-public/BUILD/lib/ \
+            -L/usr/local/lib -L/usr/lib
+
+# Core library dependency list
+QB_LIBS = -larrow -lparquet -lthrift -larrow_bundled_dependencies -lz -llmdb \
+           -lalign_format -lbiblio -lblast -lblastdb -lblastdb_format -lblastinput \
+           -lblast_services -lcomposition_adjustment -lconnect -lct_ftds14 -ldbapi_driver \
+           -lefetch -legquery -lehistory -leinfo -lelink -lepost -lesearch -lespell \
+           -lesummary -leutils -lgeneral -lgenome_collection -lid1 -lid2 -lmedline \
+           -lncbi_xdbapi_ftds -lncbi_xloader_blastdb -lncbi_xloader_blastdb_rmt \
+           -lncbi_xloader_genbank -lncbi_xreader -lncbi_xreader_cache -lncbi_xreader_id1 \
+           -lncbi_xreader_id2 -lpub -lpubmed -lQuickBLASTcpp -lscoremat -lseq -lseqcode \
+           -lseqdb -lseqedit -lseqmasks_io -lseqset -lseqsplit -lsequtil -lsqlitewrapp \
+           -lsubmit -ltables -ltaxon1 -ltaxon3 -ltds_ftds14 -luilist -lutrtprof -lvalid \
+           -lwritedb -lxalgoalignutil -lxalgoblastdbindex -lxalgodustmask -lxalgoseq \
+           -lxalgowinmask -lxalnmgr -lxblast -lxcgi -lxcleanup -lxcompress -lxconnect \
+           -lxflatfile -lxhtml -lxlogging -lxncbi -lxnetblast -lxnetblastcli -lxobjedit \
+           -lxobjmgr -lxobjread -lxobjsimple -lxobjutil -lxqueryparse -lxregexp -lxser -lxutil -lzcf -lz
+
+# Portable POSIX shell evaluation (evaluated dynamically at link time)
+ALL_LOAD    = `uname | grep -q Darwin && echo "-Wl,-all_load"`
+START_GROUP = `uname | grep -q Darwin || echo "-Wl,--start-group"`
+END_GROUP   = `uname | grep -q Darwin || echo "-Wl,--end-group"`
+EXTRA_LIBS  = `uname | grep -q Darwin || echo "-lrt -lunwind"`
+RPATH_FLAGS = `uname | grep -q Darwin && echo "-Wl,-rpath,@loader_path/" || echo "-Wl,-rpath,\$$ORIGIN -Wl,-rpath,@loader_path/"`
+
+PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) \
+           $(LIB_PATHS) $(RPATH_FLAGS) \
+           $(ALL_LOAD) $(START_GROUP) $(QB_LIBS) $(END_GROUP) \
+           $(EXTRA_LIBS)
 
 PKG_CXXFLAGS = -include include/rcpp_workaround.hpp -Ilibsrc $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) -pthread -I/usr/local/src/ -I/usr/include/ -Isrc/include/ -I./BUILD/arrow/cpp/src/ -I./BUILD/arrow/cpp/BUILD/src/ -I./BUILD/ncbi-cxx-toolkit-public/include/ -I./BUILD/ncbi-cxx-toolkit-public/src/ -I./BUILD/ncbi-cxx-toolkit-public/BUILD/inc/
 

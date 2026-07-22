@@ -21,8 +21,7 @@ blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
   strand = 0,
   program = "blastp",
   save_sequences = FALSE,
-  save_hsp_sequences = FALSE,
-  num_threads=24
+  save_hsp_sequences = FALSE
 )
 QuickBLAST::GetInstanceID(
   blastp_inst

@@ -87,8 +87,7 @@ QuickBLAST::BLAST2Files(
   ),
   out_file = "test.arrow",
   return_values = TRUE,
-  min_batch_size = 0,
-  seq_limit = 0
+  min_batch_size = 0
 )
 
 }

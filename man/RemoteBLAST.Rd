@@ -48,6 +48,7 @@ BLAST the input query against remote NCBI DBs (one sequence at a time - to respe
 Check BLAST Guide (\url{https://blast.ncbi.nlm.nih.gov/BLAST_guide.pdf}) and NCBI BLAST (\url{https://blast.ncbi.nlm.nih.gov/Blast.cgi}) (Program -> Choose DB/Search set) for database names.
 }
 \examples{
+\dontrun{
 blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
   seq_type = 1,
   strand = 0,
@@ -67,6 +68,7 @@ QuickBLAST::RemoteBLAST(
   input_type=1,
   return_values=TRUE
 )
+}
 
 }
 \seealso{

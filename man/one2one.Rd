@@ -64,7 +64,7 @@ QuickBLAST::one2one(
   seq_type = 0,
   strand = 0,
   output_dir = "./",
-  n_threads = 8,
+  n_threads = 3,
   blast_program = "tblastx",
   save_sequences = FALSE,
   save_hsp_sequences = FALSE,
