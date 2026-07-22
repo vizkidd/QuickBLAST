@@ -350,7 +350,7 @@ set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
     # --- MAC OS & DEPENDENCY FIXES ---
     "-DCMAKE_PREFIX_PATH=/opt/homebrew;/usr/local;/opt/R/arm64;/opt/R/x86_64"
     "-DARROW_DEPENDENCY_SOURCE=BUNDLED" 
-    "-DBoost_SOURCE=SYSTEM"           # Skip building heavy Boost
+    #"-DBoost_SOURCE=BUNDLED"           # Skip building heavy Boost
     # ------------------------------------    
     "-DCMAKE_CXX_FLAGS=${ARROW_CXX_FLAGS}"
     "-DCMAKE_C_FLAGS=${ARROW_C_FLAGS}"
@@ -855,11 +855,13 @@ elseif(WIN32)
             -DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF
             -DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+            -DCMAKE_OBJECT_PATH_MAX=120
             -DARROW_BUILD_INTEGRATION=OFF
             -DARROW_SIMD_LEVEL=NONE 
           	-DARROW_RUNTIME_SIMD_LEVEL=NONE
           	-DARROW_DEPENDENCY_SOURCE=BUNDLED
-          	-DBoost_SOURCE=SYSTEM          
+          	-DBoost_SOURCE=SYSTEM    
+          	-DZLIB_SOURCE=SYSTEM
           	-DARROW_JEMALLOC=OFF 
           	-DARROW_MIMALLOC=OFF 
           	-DARROW_COMPUTE=OFF 
@@ -892,11 +894,11 @@ elseif(WIN32)
             #-DThrift_SOURCE=BUNDLED
             #-DTHRIFT_BUILD_COMPILER=OFF
             -DARROW_CSV=ON
-            -DARROW_HDFS=ON
+            -DARROW_HDFS=OFF
             -DARROW_VERBOSE_THIRDPARTY_BUILD=ON
             -DARROW_POSITION_INDEPENDENT_CODE=ON
 #            -DARROW_JSON=ON
-            -DARROW_SUBSTRAIT=ON
+            -DARROW_SUBSTRAIT=OFF
             -DARROW_WITH_SNAPPY=ON
 #            -DARROW_WITH_UTF8PROC=ON
             -DARROW_RPATH_ORIGIN=ON
@@ -995,6 +997,7 @@ elseif(WIN32)
         -G 'MSYS Makefiles' \
         -DCMAKE_MAKE_PROGRAM=make \
         -DCMAKE_SYSTEM_NAME=Windows \
+        -DCMAKE_OBJECT_PATH_MAX=120 \
         -DMINGW=1 \
         -DWIN32=1 \
         -DUNIX=0 \
