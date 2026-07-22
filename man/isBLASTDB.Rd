@@ -24,14 +24,13 @@ a character vector of matching \code{files}, and the \code{dir} and \code{name} 
 }
 }
 \examples{
-\dontrun{
 QuickBLAST::MakeBLASTDB(
   blastp_inst,
   system.file(
     "extdata",
     "protein_query.fasta",
     package = "QuickBLAST",
-    mustWork = T
+    mustWork = TRUE
   ),
   "protein_query.db"
 )
@@ -41,11 +40,11 @@ QuickBLAST::isBLASTDB(
       "extdata",
       "protein_query.db.pin",
       package = "QuickBLAST",
-      mustWork = T
+      mustWork = TRUE
     )
   )
 )
-}
+
 }
 \seealso{
 \code{\link[=GetInstanceID]{GetInstanceID()}}, \code{\link[=GetQuickBLASTInstance]{GetQuickBLASTInstance()}}, \code{\link[=MakeBLASTDB]{MakeBLASTDB()}}, \code{\link[=BLAST2DBs]{BLAST2DBs()}}

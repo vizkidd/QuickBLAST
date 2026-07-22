@@ -42,30 +42,29 @@ Runs BLAST using the ptr
 Calls makeblastdb to create a BLAST DB of subject if it is not a DB
 }
 \examples{
-\dontrun{
 blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
   seq_type = 1,
   strand = 0,
   program = "blastp",
-  save_sequences = F,
-  save_hsp_sequences = F
+  save_sequences = FALSE,
+  save_hsp_sequences = FALSE
 )
 QuickBLAST::BLASTFile2DB(
   ptr=blastp_inst,
   query=system.file(
     "extdata","protein_query.fasta",
     package = "QuickBLAST",
-    mustWork = T
+    mustWork = TRUE
   ),
   subject=system.file(
     "extdata",
     "protein_subject.fasta",
     package = "QuickBLAST",
-    mustWork = T
+    mustWork = TRUE
   ),
   num_threads=24,
   out_file="test.db.arrow",
-  return_values = T
+  return_values = TRUE
 )
 QuickBLAST::MakeBLASTDB(
   blastp_inst,
@@ -73,7 +72,7 @@ QuickBLAST::MakeBLASTDB(
     "extdata",
     "protein_subject.fasta",
     package = "QuickBLAST",
-    mustWork = T
+    mustWork = TRUE
   ),
   "protein_subject.db"
 )
@@ -83,9 +82,9 @@ QuickBLAST::BLASTFile2DB(
   subject="protein_subject.db",
   num_threads=24,
   out_file="test.db.arrow",
-  return_values = T
+  return_values = TRUE
 )
-}
+
 }
 \seealso{
 \code{\link[=GetInstanceID]{GetInstanceID()}}, \code{\link[=GetQuickBLASTInstance]{GetQuickBLASTInstance()}}, \code{\link[=MakeBLASTDB]{MakeBLASTDB()}}, \code{\link[=isBLASTDB]{isBLASTDB()}}

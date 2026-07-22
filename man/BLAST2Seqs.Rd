@@ -22,13 +22,12 @@ BLAST2Seqs(ptr, query, subject, verbose = TRUE)
 BLAST 2 nucleotide or protein strings with a QuickBLAST instance.
 }
 \examples{
-\dontrun{
 blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
   seq_type = 1,
   strand = 0,
   program = "blastp",
-  save_sequences = F,
-  save_hsp_sequences = F
+  save_sequences = FALSE,
+  save_hsp_sequences = FALSE
 )
 QuickBLAST::BLAST2Seqs(
   blastp_inst,
@@ -49,7 +48,7 @@ QuickBLAST::BLAST2Seqs(
   NQIVSRDTIITALWDDEAFVSDNTLTVN
   VNRLRKKLSEISMDSAIETKVGKGYMAHE"
 )
-}
+
 }
 \seealso{
 \code{\link[=GetInstanceID]{GetInstanceID()}}, \code{\link[=GetQuickBLASTInstance]{GetQuickBLASTInstance()}}, \code{\link[=BLAST2Files]{BLAST2Files()}}, \code{\link[=BLAST2Seqs]{BLAST2Seqs()}}, \code{\link[=BLAST2Folders]{BLAST2Folders()}}, \code{\link[=BLAST1Folder]{BLAST1Folder()}}, \code{\link[=RemoteBLAST]{RemoteBLAST()}}

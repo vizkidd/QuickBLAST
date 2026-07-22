@@ -198,14 +198,15 @@ if(NOT WIN32)
     else()
         message(STATUS "nghttp2 not found via pkg-config. Attempting manual search for macOS...")
         
-        # Manual fallback for macOS Homebrew / CRAN toolchain paths
         find_path(NGHTTP2_INCLUDE_DIRS 
             NAMES nghttp2/nghttp2.h
             HINTS 
-            /opt/homebrew/include     # macOS Apple Silicon (Homebrew)
-            /usr/local/include        # macOS Intel (Homebrew)
-            /opt/R/arm64/include      # CRAN macOS arm64 toolchain
-            /opt/R/x86_64/include     # CRAN macOS x86_64 toolchain
+            /opt/homebrew/include
+            /usr/local/include
+            /opt/R/arm64/include
+            /opt/R/x86_64/include
+            /opt/homebrew/opt/nghttp2/include   # Added Keg-only paths
+            /usr/local/opt/nghttp2/include
         )
         
         find_library(NGHTTP2_LIBRARIES 
@@ -215,22 +216,15 @@ if(NOT WIN32)
             /usr/local/lib
             /opt/R/arm64/lib
             /opt/R/x86_64/lib
+            /opt/homebrew/opt/nghttp2/lib       # Added Keg-only paths
+            /usr/local/opt/nghttp2/lib
         )
         
         if(NGHTTP2_INCLUDE_DIRS AND NGHTTP2_LIBRARIES)
             set(NGHTTP2_FOUND TRUE)
             message(STATUS "Found nghttp2 manually. Headers: ${NGHTTP2_INCLUDE_DIRS}, Libs: ${NGHTTP2_LIBRARIES}")
         else()
-            message(FATAL_ERROR 
-                "----------------------------------------------------------\n"
-                "Configuration failed: nghttp2 headers or libs were not found!\n\n"
-                "Please install the nghttp2 development package for your OS:\n"
-                "  Debian/Ubuntu:  sudo apt-get install libnghttp2-dev\n"
-                "  Fedora/RHEL:    sudo dnf install libnghttp2-devel\n"
-                "  Alpine:         sudo apk add nghttp2-dev\n"
-                "  macOS:          brew install nghttp2\n"
-                "----------------------------------------------------------"
-            )
+            message(FATAL_ERROR "Configuration failed: nghttp2 headers or libs were not found!")
         endif()
     endif()
     
@@ -347,76 +341,77 @@ set(ARROW_EXE_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
 set(ARROW_LINKER_FLAGS  "-Wl,-rpath,\$ORIGIN -Wl,-rpath,@loader_path/")
 
 
-    execute_process(
+  execute_process(
     COMMAND cmake .. -G "Unix Makefiles" 
     # --- CRAN Policy Compliance Flags ---
     "-DCMAKE_EXPORT_NO_PACKAGE_REGISTRY=ON"
     "-DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF"
     "-DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF"
+    # --- MAC OS & DEPENDENCY FIXES ---
+    "-DCMAKE_PREFIX_PATH=/opt/homebrew;/usr/local;/opt/R/arm64;/opt/R/x86_64"
+    "-DARROW_DEPENDENCY_SOURCE=BUNDLED" 
+    "-DBoost_SOURCE=SYSTEM"           # Skip building heavy Boost
     # ------------------------------------    
     "-DCMAKE_CXX_FLAGS=${ARROW_CXX_FLAGS}"
     "-DCMAKE_C_FLAGS=${ARROW_C_FLAGS}"
     "-DCMAKE_EXE_LINKER_FLAGS=${ARROW_EXE_FLAGS}"
     "-DCMAKE_SHARED_LINKER_FLAGS=${ARROW_LINKER_FLAGS}"
-    -DARROW_SIMD_LEVEL=NONE 
-  	-DARROW_RUNTIME_SIMD_LEVEL=NONE 
-  	-DARROW_JEMALLOC=OFF 
-  	-DARROW_MIMALLOC=OFF 
-  	-DARROW_COMPUTE=OFF 
-  	-DARROW_DATASET=OFF 
-  	-DARROW_JSON=OFF 
-  	-DARROW_WITH_RE2=OFF 
-  	-DARROW_WITH_UTF8PROC=OFF 
-  	-DARROW_BUILD_TESTS=OFF 
-    -DARROW_DEPENDENCY_USE_SHARED=OFF
-    -DARROW_BUILD_SHARED=OFF
-    -DARROW_BUILD_STATIC=ON
-    -DPARQUET_BUILD_SHARED=OFF
-    -DPARQUET_BUILD_STATIC=ON
-    -DARROW_BZ2_USE_SHARED=OFF
-#    -DARROW_COMPUTE=ON
-    -DARROW_PYTHON=OFF
-    -DARROW_CSV=ON
-    -DARROW_DEPENDENCY_SOURCE=BUNDLED
-    -DARROW_ENABLE_THREADING=ON
-    -DARROW_FILESYSTEM=ON
-    -DARROW_HDFS=ON
-    -DARROW_IPC=ON
-#    -DARROW_JEMALLOC=ON
-#    -DARROW_JSON=ON
-    -DARROW_PARQUET=ON
-    -DARROW_POSITION_INDEPENDENT_CODE=ON
-    -DARROW_TENSORFLOW=ON
-    -DARROW_VERBOSE_THIRDPARTY_BUILD=ON
-    -DARROW_WITH_BACKTRACE=ON
-    -DARROW_WITH_BROTLI=ON
-    -DARROW_WITH_BZ2=ON
-    -DARROW_WITH_LZ4=ON
-#    -DARROW_WITH_RE2=ON
-    -DARROW_RPATH_ORIGIN=ON
-    -DARROW_WITH_SNAPPY=ON
-#    -DARROW_WITH_UTF8PROC=ON
-    -DARROW_WITH_ZLIB=OFF
-    -DARROW_WITH_ZSTD=ON
-    -DCMAKE_BUILD_TYPE=release
-    -DBUILD_SHARED_LIBS=OFF
-    -DBUILD_STATIC_LIBS=ON
-    -DCMAKE_SKIP_BUILD_RPATH=FALSE
-    -DCMAKE_BUILD_WITH_INSTALL_RPATH=TRUE
-    -DCMAKE_INSTALL_RPATH="$ORIGIN"
-    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-    -DARROW_BROTLI_USE_SHARED=OFF
-    -DARROW_LZ4_USE_SHARED=OFF
-    -DARROW_ZSTD_USE_SHARED=OFF
-    -DARROW_LLVM_USE_SHARED=OFF
-    -DARROW_LZ4_USE_SHARED=OFF
-    -DARROW_OPENSSL_USE_SHARED=OFF
-    -DARROW_THRIFT_USE_SHARED=OFF
-    -DARROW_UTF8PROC_USE_SHARED=OFF
-    -DARROW_BOOST_USE_SHARED=OFF
-    -DARROW_BROTLI_USE_SHARED=OFF
-    -DARROW_PROTOBUF_USE_SHARED=OFF
-    -DARROW_SNAPPY_USE_SHARED=OFF 
+    "-DARROW_SIMD_LEVEL=NONE" 
+    "-DARROW_RUNTIME_SIMD_LEVEL=NONE" 
+    "-DARROW_JEMALLOC=OFF" 
+    "-DARROW_MIMALLOC=OFF" 
+    "-DARROW_COMPUTE=OFF" 
+    "-DARROW_DATASET=OFF" 
+    "-DARROW_JSON=OFF" 
+    "-DARROW_WITH_RE2=OFF" 
+    "-DARROW_WITH_UTF8PROC=OFF" 
+    "-DARROW_BUILD_TESTS=OFF" 
+    "-DARROW_DEPENDENCY_USE_SHARED=OFF"
+    "-DARROW_BUILD_SHARED=OFF"
+    "-DARROW_BUILD_STATIC=ON"
+    "-DPARQUET_BUILD_SHARED=OFF"
+    "-DPARQUET_BUILD_STATIC=ON"
+    "-DARROW_PYTHON=OFF"
+    "-DARROW_CSV=ON"
+    "-DARROW_ENABLE_THREADING=ON"
+    "-DARROW_FILESYSTEM=ON"
+    "-DARROW_IPC=ON"
+    "-DARROW_PARQUET=ON"
+    "-DARROW_POSITION_INDEPENDENT_CODE=ON"
+    "-DARROW_VERBOSE_THIRDPARTY_BUILD=ON"
+    "-DARROW_WITH_BROTLI=ON"
+    "-DARROW_WITH_BZ2=ON"
+    "-DARROW_WITH_LZ4=ON"
+    "-DARROW_RPATH_ORIGIN=ON"
+    "-DARROW_WITH_SNAPPY=ON"
+    "-DARROW_WITH_ZLIB=OFF"
+    "-DARROW_WITH_ZSTD=ON"
+    "-DCMAKE_BUILD_TYPE=Release"
+    "-DBUILD_SHARED_LIBS=OFF"
+    "-DBUILD_STATIC_LIBS=ON"
+    "-DCMAKE_SKIP_BUILD_RPATH=FALSE"
+    "-DCMAKE_BUILD_WITH_INSTALL_RPATH=TRUE"
+    "-DCMAKE_INSTALL_RPATH=$ORIGIN"
+    "-DCMAKE_POSITION_INDEPENDENT_CODE=ON"
+    
+    # --- UNNECESSARY HEAVYWEIGHTS DISABLED FOR SPEED ---
+    "-DARROW_TENSORFLOW=OFF"
+    "-DARROW_HDFS=OFF"
+    "-DARROW_WITH_BACKTRACE=OFF"
+
+    # --- ENFORCE STATIC LINKING FOR CRAN ---
+    "-DARROW_BROTLI_USE_SHARED=OFF"
+    "-DARROW_LZ4_USE_SHARED=OFF"
+    "-DARROW_ZSTD_USE_SHARED=OFF"
+    "-DARROW_LLVM_USE_SHARED=OFF"
+    "-DARROW_OPENSSL_USE_SHARED=OFF"
+    "-DARROW_THRIFT_USE_SHARED=OFF"
+    "-DARROW_UTF8PROC_USE_SHARED=OFF"
+    "-DARROW_BOOST_USE_SHARED=OFF"
+    "-DARROW_PROTOBUF_USE_SHARED=OFF"
+    "-DARROW_SNAPPY_USE_SHARED=OFF"
+    "-DARROW_BZ2_USE_SHARED=OFF"
+    
     WORKING_DIRECTORY ${PRJ_ROOT_DIR}/src/BUILD/arrow/cpp/BUILD
     COMMAND_ERROR_IS_FATAL ANY
     )
@@ -862,7 +857,9 @@ elseif(WIN32)
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON
             -DARROW_BUILD_INTEGRATION=OFF
             -DARROW_SIMD_LEVEL=NONE 
-          	-DARROW_RUNTIME_SIMD_LEVEL=NONE 
+          	-DARROW_RUNTIME_SIMD_LEVEL=NONE
+          	-DARROW_DEPENDENCY_SOURCE=BUNDLED
+          	-DBoost_SOURCE=SYSTEM          
           	-DARROW_JEMALLOC=OFF 
           	-DARROW_MIMALLOC=OFF 
           	-DARROW_COMPUTE=OFF 
@@ -880,19 +877,15 @@ elseif(WIN32)
             -DARROW_BUILD_STATIC=ON
             -DBUILD_SHARED_LIBS=OFF
             -DBUILD_STATIC_LIBS=ON
-            -DPARQUET_MINIMAL_DEPENDENCY=OFF
+#            -DPARQUET_MINIMAL_DEPENDENCY=ON
             -DARROW_WITH_BROTLI=ON
 #            -DARROW_WITH_RE2=OFF
             -DARROW_WITH_ZLIB=ON
             -DARROW_WITH_ZSTD=ON
             -DARROW_IPC=ON
             -DARROW_FILESYSTEM=ON
-#            -DARROW_COMPUTE=ON
             -DARROW_PYTHON=OFF
             -DARROW_ENABLE_THREADING=ON
-#            -DARROW_MIMALLOC=OFF
-            -DARROW_JEMALLOC=OFF
-#            -DARROW_DATASET=OFF
             -DARROW_ACERO=OFF
             -DARROW_PARQUET=ON
             #-DARROW_WITH_THRIFT=ON

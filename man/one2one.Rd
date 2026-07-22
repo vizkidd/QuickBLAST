@@ -57,7 +57,6 @@ If \code{return_values = TRUE}, returns a list of data frames corresponding to e
 Executes One-to-One QuickBLAST between two lists of organisms/genes/clusters. The BLAST Hits are stored in Arrow::Feather/Parquet format.
 }
 \examples{
-\donttest{
 QuickBLAST::one2one(
   first_list = fs::path_package("QuickBLAST", "extdata", "protein_query.fasta"),
   second_list = fs::path_package("QuickBLAST", "extdata", "protein_subject.fasta"),
@@ -75,7 +74,6 @@ QuickBLAST::one2one(
   blast_options = "",
   verbose = TRUE
 )
-}
 
 }
 \seealso{

@@ -22,20 +22,19 @@ SetQuickBLASTOptions(ptr, program_name, options, verbose = TRUE)
 Set/Modify the BLAST options for a QuickBLAST instance.
 }
 \examples{
-\dontrun{
 blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
   seq_type = 1,
   strand = 0,
   program = "tblastn",
-  save_sequences = F,
-  save_hsp_sequences = F
+  save_sequences = FALSE,
+  save_hsp_sequences = FALSE
 )
 QuickBLAST::SetQuickBLASTOptions(
   blastp_inst,
   "blastp",
   "-evalue 1"
 )
-}
+
 }
 \seealso{
 \code{\link[=GetAvailableBLASTOptions]{GetAvailableBLASTOptions()}}, \code{\link[=GetQuickBLASTEnums]{GetQuickBLASTEnums()}}

@@ -7,7 +7,7 @@ OBJECTS = run_cmake_superbuild.o
 # Standard definitions (No GNU extensions allowed here)
 PKG_CPPFLAGS = -DARROW_STATIC -DPARQUET_STATIC -DLIBICONV_STATIC 
 PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -include include/rcpp_workaround.hpp
-PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS)
+PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) 
 
 # 2. The Superbuild engine
 run_cmake_superbuild.o:

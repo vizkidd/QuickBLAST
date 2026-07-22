@@ -57,7 +57,6 @@ If \code{return_values = TRUE}, returns a list of data frames corresponding to e
 Executes All-to-All QuickBLAST between two lists of organisms/genes/clusters. Output BLAST files are bi-directional and are stored in the filename filename1.filename2.all2all under output_dir. (All-to-All is simply Many-to-Many association)
 }
 \examples{
-\donttest{
 QuickBLAST::all2all(
   first_list = fs::path_package("QuickBLAST", "extdata", "protein_query.fasta"),
   second_list = fs::path_package("QuickBLAST", "extdata", "protein_subject.fasta"),
@@ -75,7 +74,6 @@ QuickBLAST::all2all(
   blast_options = "",
   verbose = TRUE
 )
-}
 
 }
 \seealso{

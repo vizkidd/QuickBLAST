@@ -48,13 +48,12 @@ BLAST the input query against remote NCBI DBs (one sequence at a time - to respe
 Check BLAST Guide (\url{https://blast.ncbi.nlm.nih.gov/BLAST_guide.pdf}) and NCBI BLAST (\url{https://blast.ncbi.nlm.nih.gov/Blast.cgi}) (Program -> Choose DB/Search set) for database names.
 }
 \examples{
-\dontrun{
 blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
   seq_type = 1,
   strand = 0,
   program = "blastp",
-  save_sequences = F,
-  save_hsp_sequences = F
+  save_sequences = FALSE,
+  save_hsp_sequences = FALSE
 )
 QuickBLAST::RemoteBLAST(
   blastp_inst,
@@ -66,9 +65,9 @@ QuickBLAST::RemoteBLAST(
   DEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE",
   database= "pdb",
   input_type=1,
-  return_values=T
+  return_values=TRUE
 )
-}
+
 }
 \seealso{
 \code{\link[=GetInstanceID]{GetInstanceID()}}, \code{\link[=GetQuickBLASTInstance]{GetQuickBLASTInstance()}}, \code{\link[=BLAST2Files]{BLAST2Files()}}, \code{\link[=BLAST2Seqs]{BLAST2Seqs()}}, \code{\link[=BLAST2Folders]{BLAST2Folders()}}, \code{\link[=BLAST1Folder]{BLAST1Folder()}}, \code{\link[=RemoteBLAST]{RemoteBLAST()}}

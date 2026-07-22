@@ -45,13 +45,12 @@ BLAST 2 FASTA files containing nucleotide or protein sequences with a QuickBLAST
 Only FASTA files are supported by this function, use \code{\link[=BLAST2DBs]{BLAST2DBs()}} if inputs are BLAST DBs.
 }
 \examples{
-\dontrun{
 blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
   seq_type = 1,
   strand = 0,
   program = "blastp",
-  save_sequences = F,
-  save_hsp_sequences = F
+  save_sequences = FALSE,
+  save_hsp_sequences = FALSE
 )
 QuickBLAST::BLAST2Files(
   ptr = blastp_inst,
@@ -59,17 +58,17 @@ QuickBLAST::BLAST2Files(
     "extdata",
     "protein_query.fasta",
     package = "QuickBLAST",
-    mustWork = T
+    mustWork = TRUE
   ),
   subject = system.file(
     "extdata",
     "protein_subject.fasta",
     package = "QuickBLAST",
-    mustWork = T
+    mustWork = TRUE
   ),
   out_file = "test.arrow",
   out_format = "parquet",
-  return_values = F,
+  return_values = FALSE,
   min_batch_size = 1024
 )
 QuickBLAST::BLAST2Files(
@@ -78,20 +77,20 @@ QuickBLAST::BLAST2Files(
     "extdata",
     "protein_query.fasta",
     package = "QuickBLAST",
-    mustWork = T
+    mustWork = TRUE
   ),
   subject = system.file(
     "extdata",
     "protein_subject.fasta",
     package = "QuickBLAST",
-    mustWork = T
+    mustWork = TRUE
   ),
   out_file = "test.arrow",
-  return_values = T,
+  return_values = TRUE,
   min_batch_size = 0,
   seq_limit = 0
 )
-}
+
 }
 \seealso{
 \code{\link[=GetInstanceID]{GetInstanceID()}}, \code{\link[=GetQuickBLASTInstance]{GetQuickBLASTInstance()}}, \code{\link[=BLAST2Files]{BLAST2Files()}}, \code{\link[=BLAST2DBs]{BLAST2DBs()}}, \code{\link[=BLAST2Seqs]{BLAST2Seqs()}}, \code{\link[=BLAST2Folders]{BLAST2Folders()}}, \code{\link[=BLAST1Folder]{BLAST1Folder()}}, \code{\link[=RemoteBLAST]{RemoteBLAST()}}

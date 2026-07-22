@@ -18,17 +18,16 @@ GetFASTAHeaders(path, keep_gt = FALSE)
 Get the header strings of a FASTA file as a String Vector
 }
 \examples{
-\dontrun{
 QuickBLAST::GetFASTAHeaders(
   system.file(
     "extdata",
     "protein_query.fasta",
     package = "QuickBLAST",
-    mustWork = T
+    mustWork = TRUE
   ),
-  keep_gt = F
+  keep_gt = FALSE
 )
-}
+
 }
 \seealso{
 \code{\link[=MakeBLASTDB]{MakeBLASTDB()}}, \code{\link[=isBLASTDB]{isBLASTDB()}}

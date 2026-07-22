@@ -230,7 +230,6 @@ LoadBLASTHits <- function(infile, sep = "\t", header = F, format = "parquet") {
 #' Executes One-to-One QuickBLAST between two lists of organisms/genes/clusters. The BLAST Hits are stored in Arrow::Feather/Parquet format.
 #'
 #' @examples
-#' \donttest{
 #' QuickBLAST::one2one(
 #'   first_list = fs::path_package("QuickBLAST", "extdata", "protein_query.fasta"),
 #'   second_list = fs::path_package("QuickBLAST", "extdata", "protein_subject.fasta"),
@@ -248,7 +247,6 @@ LoadBLASTHits <- function(infile, sep = "\t", header = F, format = "parquet") {
 #'   blast_options = "",
 #'   verbose = TRUE
 #' )
-#' }
 #'
 #' @seealso [QuickBLAST::GetAvailableBLASTOptions()], [QuickBLAST::GetQuickBLASTEnums()]
 #' @param first_list Vector of FASTA Filenames or Strings
@@ -383,7 +381,6 @@ one2one <- function(first_list, second_list, blast_fun, seq_type, strand, blast_
 #' Executes All-to-All QuickBLAST between two lists of organisms/genes/clusters. Output BLAST files are bi-directional and are stored in the filename filename1.filename2.all2all under output_dir. (All-to-All is simply Many-to-Many association)
 #'
 #' @examples
-#' \donttest{
 #' QuickBLAST::all2all(
 #'   first_list = fs::path_package("QuickBLAST", "extdata", "protein_query.fasta"),
 #'   second_list = fs::path_package("QuickBLAST", "extdata", "protein_subject.fasta"),
@@ -401,7 +398,6 @@ one2one <- function(first_list, second_list, blast_fun, seq_type, strand, blast_
 #'   blast_options = "",
 #'   verbose = TRUE
 #' )
-#' }
 #'
 #' @seealso [QuickBLAST::GetAvailableBLASTOptions()], [QuickBLAST::GetQuickBLASTEnums()]
 #' @param first_list Vector of FASTA Filenames or Strings

@@ -36,15 +36,14 @@ Create a new QuickBLAST C++ object with seq_type, strand, program and BLAST opti
 Set save_sequences AND/OR save_hsp_sequences when using Genomes
 }
 \examples{
-\donttest{
 blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
   seq_type = 1,
   strand = 0,
   program = "blastp",
-  save_sequences = F,
-  save_hsp_sequences = F
+  save_sequences = FALSE,
+  save_hsp_sequences = FALSE
 )
-}
+
 }
 \seealso{
 \code{\link[=GetAvailableBLASTOptions]{GetAvailableBLASTOptions()}}, \code{\link[=GetQuickBLASTEnums]{GetQuickBLASTEnums()}}, \code{\link[=BLAST2Files]{BLAST2Files()}}, \code{\link[=BLAST2Seqs]{BLAST2Seqs()}}, \code{\link[=BLAST2Folders]{BLAST2Folders()}}, \code{\link[=BLAST1Folder]{BLAST1Folder()}}, \code{\link[=RemoteBLAST]{RemoteBLAST()}}

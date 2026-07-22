@@ -16,18 +16,17 @@ TRUE - if the instance is deleted successfully, throws error otherwise
 This function deletes a QuickBLAST instance based on the instance ID
 }
 \examples{
-\dontrun{
 blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
   seq_type = 1,
   strand = 0,
   program = "blastp",
-  save_sequences = F,
-  save_hsp_sequences = F
+  save_sequences = FALSE,
+  save_hsp_sequences = FALSE
 )
 QuickBLAST::DeleteQuickBLASTInstance(
   QuickBLAST::GetInstanceID(
     blastp_inst
   )
 )
-}
+
 }

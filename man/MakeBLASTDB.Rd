@@ -25,13 +25,12 @@ Calls makeblastdb to create a BLAST DB of a FASTA file
 Faitful re-implementation of makeblastdb seemed pointless, hence the system.call() to a the program.
 }
 \examples{
-\dontrun{
 blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
   seq_type = 1,
   strand = 0,
   program = "blastp",
-  save_sequences = F,
-  save_hsp_sequences = F
+  save_sequences = FALSE,
+  save_hsp_sequences = FALSE
 )
 QuickBLAST::MakeBLASTDB(
   blastp_inst,
@@ -39,7 +38,7 @@ QuickBLAST::MakeBLASTDB(
     "extdata",
     "protein_query.fasta",
     package = "QuickBLAST",
-    mustWork = T
+    mustWork = TRUE
   ),
   "protein_query.db"
 )
@@ -49,7 +48,7 @@ QuickBLAST::MakeBLASTDB(
     "extdata",
     "protein_subject.fasta",
     package = "QuickBLAST",
-    mustWork = T
+    mustWork = TRUE
   ),
   "protein_subject.db"
 )
@@ -59,9 +58,9 @@ QuickBLAST::BLAST2DBs(
   subject="protein_subject.db",
   num_threads=24,
   out_file="test.db.arrow",
-  return_values = T
+  return_values = TRUE
 )
-}
+
 }
 \seealso{
 \code{\link[=GetInstanceID]{GetInstanceID()}}, \code{\link[=GetQuickBLASTInstance]{GetQuickBLASTInstance()}}, \code{\link[=BLAST2DBs]{BLAST2DBs()}}, \code{\link[=isBLASTDB]{isBLASTDB()}}
