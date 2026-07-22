@@ -11,18 +11,17 @@ PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS)
 
 # 2. The Superbuild engine
 run_cmake_superbuild.o:
-	@mkdir -p /tmp/qb_bld
-	@cd /tmp/qb_bld && \
+	@mkdir -p ./BUILD
+	@cd ./BUILD && \
 	RTOOLS_DIR_RAW=`"$(R_HOME)/bin/Rscript" -e "cat(Sys.getenv(paste0('RTOOLS', R.version[['major']], unlist(strsplit(R.version[['minor']], '.', fixed=TRUE))[1], '_HOME')))"` && \
 	RTOOLS_DIR=`echo "$$RTOOLS_DIR_RAW" | tr '\\\\' '/'` && \
 	GCC_VER=`gcc -dumpversion | tr -d '[:space:]'` && \
 	CUR_DIR=`pwd` && \
-	export PATH="$$RTOOLS_DIR/x86_64-w64-mingw32.static.posix/bin:$$RTOOLS_DIR/usr/bin:$$PATH" && \
+	export PATH="$$RTOOLS_DIR/x86_64-w64-mingw32.static.posix/bin:$$RTOOLS_DIR/usr/bin:$$CUR_DIR/./BUILD/ncbi-cxx-toolkit-public/BUILD/bin:$$PATH" && \
 	unset CC && unset CXX && \
-	cmake "$(CURDIR)/tools" -G "MSYS Makefiles" \
+	cmake ../../tools -G "MSYS Makefiles" \
 		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_OBJECT_PATH_MAX=120 \
-		-DCMAKE_BUILD_TYPE=Release \
 		-DR_ARCH="$(R_ARCH)" \
 		-DCMAKE_C_COMPILER=gcc.exe \
 		-DCMAKE_CXX_COMPILER=g++.exe \
