@@ -303,7 +303,7 @@ BLAST2Seqs <- function(ptr, query, subject, verbose = TRUE) {
 #'     package = "QuickBLAST",
 #'     mustWork = TRUE
 #'   ),
-#'   extension = "fasta"
+#'   extension = "fasta",
 #'   out_folder = tempdir(),
 #'   out_format = "parquet",
 #'   reciprocal_hits = TRUE,
@@ -349,7 +349,7 @@ BLAST2Folders <- function(ptr, query, subject, extension, out_folder, out_format
 #'     package = "QuickBLAST",
 #'     mustWork = TRUE
 #'   ),
-#'   extension = "fasta"
+#'   extension = "fasta",
 #'   out_folder = tempdir(),
 #'   out_format = "parquet",
 #'   reciprocal_hits = TRUE,

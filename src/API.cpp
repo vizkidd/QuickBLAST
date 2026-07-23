@@ -1507,7 +1507,7 @@ SEXP BLAST2Seqs(SEXP ptr, SEXP query, SEXP subject, bool verbose = true)
 //'     package = "QuickBLAST",
 //'     mustWork = TRUE
 //'   ),
-//'   extension = "fasta"
+//'   extension = "fasta",
 //'   out_folder = tempdir(),
 //'   out_format = "parquet",
 //'   reciprocal_hits = TRUE,
@@ -1663,7 +1663,7 @@ bool BLAST2Folders(SEXP ptr, SEXP query, SEXP subject, SEXP extension, SEXP out_
 //'     package = "QuickBLAST",
 //'     mustWork = TRUE
 //'   ),
-//'   extension = "fasta"
+//'   extension = "fasta",
 //'   out_folder = tempdir(),
 //'   out_format = "parquet",
 //'   reciprocal_hits = TRUE,

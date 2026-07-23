@@ -9,24 +9,11 @@ PKG_CPPFLAGS = -DARROW_STATIC -DPARQUET_STATIC -DLIBICONV_STATIC
 PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -include include/rcpp_workaround.hpp
 PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) 
 
-RTOOLS_DIR_RAW=`"$(R_HOME)/bin/Rscript" -e "\
-  val <- Sys.getenv(paste0('RTOOLS', R.version\$$major, sub('\\\\..*', '', R.version\$$minor), '_HOME')); \
-  if (!nzchar(val)) { \
-    rt <- grep('^RTOOLS[0-9]+_HOME$$', names(Sys.getenv()), value = TRUE); \
-    if (length(rt) > 0) { \
-      val <- Sys.getenv(sort(rt, decreasing = TRUE)[1]); \
-    } else if (nzchar(mk <- Sys.which('make'))) { \
-      val <- dirname(dirname(mk)); \
-    } else { \
-      val <- 'C:/rtools45'; \
-    } \
-  }; \
-  cat(val)"`
-
 # 2. The Superbuild engine
 run_cmake_superbuild.o:
-  @mkdir -p ./BUILD
-  @cd ./BUILD && \
+	@mkdir -p ./BUILD
+	@cd ./BUILD && \
+	RTOOLS_DIR_RAW=`"$(R_HOME)/bin/Rscript" -e "e<-Sys.getenv();v<-e[grep('^RTOOLS.*_HOME$$',names(e))];v<-v[nzchar(v)];cat(if(length(v))v[order(names(v),decreasing=TRUE)][1] else if(nzchar(m<-Sys.which('make'))) dirname(dirname(m)) else 'C:/rtools45')"` && \
 	RTOOLS_DIR=`echo "$$RTOOLS_DIR_RAW" | tr '\\\\' '/'` && \
 	GCC_VER=`gcc -dumpversion | tr -d '[:space:]'` && \
 	CUR_DIR=`pwd` && \

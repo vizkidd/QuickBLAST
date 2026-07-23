@@ -59,7 +59,7 @@ QuickBLAST::BLAST1Folder(
     package = "QuickBLAST",
     mustWork = TRUE
   ),
-  extension = "fasta"
+  extension = "fasta",
   out_folder = tempdir(),
   out_format = "parquet",
   reciprocal_hits = TRUE,
