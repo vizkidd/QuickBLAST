@@ -60,6 +60,9 @@ QuickBLAST::BLAST2DBs(
   out_file="test.db.arrow",
   return_values = TRUE
 )
+unlink("protein_query.db.*")
+unlink("protein_subject.db.*")
+unlink("test.db.arrow")
 
 }
 \seealso{

@@ -362,6 +362,7 @@ BLAST1Folder <- function(ptr, input_folder, extension, out_folder, out_format = 
 #'   return_values = TRUE,
 #'   min_batch_size = 0
 #' )
+#' unlink("test.arrow")
 #' 
 #' @export
 BLAST2Files <- function(ptr, query, subject, out_file = NULL, out_format = NULL, num_threads = 0L, return_values = TRUE, min_batch_size = 0L, verbose = TRUE) {
@@ -431,6 +432,13 @@ RemoteBLAST <- function(ptr, database, query_input, input_type, outFile = NULL, 
 #' @param input_db character(1) path to db (path + name) or a bare name (current directory assumed)
 #' @return list with keys: is_db (logical), type (string), files (character vector), dir (string), name (string), message (string)
 #' @examples
+#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+#'   seq_type = 1,
+#'   strand = 0,
+#'   program = "blastp",
+#'   save_sequences = FALSE,
+#'   save_hsp_sequences = FALSE
+#' )
 #' QuickBLAST::MakeBLASTDB(
 #'   blastp_inst,
 #'   system.file(
@@ -442,15 +450,12 @@ RemoteBLAST <- function(ptr, database, query_input, input_type, outFile = NULL, 
 #'   "protein_query.db"
 #' )
 #' QuickBLAST::isBLASTDB(
+#'   blastp_inst,
 #'   tools::file_path_sans_ext(
-#'     system.file(
-#'       "extdata",
-#'       "protein_query.db.pin",
-#'       package = "QuickBLAST",
-#'       mustWork = TRUE
-#'     )
+#'     "protein_query.db.pin"
 #'   )
 #' )
+#' unlink("protein_query.db.*")
 #' 
 #' @export
 isBLASTDB <- function(ptr, input_db) {
@@ -507,6 +512,9 @@ isBLASTDB <- function(ptr, input_db) {
 #'   out_file="test.db.arrow",
 #'   return_values = TRUE
 #' )
+#' unlink("protein_query.db.*")
+#' unlink("protein_subject.db.*")
+#' unlink("test.db.arrow")
 #' 
 #' @export
 MakeBLASTDB <- function(ptr, input_file, database_name, parse_seqids = FALSE) {
@@ -542,24 +550,6 @@ MakeBLASTDB <- function(ptr, input_file, database_name, parse_seqids = FALSE) {
 #'   save_sequences = FALSE,
 #'   save_hsp_sequences = FALSE
 #' )
-#' QuickBLAST::BLAST2DBs(
-#'   ptr=blastp_inst,
-#'   query=system.file(
-#'     "extdata",
-#'     "protein_query.fasta",
-#'     package = "QuickBLAST",
-#'     mustWork = TRUE
-#'   ),
-#'   subject=system.file(
-#'     "extdata",
-#'     "protein_subject.fasta",
-#'     package = "QuickBLAST",
-#'     mustWork = TRUE
-#'   ),
-#'   num_threads=24,
-#'   out_file="test.db.arrow",
-#'   return_values = TRUE
-#' )
 #' QuickBLAST::MakeBLASTDB(
 #'   blastp_inst,
 #'   system.file(
@@ -588,6 +578,9 @@ MakeBLASTDB <- function(ptr, input_file, database_name, parse_seqids = FALSE) {
 #'   out_file="test.db.arrow",
 #'   return_values = TRUE
 #' )
+#' unlink("protein_query.db.*")
+#' unlink("protein_subject.db.*")
+#' unlink("test.db.arrow")
 #' 
 #' @export
 BLAST2DBs <- function(ptr, query, subject, out_file = NULL, out_format = NULL, num_threads = 0L, refresh_db = FALSE, return_values = TRUE, min_batch_size = 0L, enable_chunking = FALSE, chunk_size = 50000L, overlap = 1000L, verbose = TRUE) {
@@ -632,23 +625,6 @@ GetFASTAHeaders <- function(path, keep_gt = FALSE) {
 #'   save_sequences = FALSE,
 #'   save_hsp_sequences = FALSE
 #' )
-#' QuickBLAST::BLASTFile2DB(
-#'   ptr=blastp_inst,
-#'   query=system.file(
-#'     "extdata","protein_query.fasta",
-#'     package = "QuickBLAST",
-#'     mustWork = TRUE
-#'   ),
-#'   subject=system.file(
-#'     "extdata",
-#'     "protein_subject.fasta",
-#'     package = "QuickBLAST",
-#'     mustWork = TRUE
-#'   ),
-#'   num_threads=24,
-#'   out_file="test.db.arrow",
-#'   return_values = TRUE
-#' )
 #' QuickBLAST::MakeBLASTDB(
 #'   blastp_inst,
 #'   system.file(
@@ -661,15 +637,18 @@ GetFASTAHeaders <- function(path, keep_gt = FALSE) {
 #' )
 #' QuickBLAST::BLASTFile2DB(
 #'   ptr=blastp_inst,
-#'   query="protein_query.fasta",
+#'   query=system.file(
+#'     "extdata",
+#'     "protein_query.fasta",
+#'     package = "QuickBLAST",
+#'     mustWork = TRUE
+#'   ),
 #'   subject="protein_subject.db",
 #'   num_threads=24,
 #'   out_file="test.db.arrow",
 #'   return_values = TRUE
 #' )
-#' unlink("protein_query.db.*")
 #' unlink("protein_subject.db.*")
-#' unlink("test.arrow")
 #' unlink("test.db.arrow")
 #' 
 #' @export

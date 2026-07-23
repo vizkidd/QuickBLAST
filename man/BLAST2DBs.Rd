@@ -61,24 +61,6 @@ blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
   save_sequences = FALSE,
   save_hsp_sequences = FALSE
 )
-QuickBLAST::BLAST2DBs(
-  ptr=blastp_inst,
-  query=system.file(
-    "extdata",
-    "protein_query.fasta",
-    package = "QuickBLAST",
-    mustWork = TRUE
-  ),
-  subject=system.file(
-    "extdata",
-    "protein_subject.fasta",
-    package = "QuickBLAST",
-    mustWork = TRUE
-  ),
-  num_threads=24,
-  out_file="test.db.arrow",
-  return_values = TRUE
-)
 QuickBLAST::MakeBLASTDB(
   blastp_inst,
   system.file(
@@ -107,6 +89,9 @@ QuickBLAST::BLAST2DBs(
   out_file="test.db.arrow",
   return_values = TRUE
 )
+unlink("protein_query.db.*")
+unlink("protein_subject.db.*")
+unlink("test.db.arrow")
 
 }
 \seealso{

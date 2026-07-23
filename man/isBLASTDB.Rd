@@ -24,6 +24,13 @@ a character vector of matching \code{files}, and the \code{dir} and \code{name} 
 }
 }
 \examples{
+blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+  seq_type = 1,
+  strand = 0,
+  program = "blastp",
+  save_sequences = FALSE,
+  save_hsp_sequences = FALSE
+)
 QuickBLAST::MakeBLASTDB(
   blastp_inst,
   system.file(
@@ -35,15 +42,12 @@ QuickBLAST::MakeBLASTDB(
   "protein_query.db"
 )
 QuickBLAST::isBLASTDB(
+  blastp_inst,
   tools::file_path_sans_ext(
-    system.file(
-      "extdata",
-      "protein_query.db.pin",
-      package = "QuickBLAST",
-      mustWork = TRUE
-    )
+    "protein_query.db.pin"
   )
 )
+unlink("protein_query.db.*")
 
 }
 \seealso{

@@ -89,6 +89,7 @@ QuickBLAST::BLAST2Files(
   return_values = TRUE,
   min_batch_size = 0
 )
+unlink("test.arrow")
 
 }
 \seealso{

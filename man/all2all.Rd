@@ -30,7 +30,7 @@ all2all(
 
 \item{blast_program}{Give the name of the BLAST program to use (if in $PATH) or give the absolute path to the BLAST program.}
 
-\item{file_ext}{File extension of input files. eg- ".cds" or ".fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString}
+\item{file_ext}{File extension of input files. eg- ".cds" or ".fa"}
 
 \item{input_prefix_path}{If input lists/vectors are filenames, then provide input folder to prefix path}
 
@@ -64,7 +64,7 @@ QuickBLAST::all2all(
   seq_type = 0,
   strand = 0,
   output_dir = "./",
-  n_threads = 3,
+  n_threads = 1,
   blast_program = "tblastx",
   save_sequences = FALSE,
   save_hsp_sequences = FALSE,

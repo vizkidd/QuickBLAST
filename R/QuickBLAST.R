@@ -237,7 +237,7 @@ LoadBLASTHits <- function(infile, sep = "\t", header = F, format = "parquet") {
 #'   seq_type = 0,
 #'   strand = 0,
 #'   output_dir = "./",
-#'   n_threads = 8,
+#'   n_threads = 1,
 #'   blast_program = "tblastx",
 #'   save_sequences = FALSE,
 #'   save_hsp_sequences = FALSE,
@@ -255,7 +255,7 @@ LoadBLASTHits <- function(infile, sep = "\t", header = F, format = "parquet") {
 #' @param seq_type (int) Sequence Type. Check QuickBLAST::GetQuickBLASTEnums()$ESeqType for available enums.
 #' @param strand (int) Strand. Check QuickBLAST::GetQuickBLASTEnums()$EStrand for available enums.
 #' @param blast_program Give the name of the BLAST program to use (if in $PATH) or give the absolute path to the BLAST program.
-#' @param file_ext File extension of input files. eg- ".cds" or ".fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString
+#' @param file_ext File extension of input files. eg- ".cds" or ".fa"
 #' @param input_prefix_path If input lists/vectors are filenames, then provide input folder to prefix path
 #' @param output_dir Path to BLAST output
 #' @param ... Extended options passed to internal functions, including:
@@ -335,12 +335,12 @@ one2one <- function(first_list, second_list, blast_fun, seq_type, strand, blast_
   future.apply::future_lapply(seq_len(nrow(list_combos)), function(idx) {
     x <- toString(list_combos[idx, 1])
     y <- toString(list_combos[idx, 2])
-    if (input_type == QuickBLAST::GetQuickBLASTEnums()$EInputType$eFile) {
-      if (!all(file.exists(x), file.exists(y), file.info(x)$size > 0, file.info(y)$size > 0)) {
-        warning(paste(x, "or", y, "missing/empty and input_type is EInputType$eFile, assuming input to be sequences!", sep = " "))
-        input_type <- 1
-      }
-    }
+    # if (input_type == QuickBLAST::GetQuickBLASTEnums()$EInputType$eFile) {
+    #   if (!all(file.exists(x), file.exists(y), file.info(x)$size > 0, file.info(y)$size > 0)) {
+    #     warning(paste(x, "or", y, "missing/empty and input_type is EInputType$eFile, assuming input to be sequences!", sep = " "))
+    #     input_type <- 1
+    #   }
+    # }
     if (verbose) {
       print(x)
       print(y)
@@ -388,7 +388,7 @@ one2one <- function(first_list, second_list, blast_fun, seq_type, strand, blast_
 #'   seq_type = 0,
 #'   strand = 0,
 #'   output_dir = "./",
-#'   n_threads = 8,
+#'   n_threads = 1,
 #'   blast_program = "tblastx",
 #'   save_sequences = FALSE,
 #'   save_hsp_sequences = FALSE,
@@ -406,7 +406,7 @@ one2one <- function(first_list, second_list, blast_fun, seq_type, strand, blast_
 #' @param seq_type (int) Sequence Type. Check QuickBLAST::GetQuickBLASTEnums()$ESeqType for available enums.
 #' @param strand (int) Strand. Check QuickBLAST::GetQuickBLASTEnums()$EStrand for available enums.
 #' @param blast_program Give the name of the BLAST program to use (if in $PATH) or give the absolute path to the BLAST program.
-#' @param file_ext File extension of input files. eg- ".cds" or ".fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString
+#' @param file_ext File extension of input files. eg- ".cds" or ".fa"
 #' @param input_prefix_path If input lists/vectors are filenames, then provide input folder to prefix path
 #' @param output_dir Path to BLAST output
 #' @param ... Extended options passed to internal functions, including:
