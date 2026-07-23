@@ -32,7 +32,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">QuickBLAST</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.99.5</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.99.9</span>
       </span>
     </div>
 
@@ -72,7 +72,7 @@
                         <h4 data-toc-skip class="author">Vishvesh
 Karthik</h4>
             
-            <h4 data-toc-skip class="date">2026-07-13</h4>
+            <h4 data-toc-skip class="date">2026-07-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/vizkidd/QuickBLAST/blob/main/vignettes/QuickBLAST.Rmd" class="external-link"><code>vignettes/QuickBLAST.Rmd</code></a></small>
       <div class="hidden name"><code>QuickBLAST.Rmd</code></div>
@@ -103,7 +103,7 @@ open in memory.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/vizkidd/QuickBLAST" class="external-link">QuickBLAST</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt;  QuickBLAST Loaded!</span></span>
-<span><span class="co">#&gt;  Version: 1.99.5</span></span>
+<span><span class="co">#&gt;  Version: 1.99.9</span></span>
 <span><span class="co">#&gt;  Github: https://github.com/vizkidd/QuickBLAST</span></span>
 <span></span>
 <span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/isQuickBLASTLoaded.html">isQuickBLASTLoaded</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -124,7 +124,7 @@ open in memory.</p>
 <span></span>
 <span><span class="co"># Inspecting an instance reveals its underlying C++ pointer and attributes</span></span>
 <span><span class="va">blastn_inst</span></span>
-<span><span class="co">#&gt;  &lt;pointer: 0x55bd65a32ff0&gt;</span></span>
+<span><span class="co">#&gt;  &lt;pointer: 0x56165208f890&gt;</span></span>
 <span><span class="co">#&gt;  attr(,"seq_type")</span></span>
 <span><span class="co">#&gt;  [1] 0</span></span>
 <span><span class="co">#&gt;  attr(,"strand")</span></span>
@@ -164,7 +164,7 @@ leaks.</p>
 <span></span>
 <span><span class="co"># Attempting to fetch a deleted instance securely throws a C++ map error</span></span>
 <span><span class="co"># try(identical(try(QuickBLAST::GetQuickBLASTInstance(1), silent = TRUE,</span></span>
-<span><span class="co"># outFile = stdout()), blastn_inst), silent = T, outFile = stdout())</span></span>
+<span><span class="co"># outFile = stdout()), blastn_inst), silent = TRUE, outFile = stdout())</span></span>
 <span></span>
 <span><span class="co"># Recreate the blastn instance for later steps</span></span>
 <span><span class="va">blastn_inst</span> <span class="op">&lt;-</span> <span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/CreateQuickBLASTInstance.html">CreateQuickBLASTInstance</a></span><span class="op">(</span>seq_type <span class="op">=</span> <span class="fl">0</span>, strand <span class="op">=</span> <span class="fl">0</span>, program <span class="op">=</span> <span class="st">"blastn"</span><span class="op">)</span></span>
@@ -180,10 +180,10 @@ includes automatic recovery: if a pointer is dead, it will attempt to
 reload it.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># (~)Successful TBLASTX execution : Garbage low information nucleotide sequences</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/BLAST2Seqs.html">BLAST2Seqs</a></span><span class="op">(</span><span class="va">tblastx_inst</span>, <span class="st">"AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC"</span>, <span class="st">"TTTTTTTTTTTGGGGGGGGGGGG"</span><span class="op">)</span>, silent <span class="op">=</span> <span class="cn">T</span>, outFile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/showConnections.html" class="external-link">stdout</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/BLAST2Seqs.html">BLAST2Seqs</a></span><span class="op">(</span><span class="va">tblastx_inst</span>, <span class="st">"AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC"</span>, <span class="st">"TTTTTTTTTTTGGGGGGGGGGGG"</span><span class="op">)</span>, silent <span class="op">=</span> <span class="cn">TRUE</span>, outFile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/showConnections.html" class="external-link">stdout</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  Dead pointer detected. Attempting to reload...</span></span>
 <span><span class="co">#&gt;  Using tblastx Defaults...</span></span>
-<span><span class="co">#&gt;  Clock : 0.00225137 seconds</span></span>
+<span><span class="co">#&gt;  Clock : 0.00267993 seconds</span></span>
 <span><span class="co">#&gt;  1</span></span>
 <span><span class="co">#&gt;  RecordBatchVector size: 1</span></span>
 <span><span class="co">#&gt;  Total rows across all batches: 1</span></span>
@@ -207,16 +207,16 @@ reload it.</p>
 <span><span class="co">#&gt;    hsps_exon_identity hsps_consensus_splices hsps_comp_adj_method</span></span>
 <span><span class="co">#&gt;  1                  0                      0                    0</span></span>
 <span></span>
-<span><span class="co"># Expected empty results due to mismatched pointer type (Nucleotide vs Nucleotide with a blastp pointer) </span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/BLAST2Seqs.html">BLAST2Seqs</a></span><span class="op">(</span><span class="va">blastp_inst</span>, <span class="st">"AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC"</span>, <span class="st">"TTTTTTTTTTTGGGGGGGGGGGG"</span><span class="op">)</span>, silent <span class="op">=</span> <span class="cn">T</span>, outFile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/showConnections.html" class="external-link">stdout</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  Clock : 0.00115844 seconds</span></span>
+<span><span class="co"># Expected empty results due to mismatched pointer type (Nucleotide vs Nucleotide with a blastp pointer)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/BLAST2Seqs.html">BLAST2Seqs</a></span><span class="op">(</span><span class="va">blastp_inst</span>, <span class="st">"AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC"</span>, <span class="st">"TTTTTTTTTTTGGGGGGGGGGGG"</span><span class="op">)</span>, silent <span class="op">=</span> <span class="cn">TRUE</span>, outFile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/showConnections.html" class="external-link">stdout</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  Clock : 0.00140784 seconds</span></span>
 <span><span class="co">#&gt;  1</span></span>
 <span><span class="co">#&gt;  RecordBatchVector size: 1</span></span>
 <span><span class="co">#&gt;  list()</span></span>
 <span></span>
 <span><span class="co"># (~)Successful Protein-Protein search : Same protein</span></span>
 <span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/BLAST2Seqs.html">BLAST2Seqs</a></span><span class="op">(</span><span class="va">blastp_inst</span>, <span class="st">"MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE"</span>, <span class="st">"MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  Clock : 0.00184889 seconds</span></span>
+<span><span class="co">#&gt;  Clock : 0.00205849 seconds</span></span>
 <span><span class="co">#&gt;  1</span></span>
 <span><span class="co">#&gt;  RecordBatchVector size: 1</span></span>
 <span><span class="co">#&gt;  Total rows across all batches: 1</span></span>
@@ -246,7 +246,7 @@ reload it.</p>
 <span></span>
 <span><span class="co"># Successful NT-NT search</span></span>
 <span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/BLAST2Seqs.html">BLAST2Seqs</a></span><span class="op">(</span><span class="va">blastn_inst</span>, <span class="st">"ATGGAGGAGCCGCAGTCAGATCCTAGCGTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA"</span>, <span class="st">"ATGGAGGAGCCGCAGTCAGATCCTAGCCTCGAGCCCCCTCTGAGTCAGGAAACATTTTCA"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  Clock : 0.000831738 seconds</span></span>
+<span><span class="co">#&gt;  Clock : 0.000966756 seconds</span></span>
 <span><span class="co">#&gt;  1</span></span>
 <span><span class="co">#&gt;  RecordBatchVector size: 1</span></span>
 <span><span class="co">#&gt;  Total rows across all batches: 1</span></span>
@@ -275,18 +275,19 @@ reload it.</p>
 </h3>
 <p>If you do not want to compile databases locally, QuickBLAST can
 interface directly with NCBI’s remote servers.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Safely check if the machine has internet access before running</span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"curl"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="fu">curl</span><span class="fu">::</span><span class="fu"><a href="https://jeroen.r-universe.dev/curl/reference/nslookup.html" class="external-link">has_internet</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span><span class="co"># Example of a remote timeout handling</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/RemoteBLAST.html">RemoteBLAST</a></span><span class="op">(</span><span class="va">blastn_inst</span>, query_input<span class="op">=</span><span class="st">"AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC"</span>, database<span class="op">=</span> <span class="st">"nr"</span>, input_type<span class="op">=</span><span class="fl">1</span>, return_values<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>, silent <span class="op">=</span> <span class="cn">T</span>, outFile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/showConnections.html" class="external-link">stdout</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Successful Remote Protein Query against the PDB database</span></span>
-<span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/RemoteBLAST.html">RemoteBLAST</a></span><span class="op">(</span><span class="va">blastp_inst</span>, query_input<span class="op">=</span><span class="st">"MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE"</span>, database<span class="op">=</span> <span class="st">"pdb"</span>, input_type<span class="op">=</span><span class="fl">1</span>, return_values<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span>  </span>
-<span><span class="op">}</span><span class="kw">else</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"No internet connection available. Skipping remote BLAST examples."</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co"># Safely check if the machine has internet access before running</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">requireNamespace</span>(<span class="st">"curl"</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>) <span class="sc">&amp;&amp;</span> curl<span class="sc">::</span><span class="fu">has_internet</span>()) {</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="co"># Example of a remote timeout handling</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="fu">try</span>(QuickBLAST<span class="sc">::</span><span class="fu">RemoteBLAST</span>(blastn_inst, <span class="at">query_input =</span> <span class="st">"AAAAAAAAAAAATTTTTTTTTTTTGGGGGGGGGGGCCCCCCCCC"</span>, <span class="at">database =</span> <span class="st">"nr"</span>, <span class="at">input_type =</span> <span class="dv">1</span>, <span class="at">return_values =</span> <span class="cn">TRUE</span>), <span class="at">silent =</span> <span class="cn">TRUE</span>, <span class="at">outFile =</span> <span class="fu">stdout</span>())</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="co"># Successful Remote Protein Query against the PDB database</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  QuickBLAST<span class="sc">::</span><span class="fu">RemoteBLAST</span>(blastp_inst, <span class="at">query_input =</span> <span class="st">"MQILLVEDDNTLFQELKKELEQWDFNVAGIEDFGKVMDTFESFNPEIVILDVQLPKYDGFYWCRKMREVSNVPILFLSSRDNPMDQVMSMELGADDYMQKPFYTNVLIAKLQAIYRRVYEFTAEEKRTLTWQDAVVDLSKDSIQKGDDTIFLSKTEMIILEILITKKNQIVSRDTIITALWDDEAFVSDNTLTVNVNRLRKKLSEISMDSAIETKVGKGYMAHE"</span>, <span class="at">database =</span> <span class="st">"pdb"</span>, <span class="at">input_type =</span> <span class="dv">1</span>, <span class="at">return_values =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>  <span class="fu">message</span>(<span class="st">"No internet connection available. Skipping remote BLAST examples."</span>)</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>}</span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="in">```</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="file-to-file-comparisons">File-to-File Comparisons<a class="anchor" aria-label="anchor" href="#file-to-file-comparisons"></a>
@@ -295,12 +296,11 @@ interface directly with NCBI’s remote servers.</p>
 QuickBLAST can compare two files directly via multi-threaded reading,
 without loading everything into the R global environment first.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">safe_temp_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/normalizePath.html" class="external-link">normalizePath</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span>check <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>, mustWork <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">safe_temp_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/normalizePath.html" class="external-link">normalizePath</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span>check <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, mustWork <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Create temporary FASTA files</span></span>
-<span><span class="va">query_fasta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/normalizePath.html" class="external-link">normalizePath</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".fasta"</span>, tmpdir <span class="op">=</span> <span class="va">safe_temp_dir</span><span class="op">)</span>, mustWork <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span>
-<span><span class="va">subject_fasta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/normalizePath.html" class="external-link">normalizePath</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".fasta"</span>, tmpdir <span class="op">=</span> <span class="va">safe_temp_dir</span><span class="op">)</span>, mustWork <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span>
+<span><span class="va">query_fasta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/normalizePath.html" class="external-link">normalizePath</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".fasta"</span>, tmpdir <span class="op">=</span> <span class="va">safe_temp_dir</span><span class="op">)</span>, mustWork <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">subject_fasta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/normalizePath.html" class="external-link">normalizePath</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".fasta"</span>, tmpdir <span class="op">=</span> <span class="va">safe_temp_dir</span><span class="op">)</span>, mustWork <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Human TP53 gene fragment (Query)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -314,8 +314,8 @@ without loading everything into the R global environment first.</p>
 <span></span>
 <span><span class="co"># Efficiently compare the files using the BLASTN instance</span></span>
 <span><span class="va">file_results</span> <span class="op">&lt;-</span> <span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/BLAST2Files.html">BLAST2Files</a></span><span class="op">(</span></span>
-<span>  <span class="va">blastn_inst</span>, </span>
-<span>  query <span class="op">=</span> <span class="va">query_fasta</span>, </span>
+<span>  <span class="va">blastn_inst</span>,</span>
+<span>  query <span class="op">=</span> <span class="va">query_fasta</span>,</span>
 <span>  subject <span class="op">=</span> <span class="va">subject_fasta</span>,</span>
 <span>  return_values <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  num_threads <span class="op">=</span> <span class="fl">1</span></span>
@@ -325,7 +325,7 @@ without loading everything into the R global environment first.</p>
 <span><span class="co">#&gt;  Batch Size: 2</span></span>
 <span><span class="co">#&gt;  Computing: [========================================] 100% (done)                         </span></span>
 <span><span class="co">#&gt;  Total Records Processed: 1</span></span>
-<span><span class="co">#&gt;  Clock : 0.0026459 seconds</span></span>
+<span><span class="co">#&gt;  Clock : 0.0017104 seconds</span></span>
 <span><span class="co">#&gt;  RecordBatchVector size: 1</span></span>
 <span><span class="co">#&gt;  Total rows across all batches: 1</span></span>
 <span></span>
@@ -358,8 +358,7 @@ compiling the sequences into an indexed BLAST database is much faster
 than raw file-to-file comparisons. QuickBLAST wraps the NCBI makeblastdb
 functionality directly into R.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">safe_temp_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/normalizePath.html" class="external-link">normalizePath</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span>check <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>, mustWork <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">safe_temp_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/normalizePath.html" class="external-link">normalizePath</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span>check <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, mustWork <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">query_fasta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/normalizePath.html" class="external-link">normalizePath</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".fasta"</span>, tmpdir <span class="op">=</span> <span class="va">safe_temp_dir</span><span class="op">)</span>, mustWork <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">subject_fasta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/normalizePath.html" class="external-link">normalizePath</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".fasta"</span>, tmpdir <span class="op">=</span> <span class="va">safe_temp_dir</span><span class="op">)</span>, mustWork <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -392,29 +391,29 @@ functionality directly into R.</p>
 <span>  database_name <span class="op">=</span> <span class="va">db_path</span>,</span>
 <span>  parse_seqids <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span>, silent <span class="op">=</span> <span class="cn">TRUE</span>, outFile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/showConnections.html" class="external-link">stdout</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [MakeBLASTDB] Executing command: /home/runner/work/_temp/Library/QuickBLAST/bin//makeblastdb -in /tmp/Rtmp3qYeLB/file816f10f21a5e.fasta -dbtype nucl -out /tmp/Rtmp3qYeLB/My_Test_DB </span></span>
+<span><span class="co">#&gt;  [MakeBLASTDB] Executing command: /home/runner/work/_temp/Library/QuickBLAST/bin//makeblastdb -in /tmp/RtmpMUgk6F/file815d4054f642.fasta -dbtype nucl -out /tmp/RtmpMUgk6F/My_Test_DB </span></span>
 <span><span class="co">#&gt;  makeblastdb finished successfully</span></span>
-<span><span class="co">#&gt;  [1] "/tmp/Rtmp3qYeLB/My_Test_DB"</span></span>
+<span><span class="co">#&gt;  [1] "/tmp/RtmpMUgk6F/My_Test_DB"</span></span>
 <span></span>
 <span><span class="co"># 2. Search a query file or query database against the custom local database</span></span>
 <span><span class="va">db_results</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/BLAST2DBs.html">BLAST2DBs</a></span><span class="op">(</span></span>
-<span> <span class="va">blastn_inst</span>,</span>
-<span> query <span class="op">=</span> <span class="va">query_fasta</span>,</span>
-<span> subject <span class="op">=</span> <span class="va">db_path</span>,</span>
-<span> return_values <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span> num_threads <span class="op">=</span> <span class="fl">2</span></span>
+<span>  <span class="va">blastn_inst</span>,</span>
+<span>  query <span class="op">=</span> <span class="va">query_fasta</span>,</span>
+<span>  subject <span class="op">=</span> <span class="va">db_path</span>,</span>
+<span>  return_values <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  num_threads <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span>, silent <span class="op">=</span> <span class="cn">TRUE</span>, outFile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/showConnections.html" class="external-link">stdout</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [MakeBLASTDB] Executing command: /home/runner/work/_temp/Library/QuickBLAST/bin//makeblastdb -in /tmp/Rtmp3qYeLB/file816fd36c9ff.fasta -dbtype nucl -out /tmp/Rtmp3qYeLB/file816fd36c9ff.fasta.db </span></span>
+<span><span class="co">#&gt;  [MakeBLASTDB] Executing command: /home/runner/work/_temp/Library/QuickBLAST/bin//makeblastdb -in /tmp/RtmpMUgk6F/file815dee4f68d.fasta -dbtype nucl -out /tmp/RtmpMUgk6F/file815dee4f68d.fasta.db </span></span>
 <span><span class="co">#&gt;  makeblastdb finished successfully</span></span>
-<span><span class="co">#&gt;  Q :/tmp/Rtmp3qYeLB/file816fd36c9ff.fasta.db</span></span>
-<span><span class="co">#&gt;  S :/tmp/Rtmp3qYeLB/My_Test_DB</span></span>
+<span><span class="co">#&gt;  Q :/tmp/RtmpMUgk6F/file815dee4f68d.fasta.db</span></span>
+<span><span class="co">#&gt;  S :/tmp/RtmpMUgk6F/My_Test_DB</span></span>
 <span><span class="co">#&gt;  Num Threads: 2</span></span>
 <span><span class="co">#&gt;  Total Records (Q + S): 2 (1 + 1)</span></span>
 <span><span class="co">#&gt;  Batch Size: 3</span></span>
 <span><span class="co">#&gt;  Batch Hits: 1</span></span>
 <span><span class="co">#&gt;  Processed Batches:1</span></span>
 <span><span class="co">#&gt;  Total Records Processed: 2</span></span>
-<span><span class="co">#&gt;  Clock : 0.0764669 seconds</span></span>
+<span><span class="co">#&gt;  Clock : 0.117979 seconds</span></span>
 <span><span class="co">#&gt;  RecordBatchVector size: 1</span></span>
 <span><span class="co">#&gt;  Total rows across all batches: 1</span></span>
 <span></span>
@@ -450,8 +449,7 @@ Arrow formats (arrow::parquet, arrow::ipc and arrow::csv). This creates
 a highly compressed, blazingly fast columnar storage file, an
 inter-process-communicable file or a tabular CSV.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">safe_temp_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/normalizePath.html" class="external-link">normalizePath</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span>check <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>, mustWork <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">safe_temp_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/normalizePath.html" class="external-link">normalizePath</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span>check <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, mustWork <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">query_fasta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/normalizePath.html" class="external-link">normalizePath</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".fasta"</span>, tmpdir <span class="op">=</span> <span class="va">safe_temp_dir</span><span class="op">)</span>, mustWork <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">subject_fasta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/normalizePath.html" class="external-link">normalizePath</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".fasta"</span>, tmpdir <span class="op">=</span> <span class="va">safe_temp_dir</span><span class="op">)</span>, mustWork <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -472,15 +470,15 @@ inter-process-communicable file or a tabular CSV.</p>
 <span><span class="co"># Perform the search and write straight to an Arrow Parquet/IPC/CSV file</span></span>
 <span><span class="co"># We don't need it in RAM, we are writing to disk</span></span>
 <span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/BLAST2Files.html">BLAST2Files</a></span><span class="op">(</span></span>
-<span>  <span class="va">blastn_inst</span>, </span>
-<span>  query <span class="op">=</span> <span class="va">query_fasta</span>, </span>
+<span>  <span class="va">blastn_inst</span>,</span>
+<span>  query <span class="op">=</span> <span class="va">query_fasta</span>,</span>
 <span>  subject <span class="op">=</span> <span class="va">subject_fasta</span>,</span>
 <span>  out_file <span class="op">=</span> <span class="va">out_parquet</span>,</span>
 <span>  out_format <span class="op">=</span> <span class="st">"parquet"</span>,</span>
 <span>  return_values <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">T</span></span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt;  Writing to : /tmp/Rtmp3qYeLB/file816f4c6cb054.parquet</span></span>
+<span><span class="co">#&gt;  Writing to : /tmp/RtmpMUgk6F/file815d12f5cb71.parquet</span></span>
 <span><span class="co">#&gt;  Output Format : parquet</span></span>
 <span><span class="co">#&gt;  Num Threads: 2</span></span>
 <span><span class="co">#&gt;  Total Records (Q + S): 2 (1 + 1)</span></span>
@@ -488,18 +486,18 @@ inter-process-communicable file or a tabular CSV.</p>
 <span><span class="co">#&gt;  Computing: [========================================] 100% (done)                         </span></span>
 <span><span class="co">#&gt;  Done writing to file.</span></span>
 <span><span class="co">#&gt;  Total Records Processed: 5</span></span>
-<span><span class="co">#&gt;  Clock : 0.0502599 seconds</span></span>
+<span><span class="co">#&gt;  Clock : 0.0503777 seconds</span></span>
 <span><span class="co">#&gt;  [1] TRUE</span></span>
 <span></span>
 <span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/BLAST2Files.html">BLAST2Files</a></span><span class="op">(</span></span>
-<span>  <span class="va">blastn_inst</span>, </span>
-<span>  query <span class="op">=</span> <span class="va">query_fasta</span>, </span>
+<span>  <span class="va">blastn_inst</span>,</span>
+<span>  query <span class="op">=</span> <span class="va">query_fasta</span>,</span>
 <span>  subject <span class="op">=</span> <span class="va">subject_fasta</span>,</span>
 <span>  out_file <span class="op">=</span> <span class="va">out_ipc</span>,</span>
 <span>  out_format <span class="op">=</span> <span class="st">"ipc"</span>,</span>
 <span>  return_values <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt;  Writing to : /tmp/Rtmp3qYeLB/file816f6954b66c.ipc</span></span>
+<span><span class="co">#&gt;  Writing to : /tmp/RtmpMUgk6F/file815d127973b4.ipc</span></span>
 <span><span class="co">#&gt;  Output Format : ipc</span></span>
 <span><span class="co">#&gt;  Num Threads: 2</span></span>
 <span><span class="co">#&gt;  Total Records (Q + S): 2 (1 + 1)</span></span>
@@ -507,18 +505,18 @@ inter-process-communicable file or a tabular CSV.</p>
 <span><span class="co">#&gt;  Computing: [========================================] 100% (done)                         </span></span>
 <span><span class="co">#&gt;  Done writing to file.</span></span>
 <span><span class="co">#&gt;  Total Records Processed: 5</span></span>
-<span><span class="co">#&gt;  Clock : 0.050232 seconds</span></span>
+<span><span class="co">#&gt;  Clock : 0.0503034 seconds</span></span>
 <span><span class="co">#&gt;  [1] TRUE</span></span>
 <span></span>
 <span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/BLAST2Files.html">BLAST2Files</a></span><span class="op">(</span></span>
-<span>  <span class="va">blastn_inst</span>, </span>
-<span>  query <span class="op">=</span> <span class="va">query_fasta</span>, </span>
+<span>  <span class="va">blastn_inst</span>,</span>
+<span>  query <span class="op">=</span> <span class="va">query_fasta</span>,</span>
 <span>  subject <span class="op">=</span> <span class="va">subject_fasta</span>,</span>
 <span>  out_file <span class="op">=</span> <span class="va">out_csv</span>,</span>
 <span>  out_format <span class="op">=</span> <span class="st">"csv"</span>,</span>
 <span>  return_values <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt;  Writing to : /tmp/Rtmp3qYeLB/file816f18886e6b.csv</span></span>
+<span><span class="co">#&gt;  Writing to : /tmp/RtmpMUgk6F/file815d7ba99bd8.csv</span></span>
 <span><span class="co">#&gt;  Output Format : csv</span></span>
 <span><span class="co">#&gt;  Num Threads: 2</span></span>
 <span><span class="co">#&gt;  Total Records (Q + S): 2 (1 + 1)</span></span>
@@ -526,7 +524,7 @@ inter-process-communicable file or a tabular CSV.</p>
 <span><span class="co">#&gt;  Computing: [========================================] 100% (done)                         </span></span>
 <span><span class="co">#&gt;  Done writing to file.</span></span>
 <span><span class="co">#&gt;  Total Records Processed: 5</span></span>
-<span><span class="co">#&gt;  Clock : 0.0502573 seconds</span></span>
+<span><span class="co">#&gt;  Clock : 0.0502968 seconds</span></span>
 <span><span class="co">#&gt;  [1] TRUE</span></span>
 <span></span>
 <span><span class="co"># Load the hits back into an R data.frame natively via QuickBLAST</span></span>
@@ -568,7 +566,7 @@ inter-process-communicable file or a tabular CSV.</p>
 <span><span class="co">#&gt;  <span style="color: #949494;">#   hsp_num &lt;int&gt;, sum_evalue &lt;dbl&gt;, product_coverage &lt;dbl&gt;,</span></span></span>
 <span><span class="co">#&gt;  <span style="color: #949494;">#   overall_identity &lt;dbl&gt;, negative_count &lt;int&gt;, matches &lt;dbl&gt;, …</span></span></span>
 <span></span>
-<span><span class="va">hits_df</span> <span class="op">&lt;-</span> <span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/LoadBLASTHits.html">LoadBLASTHits</a></span><span class="op">(</span><span class="va">out_csv</span>, format <span class="op">=</span> <span class="st">"csv"</span>, sep <span class="op">=</span> <span class="st">"\t"</span>, header <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
+<span><span class="va">hits_df</span> <span class="op">&lt;-</span> <span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="../reference/LoadBLASTHits.html">LoadBLASTHits</a></span><span class="op">(</span><span class="va">out_csv</span>, format <span class="op">=</span> <span class="st">"csv"</span>, sep <span class="op">=</span> <span class="st">"\t"</span>, header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">hits_df</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  <span style="color: #949494;"># A tibble: 6 × 39</span></span></span>
 <span><span class="co">#&gt;    seq_info.num_alignments seq_info.seqids.qseqid seq_info.seqids.sseqid</span></span>
@@ -595,6 +593,53 @@ instances appropriately, keeping data in native C++ structures, and
 offloading massive search results to Apache Arrow formats, you can run
 high-throughput bioinformatic pipelines natively without relying on slow
 Sys.Call() bash wrappers.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  R version 4.6.1 (2026-06-24)</span></span>
+<span><span class="co">#&gt;  Platform: x86_64-pc-linux-gnu</span></span>
+<span><span class="co">#&gt;  Running under: Ubuntu 24.04.4 LTS</span></span>
+<span><span class="co">#&gt;  </span></span>
+<span><span class="co">#&gt;  Matrix products: default</span></span>
+<span><span class="co">#&gt;  BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 </span></span>
+<span><span class="co">#&gt;  LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.26.so;  LAPACK version 3.12.0</span></span>
+<span><span class="co">#&gt;  </span></span>
+<span><span class="co">#&gt;  locale:</span></span>
+<span><span class="co">#&gt;   [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       </span></span>
+<span><span class="co">#&gt;   [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   </span></span>
+<span><span class="co">#&gt;   [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          </span></span>
+<span><span class="co">#&gt;  [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   </span></span>
+<span><span class="co">#&gt;  </span></span>
+<span><span class="co">#&gt;  time zone: UTC</span></span>
+<span><span class="co">#&gt;  tzcode source: system (glibc)</span></span>
+<span><span class="co">#&gt;  </span></span>
+<span><span class="co">#&gt;  attached base packages:</span></span>
+<span><span class="co">#&gt;  [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
+<span><span class="co">#&gt;  </span></span>
+<span><span class="co">#&gt;  other attached packages:</span></span>
+<span><span class="co">#&gt;  [1] QuickBLAST_1.99.9</span></span>
+<span><span class="co">#&gt;  </span></span>
+<span><span class="co">#&gt;  loaded via a namespace (and not attached):</span></span>
+<span><span class="co">#&gt;   [1] tidyr_1.3.2         utf8_1.2.6          sass_0.4.10        </span></span>
+<span><span class="co">#&gt;   [4] future_1.75.0       generics_0.1.4      listenv_1.0.0      </span></span>
+<span><span class="co">#&gt;   [7] digest_0.6.39       magrittr_2.0.5      evaluate_1.0.5     </span></span>
+<span><span class="co">#&gt;  [10] iterators_1.0.14    fastmap_1.2.0       jsonlite_2.0.0     </span></span>
+<span><span class="co">#&gt;  [13] processx_3.9.0      RcppProgress_0.4.2  ps_1.9.3           </span></span>
+<span><span class="co">#&gt;  [16] formatR_1.14        purrr_1.2.2         codetools_0.2-20   </span></span>
+<span><span class="co">#&gt;  [19] textshaping_1.0.5   jquerylib_0.1.4     cli_3.6.6          </span></span>
+<span><span class="co">#&gt;  [22] RcppThread_2.4.0    rlang_1.3.0         parallelly_1.48.0  </span></span>
+<span><span class="co">#&gt;  [25] future.apply_1.20.2 bit64_4.8.2         withr_3.0.3        </span></span>
+<span><span class="co">#&gt;  [28] cachem_1.1.0        yaml_2.3.12         otel_0.2.0         </span></span>
+<span><span class="co">#&gt;  [31] tools_4.6.1         parallel_4.6.1      tzdb_0.5.0         </span></span>
+<span><span class="co">#&gt;  [34] dplyr_1.2.1         globals_0.19.1      assertthat_0.2.1   </span></span>
+<span><span class="co">#&gt;  [37] vctrs_0.7.3         R6_2.6.1            lifecycle_1.0.5    </span></span>
+<span><span class="co">#&gt;  [40] fs_2.1.0            bit_4.6.0           ragg_1.5.2         </span></span>
+<span><span class="co">#&gt;  [43] arrow_25.0.0        pkgconfig_2.0.3     desc_1.4.3         </span></span>
+<span><span class="co">#&gt;  [46] callr_3.8.0         pkgdown_2.2.1       pillar_1.11.1      </span></span>
+<span><span class="co">#&gt;  [49] bslib_0.11.0        glue_1.8.1          Rcpp_1.1.2         </span></span>
+<span><span class="co">#&gt;  [52] systemfonts_1.3.2   xfun_0.60           tibble_3.3.1       </span></span>
+<span><span class="co">#&gt;  [55] tidyselect_1.2.1    future.callr_1.0.0  knitr_1.51         </span></span>
+<span><span class="co">#&gt;  [58] htmltools_0.5.9     rmarkdown_2.31      BH_1.90.0-1        </span></span>
+<span><span class="co">#&gt;  [61] compiler_4.6.1</span></span></code></pre></div>
 </div>
 </div>
   </div>

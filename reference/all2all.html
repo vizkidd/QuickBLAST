@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">QuickBLAST</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.99.5</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.99.9</span>
       </span>
     </div>
 
@@ -99,7 +99,7 @@
 
 
 <dt id="arg-file-ext">file_ext<a class="anchor" aria-label="anchor" href="#arg-file-ext"></a></dt>
-<dd><p>File extension of input files. eg- ".cds" or ".fa", Unused if input_type is GetQuickBLASTEnums()$EInputType$eSequencesString</p></dd>
+<dd><p>File extension of input files. eg- ".cds" or ".fa"</p></dd>
 
 
 <dt id="arg-input-prefix-path">input_prefix_path<a class="anchor" aria-label="anchor" href="#arg-input-prefix-path"></a></dt>
@@ -124,6 +124,10 @@
 </ul></dd>
 
 </dl></div>
+    <div id="value">
+    <h2>Value</h2>
+    <p>If <code>return_values = TRUE</code>, returns a list of data frames corresponding to each alignment query. Otherwise, returns <code>invisible(NULL)</code> or outputs directly to files.</p>
+    </div>
     <div id="see-also">
     <h2>See also</h2>
     <div class="dont-index"><p><code><a href="GetAvailableBLASTOptions.html">GetAvailableBLASTOptions()</a></code>, <code><a href="GetQuickBLASTEnums.html">GetQuickBLASTEnums()</a></code></p></div>
@@ -131,25 +135,39 @@
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu">all2all</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  first_list<span class="op">=</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path_package.html" class="external-link">path_package</a></span><span class="op">(</span><span class="st">"QuickBLAST"</span>, <span class="st">"extdata"</span>, <span class="st">"protein_query.fasta"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  second_list<span class="op">=</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path_package.html" class="external-link">path_package</a></span><span class="op">(</span><span class="st">"QuickBLAST"</span>, <span class="st">"extdata"</span>, <span class="st">"protein_subject.fasta"</span><span class="op">)</span>, </span></span>
-<span class="r-in"><span>  blast_fun<span class="op">=</span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="va"><a href="BLAST2Files.html">BLAST2Files</a></span>,</span></span>
-<span class="r-in"><span>  seq_type <span class="op">=</span> <span class="fl">0</span>, </span></span>
-<span class="r-in"><span>  strand<span class="op">=</span><span class="fl">0</span>,</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu">all2all</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  first_list <span class="op">=</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path_package.html" class="external-link">path_package</a></span><span class="op">(</span><span class="st">"QuickBLAST"</span>, <span class="st">"extdata"</span>, <span class="st">"protein_query.fasta"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  second_list <span class="op">=</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path_package.html" class="external-link">path_package</a></span><span class="op">(</span><span class="st">"QuickBLAST"</span>, <span class="st">"extdata"</span>, <span class="st">"protein_subject.fasta"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  blast_fun <span class="op">=</span> <span class="fu">QuickBLAST</span><span class="fu">::</span><span class="va"><a href="BLAST2Files.html">BLAST2Files</a></span>,</span></span>
+<span class="r-in"><span>  seq_type <span class="op">=</span> <span class="fl">0</span>,</span></span>
+<span class="r-in"><span>  strand <span class="op">=</span> <span class="fl">0</span>,</span></span>
 <span class="r-in"><span>  output_dir <span class="op">=</span> <span class="st">"./"</span>,</span></span>
-<span class="r-in"><span>  n_threads <span class="op">=</span> <span class="fl">8</span>,</span></span>
+<span class="r-in"><span>  n_threads <span class="op">=</span> <span class="fl">1</span>,</span></span>
 <span class="r-in"><span>  blast_program <span class="op">=</span> <span class="st">"tblastx"</span>,</span></span>
-<span class="r-in"><span>  save_sequences<span class="op">=</span><span class="cn">FALSE</span>,</span></span>
-<span class="r-in"><span>  save_hsp_sequences<span class="op">=</span><span class="cn">FALSE</span>,</span></span>
-<span class="r-in"><span>  return_values<span class="op">=</span><span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>  min_batch_size<span class="op">=</span><span class="fl">256</span>,</span></span>
-<span class="r-in"><span>  out_format<span class="op">=</span><span class="st">"parquet"</span>,</span></span>
-<span class="r-in"><span>  blast_options<span class="op">=</span><span class="st">""</span>,</span></span>
+<span class="r-in"><span>  save_sequences <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>  save_hsp_sequences <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>  return_values <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>  min_batch_size <span class="op">=</span> <span class="fl">256</span>,</span></span>
+<span class="r-in"><span>  out_format <span class="op">=</span> <span class="st">"parquet"</span>,</span></span>
+<span class="r-in"><span>  blast_options <span class="op">=</span> <span class="st">""</span>,</span></span>
 <span class="r-in"><span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span></span>
-<span class="r-in"><span> <span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> All2All QuickBLAST Started...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/home/runner/work/_temp/Library/QuickBLAST/extdata/protein_query.fasta"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/home/runner/work/_temp/Library/QuickBLAST/extdata/protein_subject.fasta"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/home/runner/work/_temp/Library/QuickBLAST/extdata/protein_query.fasta.fa"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/home/runner/work/_temp/Library/QuickBLAST/extdata/protein_subject.fasta.fa"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Using tblastx Defaults...</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>UNRELIABLE VALUE: One of the ‘future.apply’ iterations (‘future_lapply-1’) unexpectedly generated random numbers without declaring so. There is a risk that those random numbers are not statistically sound and the overall results might be invalid. To fix this, specify 'future.seed=TRUE'. This ensures that proper, parallel-safe random numbers are produced via a parallel RNG method. To disable this check, use 'future.seed = NULL', or set option 'future.rng.onMisuse' to "ignore". [future ‘future_lapply-1’ (71703c7a4bc2203e459cbd1afc6a6146-1); on 71703c7a4bc2203e459cbd1afc6a6146@runnervm3jd5f&lt;32561&gt;]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/home/runner/work/_temp/Library/QuickBLAST/extdata/protein_query.fasta.fa"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/home/runner/work/_temp/Library/QuickBLAST/extdata/protein_subject.fasta.fa"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Using tblastx Defaults...</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>UNRELIABLE VALUE: One of the ‘future.apply’ iterations (‘future_lapply-1’) unexpectedly generated random numbers without declaring so. There is a risk that those random numbers are not statistically sound and the overall results might be invalid. To fix this, specify 'future.seed=TRUE'. This ensures that proper, parallel-safe random numbers are produced via a parallel RNG method. To disable this check, use 'future.seed = NULL', or set option 'future.rng.onMisuse' to "ignore". [future ‘future_lapply-1’ (71703c7a4bc2203e459cbd1afc6a6146-2); on 71703c7a4bc2203e459cbd1afc6a6146@runnervm3jd5f&lt;32561&gt;]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]][[1]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
