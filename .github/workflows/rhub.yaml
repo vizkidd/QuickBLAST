@@ -118,7 +118,7 @@ jobs:
               sudo yum install -y cmake nghttp2-devel libuv-devel libunwind-devel
             fi
           elif [ "$RUNNER_OS" == "macOS" ]; then
-            brew install cmake pkg-config libuv nghttp2 libunwind
+            brew install cmake pkg-config libuv nghttp2
           elif [ "$RUNNER_OS" == "Windows" ]; then
             choco install cmake -y
           fi

@@ -9,11 +9,7 @@ PKG_CPPFLAGS = -DARROW_STATIC -DPARQUET_STATIC -DLIBICONV_STATIC
 PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -include include/rcpp_workaround.hpp
 PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) 
 
-# 2. The Superbuild engine
-run_cmake_superbuild.o:
-  @mkdir -p ./BUILD
-	@cd ./BUILD && \
-	RTOOLS_DIR_RAW=`"$(R_HOME)/bin/Rscript" -e "\
+RTOOLS_DIR_RAW=`"$(R_HOME)/bin/Rscript" -e "\
   val <- Sys.getenv(paste0('RTOOLS', R.version\$$major, sub('\\\\..*', '', R.version\$$minor), '_HOME')); \
   if (!nzchar(val)) { \
     rt <- grep('^RTOOLS[0-9]+_HOME$$', names(Sys.getenv()), value = TRUE); \
@@ -25,7 +21,12 @@ run_cmake_superbuild.o:
       val <- 'C:/rtools45'; \
     } \
   }; \
-  cat(val)"` && \
+  cat(val)"`
+
+# 2. The Superbuild engine
+run_cmake_superbuild.o:
+  @mkdir -p ./BUILD
+  @cd ./BUILD && \
 	RTOOLS_DIR=`echo "$$RTOOLS_DIR_RAW" | tr '\\\\' '/'` && \
 	GCC_VER=`gcc -dumpversion | tr -d '[:space:]'` && \
 	CUR_DIR=`pwd` && \
