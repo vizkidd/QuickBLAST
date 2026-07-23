@@ -1,20 +1,20 @@
 #' Globals
 
-#' Get file path of file inside "libs" folder of package
-#'
-#' @param file_name file_name inside "libs" folder
-#' @return File path inside QuickBLAST package
-#' @md
+# Get file path of file inside "libs" folder of package
+# 
+# param file_name file_name inside "libs" folder
+# return File path inside QuickBLAST package
+# md
 .GetLibsPath <- function(file_name = "") {
   libs_path <- file.path("libs", Sys.getenv("R_ARCH"), file_name)
   return(system.file(libs_path, package = "QuickBLAST", mustWork = T))
 }
 
-#' Get file path of file inside "bin" folder of package
-#'
-#' @param file_name file_name inside "bin" folder
-#' @return File path inside QuickBLAST package
-#' @md
+# Get file path of file inside "bin" folder of package
+#
+# param file_name file_name inside "bin" folder
+# return File path inside QuickBLAST package
+# md
 .GetBinPath <- function(file_name = "") {
   bin_path <- file.path("bin", Sys.getenv("R_ARCH"), file_name)
   return(system.file(bin_path, package = "QuickBLAST", mustWork = T))

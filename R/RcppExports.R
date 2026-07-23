@@ -283,6 +283,33 @@ BLAST2Seqs <- function(ptr, query, subject, verbose = TRUE) {
 #' @param min_batch_size (unsigned int) Minimum batch size - Size of file write buffer (Optional).
 #' @param verbose (bool) Verbosity (Defaut: TRUE).
 #' @return (bool) TRUE - on success, FALSE - Otherwise. (Results are not returned as R Lists to reduce overhead)
+#' @examples
+#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+#'   seq_type = 1,
+#'   strand = 0,
+#'   program = "blastp",
+#'   save_sequences = FALSE,
+#'   save_hsp_sequences = FALSE
+#' )
+#' QuickBLAST::BLAST2Folders(
+#'   ptr = blastp_inst,
+#'   query = system.file(
+#'     "extdata",
+#'     package = "QuickBLAST",
+#'     mustWork = TRUE
+#'   ),
+#'   subject = system.file(
+#'     "extdata",
+#'     package = "QuickBLAST",
+#'     mustWork = TRUE
+#'   ),
+#'   extension = "fasta"
+#'   out_folder = tempdir(),
+#'   out_format = "parquet",
+#'   reciprocal_hits = TRUE,
+#'   min_batch_size = 1024
+#' )
+#' 
 #' @export
 BLAST2Folders <- function(ptr, query, subject, extension, out_folder, out_format = NULL, num_threads = 0L, reciprocal_hits = FALSE, min_batch_size = 0L, verbose = TRUE) {
     .Call(`_QuickBLAST_BLAST2Folders`, ptr, query, subject, extension, out_folder, out_format, num_threads, reciprocal_hits, min_batch_size, verbose)
@@ -307,6 +334,28 @@ BLAST2Folders <- function(ptr, query, subject, extension, out_folder, out_format
 #' @param min_batch_size (unsigned int) Minimum batch size - Size of file write buffer (Optional).
 #' @param verbose (bool) Verbosity (Defulat: TRUE).
 #' @return (bool) TRUE - on success, FALSE - Otherwise. (Results are not returned as R Lists to reduce overhead)
+#' @examples
+#' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+#'   seq_type = 1,
+#'   strand = 0,
+#'   program = "blastp",
+#'   save_sequences = FALSE,
+#'   save_hsp_sequences = FALSE
+#' )
+#' QuickBLAST::BLAST1Folder(
+#'   ptr = blastp_inst,
+#'   input_folder = system.file(
+#'     "extdata",
+#'     package = "QuickBLAST",
+#'     mustWork = TRUE
+#'   ),
+#'   extension = "fasta"
+#'   out_folder = tempdir(),
+#'   out_format = "parquet",
+#'   reciprocal_hits = TRUE,
+#'   min_batch_size = 1024
+#' )
+#' 
 #' @export
 BLAST1Folder <- function(ptr, input_folder, extension, out_folder, out_format = NULL, num_threads = 0L, reciprocal_hits = FALSE, min_batch_size = 0L, verbose = TRUE) {
     .Call(`_QuickBLAST_BLAST1Folder`, ptr, input_folder, extension, out_folder, out_format, num_threads, reciprocal_hits, min_batch_size, verbose)
@@ -390,7 +439,7 @@ BLAST2Files <- function(ptr, query, subject, out_file = NULL, out_format = NULL,
 #' @param verbose (bool) Verbosity (Default: TRUE).
 #' @return (SEXP) Rcpp::List - if return_values == TRUE, outFile - Otherwise.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
 #'   seq_type = 1,
 #'   strand = 0,

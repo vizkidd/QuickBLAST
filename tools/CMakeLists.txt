@@ -855,7 +855,7 @@ elseif(WIN32)
             -DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF
             -DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-            -DCMAKE_OBJECT_PATH_MAX=120
+            -DCMAKE_OBJECT_PATH_MAX=128
             -DARROW_BUILD_INTEGRATION=OFF
             -DARROW_SIMD_LEVEL=NONE 
           	-DARROW_RUNTIME_SIMD_LEVEL=NONE
@@ -997,7 +997,7 @@ elseif(WIN32)
         -G 'MSYS Makefiles' \
         -DCMAKE_MAKE_PROGRAM=make \
         -DCMAKE_SYSTEM_NAME=Windows \
-        -DCMAKE_OBJECT_PATH_MAX=120 \
+        -DCMAKE_OBJECT_PATH_MAX=128 \
         -DMINGW=1 \
         -DWIN32=1 \
         -DUNIX=0 \
@@ -1046,8 +1046,8 @@ elseif(WIN32)
         BUILD_IN_SOURCE TRUE
         
         # STEP 1: Run pre-inject and cmake-configure
-        CONFIGURE_COMMAND bash -c "SHLIB_OPENMP_CXXFLAGS='${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}' RTOOLS_DIR='${RTOOLS_DIR}' R_INCLUDE_DIR='${R_INCLUDE_DIR}' ./ncbi_crosscomp_inject_pre.sh && export CMAKE_ARGS=\"${NCBI_CMAKE_ARGS}\" && export CMAKE='${RTOOLS_DIR}/ucrt64/bin/cmake.exe' && ./cmake-configure GCC ${GCC_VER} --with-projects=QuickBLAST.prj --without-dll --with-composite --without-debug --with-build-root=BUILD"
-        #--with-dll
+        CONFIGURE_COMMAND bash -c "export SHLIB_OPENMP_CXXFLAGS='${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}' && export RTOOLS_DIR='${RTOOLS_DIR}' && export R_INCLUDE_DIR='${R_INCLUDE_DIR}' && ./ncbi_crosscomp_inject_pre.sh && export CMAKE_ARGS=\"${NCBI_CMAKE_ARGS}\" && export CMAKE='${RTOOLS_DIR}/ucrt64/bin/cmake.exe' && ./cmake-configure GCC ${GCC_VER} --with-projects=QuickBLAST.prj --without-dll --with-composite --without-debug --with-build-root=BUILD"
+        
         # STEP 2: Use double quotes, escape inner quotes, and use $$ to pass command substitution safely to Bash
         BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} -C BUILD/build -j ${N_PROC} datatool all makeblastdb QuickBLASTcpp
         

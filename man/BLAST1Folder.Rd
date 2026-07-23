@@ -44,6 +44,29 @@ BLAST FASTA files containing nucleotide or protein sequences, within a folder wi
 \note{
 Only FASTA files are supported by this function, use \code{\link[=BLAST2DBs]{BLAST2DBs()}} if inputs are BLAST DBs.
 }
+\examples{
+blastp_inst <- QuickBLAST::CreateQuickBLASTInstance(
+  seq_type = 1,
+  strand = 0,
+  program = "blastp",
+  save_sequences = FALSE,
+  save_hsp_sequences = FALSE
+)
+QuickBLAST::BLAST1Folder(
+  ptr = blastp_inst,
+  input_folder = system.file(
+    "extdata",
+    package = "QuickBLAST",
+    mustWork = TRUE
+  ),
+  extension = "fasta"
+  out_folder = tempdir(),
+  out_format = "parquet",
+  reciprocal_hits = TRUE,
+  min_batch_size = 1024
+)
+
+}
 \seealso{
 \code{\link[=GetInstanceID]{GetInstanceID()}}, \code{\link[=GetQuickBLASTInstance]{GetQuickBLASTInstance()}}, \code{\link[=BLAST2Files]{BLAST2Files()}}, \code{\link[=BLAST2Seqs]{BLAST2Seqs()}}, \code{\link[=BLAST2Folders]{BLAST2Folders()}}, \code{\link[=BLAST1Folder]{BLAST1Folder()}}, \code{\link[=RemoteBLAST]{RemoteBLAST()}}
 }

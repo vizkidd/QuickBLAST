@@ -31,7 +31,7 @@ QB_LIBS = -larrow -lparquet -lthrift -larrow_bundled_dependencies -lz -llmdb \
            -lxobjmgr -lxobjread -lxobjsimple -lxobjutil -lxqueryparse -lxregexp -lxser -lxutil -lzcf -lz
 
 # Portable POSIX shell evaluation (evaluated dynamically at link time)
-ALL_LOAD    = `uname | grep -q Darwin && echo "-Wl,-all_load"`
+#ALL_LOAD    = `uname | grep -q Darwin && echo "-Wl,-all_load"`
 START_GROUP = `uname | grep -q Darwin || echo "-Wl,--start-group"`
 END_GROUP   = `uname | grep -q Darwin || echo "-Wl,--end-group"`
 EXTRA_LIBS  = `uname | grep -q Darwin || echo "-lrt -lunwind"`
@@ -39,7 +39,7 @@ RPATH_FLAGS = `uname | grep -q Darwin && echo "-Wl,-rpath,@loader_path/" || echo
 
 PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) \
            $(LIB_PATHS) $(RPATH_FLAGS) \
-           $(ALL_LOAD) $(START_GROUP) $(QB_LIBS) $(END_GROUP) \
+           $(START_GROUP) $(QB_LIBS) $(END_GROUP) \
            $(EXTRA_LIBS)
 
 PKG_CXXFLAGS = -include include/rcpp_workaround.hpp -Ilibsrc $(SHLIB_OPENMP_CXXFLAGS) $(TOOLKIT_CPPFLAGS) -pthread -I/usr/local/src/ -I/usr/include/ -Isrc/include/ -I./BUILD/arrow/cpp/src/ -I./BUILD/arrow/cpp/BUILD/src/ -I./BUILD/ncbi-cxx-toolkit-public/include/ -I./BUILD/ncbi-cxx-toolkit-public/src/ -I./BUILD/ncbi-cxx-toolkit-public/BUILD/inc/
