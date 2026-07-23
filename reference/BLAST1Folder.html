@@ -124,7 +124,30 @@
 
     <div id="ref-examples">
     <h2>Examples</h2>
-
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">blastp_inst</span> <span class="op">&lt;-</span> <span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu"><a href="CreateQuickBLASTInstance.html">CreateQuickBLASTInstance</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  seq_type <span class="op">=</span> <span class="fl">1</span>,</span></span>
+<span class="r-in"><span>  strand <span class="op">=</span> <span class="fl">0</span>,</span></span>
+<span class="r-in"><span>  program <span class="op">=</span> <span class="st">"blastp"</span>,</span></span>
+<span class="r-in"><span>  save_sequences <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span>  save_hsp_sequences <span class="op">=</span> <span class="cn">FALSE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Using blastp Defaults...</span>
+<span class="r-in"><span><span class="fu">QuickBLAST</span><span class="fu">::</span><span class="fu">BLAST1Folder</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  ptr <span class="op">=</span> <span class="va">blastp_inst</span>,</span></span>
+<span class="r-in"><span>  input_folder <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    <span class="st">"extdata"</span>,</span></span>
+<span class="r-in"><span>    package <span class="op">=</span> <span class="st">"QuickBLAST"</span>,</span></span>
+<span class="r-in"><span>    mustWork <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span>,</span></span>
+<span class="r-in"><span>  extension <span class="op">=</span> <span class="st">"fasta"</span>,</span></span>
+<span class="r-in"><span>  out_folder <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  out_format <span class="op">=</span> <span class="st">"parquet"</span>,</span></span>
+<span class="r-in"><span>  reciprocal_hits <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>  min_batch_size <span class="op">=</span> <span class="fl">1024</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
     </div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
