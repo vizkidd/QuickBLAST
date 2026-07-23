@@ -44,7 +44,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends pkg-config cmake libnghttp2-dev libuv1-dev
+          sudo apt-get install -y --no-install-recommends pkg-config cmake libnghttp2-dev libuv1-dev libunwind-dev libunwind8
         shell: bash
 
       - name: Install system dependencies (macOS)
