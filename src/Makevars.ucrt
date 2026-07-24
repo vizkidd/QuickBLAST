@@ -9,25 +9,19 @@ PKG_CPPFLAGS = -DARROW_STATIC -DPARQUET_STATIC -DLIBICONV_STATIC
 PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -include include/rcpp_workaround.hpp
 PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS) 
 
-#@mkdir -p ./BUILD
-#@cd ./BUILD && \
-
 # 2. The Superbuild engine
 run_cmake_superbuild.o:
 	@mkdir -p ./BUILD
-	@echo "Mapping package root to T: via subst..."
-	@cmd.exe /c "subst T: /D" 2>/dev/null || true
-	@ROOT_WIN=`cd .. && cygpath -w "$$PWD"` && \
-	cmd.exe /c "subst T: \"$$ROOT_WIN\"" && \
-	cd /t/src/BUILD && \
+	@cd ./BUILD && \
 	RTOOLS_DIR_RAW=`"$(R_HOME)/bin/Rscript" -e "e<-Sys.getenv();v<-e[grep('^RTOOLS.*_HOME$$',names(e))];v<-v[nzchar(v)];cat(if(length(v))v[order(names(v),decreasing=TRUE)][1] else if(nzchar(m<-Sys.which('make'))) dirname(dirname(m)) else 'C:/rtools45')"` && \
 	RTOOLS_DIR=`echo "$$RTOOLS_DIR_RAW" | tr '\\\\' '/'` && \
 	GCC_VER=`gcc -dumpversion | tr -d '[:space:]'` && \
-	export PATH="$$RTOOLS_DIR/x86_64-w64-mingw32.static.posix/bin:$$RTOOLS_DIR/usr/bin:/t/src/BUILD/ncbi-cxx-toolkit-public/BUILD/bin:$$PATH" && \
+	CUR_DIR=`pwd` && \
+	export PATH="$$RTOOLS_DIR/x86_64-w64-mingw32.static.posix/bin:$$RTOOLS_DIR/usr/bin:$$CUR_DIR/ncbi-cxx-toolkit-public/BUILD/bin:$$PATH" && \
 	unset CC && unset CXX && \
 	cmake ../../tools -G "MSYS Makefiles" \
 		-DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_OBJECT_PATH_MAX=120 \
+		-DCMAKE_OBJECT_PATH_MAX=128 \
 		-DR_ARCH="$(R_ARCH)" \
 		-DCMAKE_C_COMPILER=gcc.exe \
 		-DCMAKE_CXX_COMPILER=g++.exe \
@@ -43,14 +37,13 @@ run_cmake_superbuild.o:
 		-DCMAKE_EXPORT_NO_PACKAGE_REGISTRY=ON \
 		-DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF \
 		-DCMAKE_SKIP_RPATH=TRUE \
-		-DCMAKE_SKIP_INSTALL_RPATH=TRUE \
-		-DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF > cmake_config.log 2>&1 || (cat cmake_config.log && cmd.exe /c "subst T: /D" && exit 1) && \
+  	-DCMAKE_SKIP_INSTALL_RPATH=TRUE \
+		-DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF > cmake_config.log 2>&1 || (cat cmake_config.log && exit 1); \
 	N_CORES=`nproc 2>/dev/null || echo 2` && \
-	$(MAKE) -j $$N_CORES -s > cmake_build.log 2>&1 || (cat cmake_build.log && cmd.exe /c "subst T: /D" && exit 1) && \
-	if [ -f ./BUILD/libQuickBLAST.dll ]; then cp ./BUILD/libQuickBLAST.dll ../QuickBLAST.dll; fi && \
-	if [ -f ./BUILD/QuickBLAST.dll ]; then cp ./BUILD/QuickBLAST.dll ../QuickBLAST.dll; fi && \
-	$(BINPREF)strip --strip-debug ../QuickBLAST.dll 2>/dev/null || strip --strip-debug ../QuickBLAST.dll 2>/dev/null || true
-	@cmd.exe /c "subst T: /D" 2>/dev/null || true
+	$(MAKE) -j $$N_CORES -s > cmake_build.log 2>&1 || (cat cmake_build.log && exit 1)
+	@if [ -f ./BUILD/libQuickBLAST.dll ]; then cp ./BUILD/libQuickBLAST.dll QuickBLAST.dll; fi
+	@if [ -f ./BUILD/QuickBLAST.dll ]; then cp ./BUILD/QuickBLAST.dll QuickBLAST.dll; fi
+	@$(BINPREF)strip --strip-debug QuickBLAST.dll 2>/dev/null || strip --strip-debug QuickBLAST.dll 2>/dev/null || true
 	@touch $@
 	@rm -rf ./BUILD
 
