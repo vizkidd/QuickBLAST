@@ -1,10 +1,9 @@
-#' Globals
+# Globals
 
-# Get file path of file inside "libs" folder of package
+#Get file path of file inside "libs" folder of package
 # 
 # param file_name file_name inside "libs" folder
 # return File path inside QuickBLAST package
-# md
 .GetLibsPath <- function(file_name = "") {
   libs_path <- file.path("libs", Sys.getenv("R_ARCH"), file_name)
   return(system.file(libs_path, package = "QuickBLAST", mustWork = T))
@@ -14,7 +13,6 @@
 #
 # param file_name file_name inside "bin" folder
 # return File path inside QuickBLAST package
-# md
 .GetBinPath <- function(file_name = "") {
   bin_path <- file.path("bin", Sys.getenv("R_ARCH"), file_name)
   return(system.file(bin_path, package = "QuickBLAST", mustWork = T))
@@ -522,11 +520,11 @@ dll_obj_list <- list()
   RcppThread::detectCores()
   tzdb::tzdb_initialize()
 
-  if (xfun::is_windows()) {
+  # if (xfun::is_windows()) {
     Sys.setenv("ARROW_DEFAULT_MEMORY_POOL" = "system")
-  } else {
-    Sys.setenv("ARROW_DEFAULT_MEMORY_POOL" = "jemalloc")
-  }
+  # } else {
+    # Sys.setenv("ARROW_DEFAULT_MEMORY_POOL" = "jemalloc")
+  # }
   Sys.setenv("ARROW_DEBUG_MEMORY_POOL" = "warn")
   Sys.setenv("OMP_NUM_THREADS" = parallel::detectCores(all.tests = T, logical = T))
   Sys.setenv("OMP_DYNAMIC" = "TRUE")

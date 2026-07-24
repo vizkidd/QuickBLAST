@@ -1049,7 +1049,8 @@ elseif(WIN32)
         CONFIGURE_COMMAND bash -c "export SHLIB_OPENMP_CXXFLAGS='${SHLIB_OPENMP_CXXFLAGS} ${TOOLKIT_CPPFLAGS}' && export RTOOLS_DIR='${RTOOLS_DIR}' && export R_INCLUDE_DIR='${R_INCLUDE_DIR}' && ./ncbi_crosscomp_inject_pre.sh && export CMAKE_ARGS=\"${NCBI_CMAKE_ARGS}\" && export CMAKE='${RTOOLS_DIR}/ucrt64/bin/cmake.exe' && ./cmake-configure GCC ${GCC_VER} --with-projects=QuickBLAST.prj --without-dll --with-composite --without-debug --with-build-root=BUILD"
         
         # STEP 2: Use double quotes, escape inner quotes, and use $$ to pass command substitution safely to Bash
-        BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} -C BUILD/build -j ${N_PROC} datatool all makeblastdb QuickBLASTcpp
+        BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} -C BUILD/build -j ${N_PROC} datatool makeblastdb QuickBLASTcpp 
+        #all
         
         # STEP 3: Run the post-injection script
         INSTALL_COMMAND bash -c "echo ncbi-cxx-toolkit build complete!"
