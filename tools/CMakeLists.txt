@@ -1128,6 +1128,21 @@ elseif(WIN32)
     # Tell CMake: "Do not try to link Arrow until build_arrow is 100% finished"
     add_dependencies(Arrow::msys2 build_arrow)
 
+    set(MY_BUILD_DIR "${PRJ_ROOT_DIR}/src/BUILD")
+    set(MY_ARROW_DIR "${MY_BUILD_DIR}/arrow")
+    
+    # Back up the specific source folders to a temporary directory, recreating the structure
+    file(COPY "${MY_ARROW_DIR}/cpp/src" DESTINATION "${MY_BUILD_DIR}/temp_arrow_backup/cpp")
+    file(COPY "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/src" DESTINATION "${MY_BUILD_DIR}/temp_arrow_backup/cpp/BUILD_MSYS2")
+    file(COPY "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/release" DESTINATION "${MY_BUILD_DIR}/temp_arrow_backup/cpp/BUILD_MSYS2
+    ")
+    file(COPY "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/lib" DESTINATION "${MY_BUILD_DIR}/temp_arrow_backup/cpp/BUILD_MSYS2")
+    
+    file(REMOVE_RECURSE "${MY_ARROW_DIR}")
+
+    # Rename the backup folder back to 'arrow'
+    file(RENAME "${MY_BUILD_DIR}/temp_arrow_backup" "${MY_ARROW_DIR}")
+
     # =========================================================================
     # 5. LINK NCBI (IMPORTED TARGETS)
     # =========================================================================
