@@ -941,39 +941,32 @@ elseif(WIN32)
         BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} -s -j ${N_PROC} arrow_bundled_dependencies_merge parquet_static arrow
         
         INSTALL_COMMAND 
-            # 0. Your original file copies
             ${CMAKE_COMMAND} -E copy_if_different
                 "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/release/libarrow.a"
                 "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/release/libarrow_msys2.a"
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/release/libparquet.a"
                 "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/release/libparquet_msys2.a"
-            
-            # 1. Move the required output directories up to BUILD/
             COMMAND ${CMAKE_COMMAND} -E make_directory "${MY_BUILD_DIR}/release"
             COMMAND ${CMAKE_COMMAND} -E copy_directory "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/release" "${MY_BUILD_DIR}/release"
-            
             COMMAND ${CMAKE_COMMAND} -E make_directory "${MY_BUILD_DIR}/lib"
             COMMAND ${CMAKE_COMMAND} -E copy_directory "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/lib" "${MY_BUILD_DIR}/lib"
+    )
 
-            # 2. Back up the specific source folders needed later
-            COMMAND ${CMAKE_COMMAND} -E make_directory "${MY_ARROW_BACKUP_DIR}/cpp/src"
-            COMMAND ${CMAKE_COMMAND} -E copy_directory "${MY_ARROW_DIR}/cpp/src" "${MY_ARROW_BACKUP_DIR}/cpp/src"
-            
-            COMMAND ${CMAKE_COMMAND} -E make_directory "${MY_ARROW_BACKUP_DIR}/cpp/BUILD_MSYS2/src"
-            COMMAND ${CMAKE_COMMAND} -E copy_directory "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/src" "${MY_ARROW_BACKUP_DIR}/cpp/BUILD_MSYS2/src"
-            
-            COMMAND ${CMAKE_COMMAND} -E make_directory "${MY_ARROW_BACKUP_DIR}/cpp/BUILD_MSYS2/release"
-            COMMAND ${CMAKE_COMMAND} -E copy_directory "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/release" "${MY_ARROW_BACKUP_DIR}/cpp/BUILD_MSYS2/release"
-            
-            COMMAND ${CMAKE_COMMAND} -E make_directory "${MY_ARROW_BACKUP_DIR}/cpp/BUILD_MSYS2/lib"
-            COMMAND ${CMAKE_COMMAND} -E copy_directory "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/lib" "${MY_ARROW_BACKUP_DIR}/cpp/BUILD_MSYS2/lib"
-
-            # 3. Nuke the original arrow directory to clear MAX_PATH baggage
-            COMMAND ${CMAKE_COMMAND} -E rm -rf "${MY_ARROW_DIR}"
-
-            # 4. Rename the backup directory back to 'arrow'
-            COMMAND ${CMAKE_COMMAND} -E rename "${MY_ARROW_BACKUP_DIR}" "${MY_ARROW_DIR}"
+    # Safely restructure the directories AFTER the external project target has finished and closed its file handles
+    add_custom_command(TARGET build_arrow POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${MY_ARROW_BACKUP_DIR}/cpp/src"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${MY_ARROW_DIR}/cpp/src" "${MY_ARROW_BACKUP_DIR}/cpp/src"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${MY_ARROW_BACKUP_DIR}/cpp/BUILD_MSYS2/src"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/src" "${MY_ARROW_BACKUP_DIR}/cpp/BUILD_MSYS2/src"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${MY_ARROW_BACKUP_DIR}/cpp/BUILD_MSYS2/release"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/release" "${MY_ARROW_BACKUP_DIR}/cpp/BUILD_MSYS2/release"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${MY_ARROW_BACKUP_DIR}/cpp/BUILD_MSYS2/lib"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/lib" "${MY_ARROW_BACKUP_DIR}/cpp/BUILD_MSYS2/lib"
+        # Now that the build process has fully exited, the directory can be deleted safely
+        COMMAND ${CMAKE_COMMAND} -E rm -rf "${MY_ARROW_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E rename "${MY_ARROW_BACKUP_DIR}" "${MY_ARROW_DIR}"
+        COMMENT "Restructuring Arrow directories to bypass Windows MAX_PATH limits"
     )
 
     # =========================================================================
