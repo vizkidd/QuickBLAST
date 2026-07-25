@@ -851,6 +851,11 @@ elseif(WIN32)
     file(WRITE "${ARROW_FILE}" "${POLYFILL}\n${FILE_CONTENT}")
     ]=])
 
+     
+     set(MY_BUILD_DIR "${PRJ_ROOT_DIR}/src/BUILD")
+     set(MY_ARROW_DIR "${MY_BUILD_DIR}/arrow")
+     set(MY_ARROW_BACKUP_DIR "${MY_BUILD_DIR}/temp_arrow_backup")
+
      ExternalProject_Add(build_arrow
         PREFIX "${PRJ_ROOT_DIR}/src/BUILD/arrow_ep"
         SOURCE_DIR "${PRJ_ROOT_DIR}/src/BUILD/arrow/cpp"
@@ -935,13 +940,40 @@ elseif(WIN32)
         # Map the Makevars build command
         BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} -s -j ${N_PROC} arrow_bundled_dependencies_merge parquet_static arrow
         
-        # Map the Makevars copy/install command
-        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${PRJ_ROOT_DIR}/src/BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow.a"
-            "${PRJ_ROOT_DIR}/src/BUILD/arrow/cpp/BUILD_MSYS2/release/libarrow_msys2.a"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${PRJ_ROOT_DIR}/src/BUILD/arrow/cpp/BUILD_MSYS2/release/libparquet.a"
-            "${PRJ_ROOT_DIR}/src/BUILD/arrow/cpp/BUILD_MSYS2/release/libparquet_msys2.a"
+        INSTALL_COMMAND 
+            # 0. Your original file copies
+            ${CMAKE_COMMAND} -E copy_if_different
+                "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/release/libarrow.a"
+                "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/release/libarrow_msys2.a"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/release/libparquet.a"
+                "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/release/libparquet_msys2.a"
+            
+            # 1. Move the required output directories up to BUILD/
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${MY_BUILD_DIR}/release"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/release" "${MY_BUILD_DIR}/release"
+            
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${MY_BUILD_DIR}/lib"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/lib" "${MY_BUILD_DIR}/lib"
+
+            # 2. Back up the specific source folders needed later
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${MY_ARROW_BACKUP_DIR}/cpp/src"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "${MY_ARROW_DIR}/cpp/src" "${MY_ARROW_BACKUP_DIR}/cpp/src"
+            
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${MY_ARROW_BACKUP_DIR}/cpp/BUILD_MSYS2/src"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/src" "${MY_ARROW_BACKUP_DIR}/cpp/BUILD_MSYS2/src"
+            
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${MY_ARROW_BACKUP_DIR}/cpp/BUILD_MSYS2/release"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/release" "${MY_ARROW_BACKUP_DIR}/cpp/BUILD_MSYS2/release"
+            
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${MY_ARROW_BACKUP_DIR}/cpp/BUILD_MSYS2/lib"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/lib" "${MY_ARROW_BACKUP_DIR}/cpp/BUILD_MSYS2/lib"
+
+            # 3. Nuke the original arrow directory to clear MAX_PATH baggage
+            COMMAND ${CMAKE_COMMAND} -E rm -rf "${MY_ARROW_DIR}"
+
+            # 4. Rename the backup directory back to 'arrow'
+            COMMAND ${CMAKE_COMMAND} -E rename "${MY_ARROW_BACKUP_DIR}" "${MY_ARROW_DIR}"
     )
 
     # =========================================================================
@@ -1128,20 +1160,6 @@ elseif(WIN32)
     # Tell CMake: "Do not try to link Arrow until build_arrow is 100% finished"
     add_dependencies(Arrow::msys2 build_arrow)
 
-    set(MY_BUILD_DIR "${PRJ_ROOT_DIR}/src/BUILD")
-    set(MY_ARROW_DIR "${MY_BUILD_DIR}/arrow")
-    
-    # Back up the specific source folders to a temporary directory, recreating the structure
-    file(COPY "${MY_ARROW_DIR}/cpp/src" DESTINATION "${MY_BUILD_DIR}/temp_arrow_backup/cpp")
-    file(COPY "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/src" DESTINATION "${MY_BUILD_DIR}/temp_arrow_backup/cpp/BUILD_MSYS2")
-    file(COPY "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/release" DESTINATION "${MY_BUILD_DIR}/temp_arrow_backup/cpp/BUILD_MSYS2
-    ")
-    file(COPY "${MY_ARROW_DIR}/cpp/BUILD_MSYS2/lib" DESTINATION "${MY_BUILD_DIR}/temp_arrow_backup/cpp/BUILD_MSYS2")
-    
-    file(REMOVE_RECURSE "${MY_ARROW_DIR}")
-
-    # Rename the backup folder back to 'arrow'
-    file(RENAME "${MY_BUILD_DIR}/temp_arrow_backup" "${MY_ARROW_DIR}")
 
     # =========================================================================
     # 5. LINK NCBI (IMPORTED TARGETS)
